@@ -13,6 +13,7 @@ const unsigned char IAC_TRANSMIT_BINARY = 0;
 const unsigned char IAC_SUPPRESS_GO_AHEAD = 3;
 const unsigned char IAC_ECHO = 1;
 
+
 class Node {
 public:
     Node(int node, int socket, bool telnet);
@@ -39,8 +40,11 @@ private:
 
     bool detectANSI();
 
+    std::string username;
+
     std::string gfile_path;
     std::string data_path;
+    std::string script_path;
 
     bool ansi_supported;
     int term_width;

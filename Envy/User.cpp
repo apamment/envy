@@ -100,6 +100,35 @@ int User::check_password(Node *n, std::string username, std::string password) {
     return uid;
 }
 
+std::string User::get_attrib(Node *n, std::string attrib, std::string fallback) {
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    std::string ret;
+    static const char *sql = "SELECT value FROM details WHERE attrib = ? AND uid = ?";
+
+    if (open_database(n->get_data_path() + "/users.sqlite3", &db) == false) {
+        return fallback;
+    }
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return fallback;
+    }
+
+    sqlite3_bind_text(stmt, 1, attrib.c_str(), -1, NULL);
+    sqlite3_bind_int(stmt, 2, n->get_uid());
+
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        ret = std::string((const char *)sqlite3_column_text(stmt, 0));
+    } else {
+        ret = fallback;
+    }
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    
+    return ret;
+}
+
 void User::set_attrib(Node *n, std::string attrib, std::string value) {
     sqlite3 *db;
     sqlite3_stmt *stmt;

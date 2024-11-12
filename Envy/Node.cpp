@@ -12,6 +12,7 @@
 #include "User.h"
 
 
+
 Node::Node(int node, int socket, bool telnet) {
     this->node = node;
     this->socket = socket;
@@ -262,6 +263,9 @@ std::string Node::get_str(int length, char mask) {
 
 
 int Node::run() {
+
+    const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
     unsigned char iac_echo[] = {IAC, IAC_WILL, IAC_ECHO, '\0'};
     unsigned char iac_sga[] = {IAC, IAC_WILL, IAC_SUPPRESS_GO_AHEAD, '\0'};
 
@@ -278,6 +282,8 @@ int Node::run() {
     // read config
     gfile_path = inir.Get("paths", "gfile path", "gfiles");
     data_path = inir.Get("paths", "data path", "data");
+    script_path = inir.Get("paths", "scripts path", "scripts");
+
     LOG(TRACE) << "Node " << node << ": Connected!";
 
 
@@ -301,7 +307,7 @@ int Node::run() {
         }
 
         bprintf("USER: ");
-        std::string username = get_str(16);
+        username = get_str(16);
         std::string password;
         std::string firstname;
         std::string lastname;
@@ -466,6 +472,41 @@ int Node::run() {
             }
         }
     }
+
+    time_t last_call = std::stoi(User::get_attrib(this, "last-call", "0"));
+    int total_calls = std::stoi(User::get_attrib(this, "total-calls", "0"));
+
+    total_calls++;
+
+    User::set_attrib(this, "total-calls", std::to_string(total_calls));
+    User::set_attrib(this, "last-call", std::to_string(time(NULL)));
+
+    cls();
+
+    if (total_calls == 1) {
+        bprintf("Welcome %s, this is your first call!\r\n", username.c_str());
+    } else {
+        if (total_calls % 10 == 1 && total_calls % 100 != 11) {
+            bprintf("Welcome back %s, this is your %dst call!\r\n", username.c_str(), total_calls);
+        } else if (total_calls % 10 == 2 && total_calls % 100 != 12) {
+            bprintf("Welcome back %s, this is your %dnd call!\r\n", username.c_str(), total_calls);
+        } else if (total_calls % 10 == 3 && total_calls % 100 != 13) {
+            bprintf("Welcome back %s, this is your %drd call!\r\n", username.c_str(), total_calls);
+        } else {
+            bprintf("Welcome back %s, this is your %dth call!\r\n", username.c_str(), total_calls);
+        }
+
+        struct tm timetm;
+        localtime_r(&last_call, &timetm);
+        if (timetm.tm_hour > 11) {
+            bprintf("You last called on %s %d at %d:%02dpm\r\n", months[timetm.tm_mon], timetm.tm_mday, (timetm.tm_hour == 12 ? 12 : timetm.tm_hour - 12), timetm.tm_min);
+        } else {
+            bprintf("You last called on %s %d at %d:%02dam\r\n", months[timetm.tm_mon], timetm.tm_mday, (timetm.tm_hour == 0 ? 12 : timetm.tm_hour), timetm.tm_min);
+        }
+
+    }
+    
+
     getch();
     return 0;
 }
