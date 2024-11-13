@@ -11,8 +11,6 @@
 #include "Script.h"
 #include "User.h"
 
-
-
 Node::Node(int node, int socket, bool telnet) {
     this->node = node;
     this->socket = socket;
@@ -29,7 +27,7 @@ void Node::disconnect() {
 
 void Node::cls() {
     if (ansi_supported) {
-        bprintf("\x1b[2J;\x1b[1;1H");
+        bprintf("\x1b[2J\x1b[1;1H");
     } else {
         bprintf("\r\n\r\n");
     }
@@ -125,7 +123,6 @@ void Node::bprintf(const char *fmt, ...) {
 void Node::putfile(std::string filename) {
     std::ifstream t(filename);
     char ch;
-    char lastch = 'x';
 
     if (t.is_open()) {
         while (!t.eof()) {
@@ -137,7 +134,6 @@ void Node::putfile(std::string filename) {
             if (ch == '\r') {
                 send(socket, "\r\n", 2, 0);
             }
-            lastch = ch;
         }
 
         if (ch != '\r' && ch != '\n') {
@@ -269,13 +265,13 @@ int Node::run() {
     unsigned char iac_echo[] = {IAC, IAC_WILL, IAC_ECHO, '\0'};
     unsigned char iac_sga[] = {IAC, IAC_WILL, IAC_SUPPRESS_GO_AHEAD, '\0'};
 
-    auto sink_file = std::make_shared<AixLog::SinkFile>(AixLog::Severity::trace, "envy." + std::to_string(node) + ".log");
+    auto sink_file = std::make_shared<AixLog::SinkEnvy>(AixLog::Severity::trace, "envy.log", node);
 
     AixLog::Log::init({sink_file});
 
     INIReader inir("envy.ini");
     if (inir.ParseError() != 0) {
-        LOG(ERROR) << "Node " << node << ": Error parsing envy.ini";
+        LOG(ERROR) <<  "Error parsing envy.ini";
         return -1;
     }
 
@@ -284,7 +280,7 @@ int Node::run() {
     data_path = inir.Get("paths", "data path", "data");
     script_path = inir.Get("paths", "scripts path", "scripts");
 
-    LOG(TRACE) << "Node " << node << ": Connected!";
+    LOG(TRACE) << "Connected!";
 
 
     // send initial telnet negotiation
@@ -314,6 +310,7 @@ int Node::run() {
         std::string location;
         std::string email;
         if (strcasecmp(username.c_str(), "NEW") == 0) {
+            LOG(INFO) << "New user signing up!";
             cls();
             putgfile("newuser");
             while (true) {
@@ -473,6 +470,8 @@ int Node::run() {
         }
     }
 
+    LOG(INFO) << username << " logged in!";
+
     time_t last_call = std::stoi(User::get_attrib(this, "last-call", "0"));
     int total_calls = std::stoi(User::get_attrib(this, "total-calls", "0"));
 
@@ -503,10 +502,40 @@ int Node::run() {
         } else {
             bprintf("You last called on %s %d at %d:%02dam\r\n", months[timetm.tm_mon], timetm.tm_mday, (timetm.tm_hour == 0 ? 12 : timetm.tm_hour), timetm.tm_min);
         }
-
     }
-    
 
+    bprintf("Press a key...");
     getch();
+
+    cls();
+
+    bool logoff = false;
+
+    while (!logoff) {
+        // main menu
+        cls();
+        if (!putgfile("mainmenu")) {
+            bprintf(">>>>> MAIN MENU <<<<<\r\n");
+            bprintf("G - Goodbye\r\n");
+        }
+
+        bprintf("\r\n:> ");
+
+        char c = getch();
+
+        switch(tolower(c)) {
+            case 'g':
+                logoff = true;
+                break;
+            default:
+                bprintf("\r\n\r\nHuh?");
+                getch();
+                break;
+        }
+    }
+
+    cls();
+    putgfile("logoff");
+    disconnect();
     return 0;
 }

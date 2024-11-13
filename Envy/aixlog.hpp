@@ -612,7 +612,7 @@ protected:
 
     virtual ~Log()
     {
-        sync();
+        //sync();
     }
 
     int sync() override
@@ -806,6 +806,40 @@ struct SinkCerr : public SinkFormat
     {
         do_log(std::cerr, metadata, message);
     }
+};
+
+
+/**
+ * @brief
+ * Formatted logging to file
+ */
+struct SinkEnvy : public SinkFormat
+{
+    SinkEnvy(const Filter& filter, const std::string& filename, const int node, const std::string& format = "%Y-%m-%d %H-%M-%S.#ms [#severity] (#tag_func)")
+        : SinkFormat(filter, format)
+    {
+        this->filename = filename;
+        this->node = node;
+    }
+
+    ~SinkEnvy() override
+    {
+    }
+
+    void log(const Metadata& metadata, const std::string& message) override
+    {
+        std::ofstream ofs;
+        
+        ofs.open(filename.c_str(), std::ofstream::out | std::ofstream::app);
+        do_log(ofs, metadata, "NODE " + std::to_string(node) + ": " + message);
+        ofs.close();
+
+    }
+
+protected:
+    std::string filename;
+    int node;
+
 };
 
 /**
