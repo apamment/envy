@@ -1,5 +1,6 @@
 #include <fstream>
 #include <sstream>
+#include "aixlog.hpp"
 #include "Script.h"
 #include "Node.h"
 #include "duktape.h"
@@ -8,7 +9,6 @@
 static void my_fatal(void *udata, const char *msg) {
     Node *n = (Node *)udata;
 
-    n->bprintf("JS Error: %s\r\n", (msg ? msg : "no message"));
     n->disconnect();
 }
 
@@ -16,6 +16,12 @@ static Node* get_node(duk_context *ctx) {
     duk_memory_functions funcs;
     duk_get_memory_functions(ctx, &funcs);
     return (Node *)funcs.udata;
+}
+
+static duk_ret_t bdisconnect(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    n->disconnect();
+    return 0;
 }
 
 static duk_ret_t bprint(duk_context *ctx) {
@@ -45,13 +51,14 @@ int Script::run(Node *n, std::string filename) {
     std::ifstream t(filename);
     std::stringstream buffer;
 
+    LOG(INFO) << "Loading \"" << filename << "\"";
+
     if (t.is_open()) {
         buffer << t.rdbuf();
     } else {
+        LOG(ERROR) << "Script \"" << filename << "\" is missing!";
         return -1;
     }
-
-    LOG(INFO) << "Executing " << filename;
 
     duk_context *ctx = duk_create_heap(NULL, NULL, NULL, (void *)n, my_fatal);
 
@@ -61,10 +68,16 @@ int Script::run(Node *n, std::string filename) {
     duk_push_c_function(ctx, bgetch, 0);
     duk_put_global_string(ctx, "getch");
 
+    duk_push_c_function(ctx, bdisconnect, 0);
+    duk_put_global_string(ctx, "disconnect");
+
     duk_push_c_function(ctx, bgetstr, 1);
     duk_put_global_string(ctx, "gets");
 
-    duk_pcompile_string(ctx, 0, buffer.str().c_str());
+    if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
+        LOG(ERROR) << "compile failed: " << duk_safe_to_string(ctx, -1);
+        return -1;
+    }
 
     duk_pcall(ctx, 0);
 

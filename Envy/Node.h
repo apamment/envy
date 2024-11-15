@@ -46,6 +46,8 @@ private:
     std::string data_path;
     std::string script_path;
 
+
+
     bool ansi_supported;
     int term_width;
     int term_height;

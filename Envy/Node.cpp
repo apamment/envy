@@ -509,33 +509,11 @@ int Node::run() {
 
     cls();
 
-    bool logoff = false;
+    Script::run(this, script_path + "/menu.js");
 
-    while (!logoff) {
-        // main menu
-        cls();
-        if (!putgfile("mainmenu")) {
-            bprintf(">>>>> MAIN MENU <<<<<\r\n");
-            bprintf("G - Goodbye\r\n");
-        }
+    bprintf("Script has run!\r\n");
 
-        bprintf("\r\n:> ");
-
-        char c = getch();
-
-        switch(tolower(c)) {
-            case 'g':
-                logoff = true;
-                break;
-            default:
-                bprintf("\r\n\r\nHuh?");
-                getch();
-                break;
-        }
-    }
-
-    cls();
-    putgfile("logoff");
     disconnect();
+
     return 0;
 }
