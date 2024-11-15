@@ -3,6 +3,7 @@
 #define VERSION "0.1"
 
 #include <string>
+#include "Logger.h"
 
 const unsigned char IAC = 255;
 const unsigned char IAC_WILL = 251;
@@ -35,7 +36,7 @@ public:
     int get_uid() {
         return uid;
     }
-
+    Logger *log;
 private:
 
     bool detectANSI();
@@ -45,7 +46,7 @@ private:
     std::string gfile_path;
     std::string data_path;
     std::string script_path;
-
+    std::string log_path;
 
 
     bool ansi_supported;

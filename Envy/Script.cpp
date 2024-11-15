@@ -1,10 +1,8 @@
 #include <fstream>
 #include <sstream>
-#include "aixlog.hpp"
 #include "Script.h"
 #include "Node.h"
 #include "duktape.h"
-#include "aixlog.hpp"
 
 static void my_fatal(void *udata, const char *msg) {
     Node *n = (Node *)udata;
@@ -51,12 +49,12 @@ int Script::run(Node *n, std::string filename) {
     std::ifstream t(filename);
     std::stringstream buffer;
 
-    LOG(INFO) << "Loading \"" << filename << "\"";
+    n->log->log(LOG_INFO, "Loading \"%s\"", filename.c_str());
 
     if (t.is_open()) {
         buffer << t.rdbuf();
     } else {
-        LOG(ERROR) << "Script \"" << filename << "\" is missing!";
+        n->log->log(LOG_ERROR, "Script \"%s\" is missing!", filename.c_str());
         return -1;
     }
 
@@ -75,7 +73,7 @@ int Script::run(Node *n, std::string filename) {
     duk_put_global_string(ctx, "gets");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
-        LOG(ERROR) << "compile failed: " << duk_safe_to_string(ctx, -1);
+        n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
         return -1;
     }
 

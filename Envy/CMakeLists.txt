@@ -5,6 +5,6 @@ project(envy)
 find_package(SQLite3 REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-add_executable(envy main.cpp Node.cpp duktape.c Script.cpp User.cpp)
+add_executable(envy main.cpp Node.cpp duktape.c Script.cpp User.cpp Logger.cpp)
 include_directories(${SQLite3_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
 target_link_libraries (envy ${SQLite3_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY})

@@ -4,8 +4,9 @@
 #include <cerrno>
 #include <unistd.h>
 #include <filesystem>
+#include <sstream>
+#include <fstream>
 #include "../Common/INIReader.h"
-#include "aixlog.hpp"
 #include "Node.h"
 #include "Disconnect.h"
 #include "Script.h"
@@ -265,13 +266,8 @@ int Node::run() {
     unsigned char iac_echo[] = {IAC, IAC_WILL, IAC_ECHO, '\0'};
     unsigned char iac_sga[] = {IAC, IAC_WILL, IAC_SUPPRESS_GO_AHEAD, '\0'};
 
-    auto sink_file = std::make_shared<AixLog::SinkEnvy>(AixLog::Severity::trace, "envy.log", node);
-
-    AixLog::Log::init({sink_file});
-
     INIReader inir("envy.ini");
     if (inir.ParseError() != 0) {
-        LOG(ERROR) <<  "Error parsing envy.ini";
         return -1;
     }
 
@@ -279,9 +275,12 @@ int Node::run() {
     gfile_path = inir.Get("paths", "gfile path", "gfiles");
     data_path = inir.Get("paths", "data path", "data");
     script_path = inir.Get("paths", "scripts path", "scripts");
+    log_path = inir.Get("paths", "logs", "logs");
 
-    LOG(TRACE) << "Connected!";
+    log = new Logger();
+    log->load(log_path + "/envy." + std::to_string(node) + ".log");
 
+    log->log(LOG_INFO, "Connected!");
 
     // send initial telnet negotiation
     send(socket, (char *)iac_echo, 3, 0);
@@ -310,7 +309,7 @@ int Node::run() {
         std::string location;
         std::string email;
         if (strcasecmp(username.c_str(), "NEW") == 0) {
-            LOG(INFO) << "New user signing up!";
+            log->log(LOG_INFO, "New user signing up!");
             cls();
             putgfile("newuser");
             while (true) {
@@ -470,7 +469,7 @@ int Node::run() {
         }
     }
 
-    LOG(INFO) << username << " logged in!";
+    log->log(LOG_INFO, "%s logged in!", username.c_str());
 
     time_t last_call = std::stoi(User::get_attrib(this, "last-call", "0"));
     int total_calls = std::stoi(User::get_attrib(this, "total-calls", "0"));
