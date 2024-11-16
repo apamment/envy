@@ -32,7 +32,7 @@ if (!gfile("automsg")) {
 var amsg = load("automsg", "")
 
 if (amsg == "") {
-    print("No automessage...")
+    print("No automessage...\r\n\r\n")
 } else {
     print(amsg + "\r\n");
 
