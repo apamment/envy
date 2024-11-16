@@ -200,7 +200,10 @@ int User::inst_user(Node *n, std::string username, std::string password, std::st
         ssalt << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << (int)salt[i];
     }
 
-    hash = hash_sha256(password, ssalt.str());
+
+    std::string saltstr = ssalt.str();
+
+    hash = hash_sha256(password, saltstr);
     if (hash.size() == 0) {
         return -1;
     }
@@ -219,9 +222,10 @@ int User::inst_user(Node *n, std::string username, std::string password, std::st
         return -1;
     }
 
+
     sqlite3_bind_text(stmt, 1, username.c_str(), -1, NULL);
     sqlite3_bind_text(stmt, 2, hash.c_str(), -1, NULL);
-    sqlite3_bind_text(stmt, 3, ssalt.str().c_str(), -1, NULL);
+    sqlite3_bind_text(stmt, 3, saltstr.c_str(), -1, NULL);
 
     sqlite3_step(stmt);
     int id = sqlite3_last_insert_rowid(db);
