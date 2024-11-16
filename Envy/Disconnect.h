@@ -10,7 +10,7 @@ public:
     }
 
 
-   ~DisconnectException() _NOEXCEPT
+   ~DisconnectException() noexcept
    {
 
    }

@@ -2,6 +2,8 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <cstring>
+#include <iomanip>
 #include <openssl/evp.h>
 #include "Node.h"
 #include "User.h"
