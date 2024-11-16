@@ -29,12 +29,20 @@ public:
     int run();
     void disconnect();
 
+    std::string get_script_path() {
+        return script_path;
+    }
+
     std::string get_data_path() {
         return data_path;
     }
 
     int get_uid() {
         return uid;
+    }
+
+    std::string get_username() {
+        return username;
     }
     Logger *log;
 private:

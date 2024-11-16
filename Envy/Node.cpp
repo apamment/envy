@@ -506,11 +506,7 @@ int Node::run() {
     bprintf("Press a key...");
     getch();
 
-    cls();
-
-    Script::run(this, script_path + "/menu.js");
-
-    bprintf("Script has run!\r\n");
+    Script::run(this, "menu");
 
     disconnect();
 
