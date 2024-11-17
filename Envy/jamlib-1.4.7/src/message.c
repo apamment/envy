@@ -1,6 +1,6 @@
 /*
    JAMLIB - A JAM subroutine library
-   Copyright (C) 1999 Björn Stenberg
+   Copyright (C) 1999 Bjï¿½rn Stenberg
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,7 @@
  **
  **  Message.C -- Message handling
  **
- **  Author: Bj”rn Stenberg (bjorn.stenberg@sth.frontec.se)
+ **  Author: Bjï¿½rn Stenberg (bjorn.stenberg@sth.frontec.se)
  **
  ***********************************************************************/
 #ifdef HAVE_CONFIG_H
@@ -54,7 +54,7 @@
  **  JAM_ReadMsgHeader - Read message header {{{
  **/
 int JAM_ReadMsgHeader( s_JamBase*	Base_PS,
-		       ulong		MsgNo_I,
+		       uint32_t		MsgNo_I,
 		       s_JamMsgHeader*	Header_PS,
 		       s_JamSubPacket** SubfieldPack_PPS )
 {
@@ -166,9 +166,9 @@ int JAM_ReadMsgHeader( s_JamBase*	Base_PS,
  **  JAM_ReadMsgText - Read message text {{{
  **/
 int JAM_ReadMsgText( s_JamBase* Base_PS,
-		     ulong	Offset_I,
-		     ulong	Length_I,
-		     uchar*	Buffer_PC )
+		     uint32_t	Offset_I,
+		     uint32_t	Length_I,
+		     uint8_t*	Buffer_PC )
 {
     if ( !Base_PS || !Buffer_PC )
 	return JAM_BAD_PARAM;
@@ -197,7 +197,7 @@ int JAM_ReadMsgText( s_JamBase* Base_PS,
  **  JAM_ChangeMsgHeader - Change a message header {{{
  **/
 int JAM_ChangeMsgHeader( s_JamBase*	 Base_PS,
-			 ulong		 MsgNo_I,
+			 uint32_t		 MsgNo_I,
 			 s_JamMsgHeader* Header_PS )
 {
     s_JamBaseHeader	BaseHeader_S;
@@ -272,14 +272,14 @@ int JAM_ChangeMsgHeader( s_JamBase*	 Base_PS,
 int JAM_AddMessage( s_JamBase*		Base_PS,
 		    s_JamMsgHeader*	Header_PS,
 		    s_JamSubPacket*	SubPack_PS,
-		    uchar*		Text_PC,
-		    ulong		TextLen_I )
+		    uint8_t*		Text_PC,
+		    uint32_t		TextLen_I )
 {
     s_JamBaseHeader	BaseHeader_S;
     s_JamIndex		Index_S;
-    ulong		Offset_I;
+    uint32_t		Offset_I;
     int			Status_I;
-    ulong		TotLen_I;
+    uint32_t		TotLen_I;
 
     if ( !Base_PS )
 	return JAM_BAD_PARAM;
@@ -386,7 +386,7 @@ int JAM_AddMessage( s_JamBase*		Base_PS,
     /* write Subfields */
     if ( SubPack_PS ) {
 	s_JamSubfield*	Subfield_PS;
-	uchar		User_AC[101];
+	uint8_t		User_AC[101];
 
 	/* clear username */
 	User_AC[0] = 0;
@@ -490,7 +490,7 @@ int JAM_AddEmptyMessage( s_JamBase*		Base_PS)
  **  JAM_DeleteMessage - Delete message from messagebase {{{
  **/
 int JAM_DeleteMessage( s_JamBase*	 Base_PS,
-		       ulong		 MsgNo_I )
+		       uint32_t		 MsgNo_I )
 {
     s_JamBaseHeader	BaseHeader_S;
     s_JamMsgHeader	Header_S;

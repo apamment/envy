@@ -1,6 +1,6 @@
 /*
    JAMLIB - A JAM subroutine library
-   Copyright (C) 1999 Björn Stenberg
+   Copyright (C) 1999 Bjï¿½rn Stenberg
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -130,7 +130,7 @@ s_JamSubfield* JAM_GetSubfield( s_JamSubPacket* SubPack_PS )
  **  JAM_GetSubfield_R -- Get first/next subfield from a subfield packet {{{
  **                       (reentrant)
  **/
-s_JamSubfield* JAM_GetSubfield_R( s_JamSubPacket* SubPack_PS , ulong* Count_PI)
+s_JamSubfield* JAM_GetSubfield_R( s_JamSubPacket* SubPack_PS , uint32_t* Count_PI)
 {
     if ( *Count_PI < SubPack_PS->NumFields )
 	return SubPack_PS->Fields[ (*Count_PI)++ ];
@@ -148,7 +148,7 @@ s_JamSubfield* JAM_GetSubfield_R( s_JamSubPacket* SubPack_PS , ulong* Count_PI)
 int JAM_PutSubfield( s_JamSubPacket* SubPack_PS, s_JamSubfield* Field_PS )
 {
     s_JamSubfield*	NewField_PS;
-    uchar*		NewBuf_PC;
+    uint8_t*		NewBuf_PC;
 
     /* do we have to expand the array? */
     if ( SubPack_PS->NumFields == SubPack_PS->NumAlloc ) {
@@ -173,7 +173,7 @@ int JAM_PutSubfield( s_JamSubPacket* SubPack_PS, s_JamSubfield* Field_PS )
 
     /* allocate a new buffer */
     if ( Field_PS->DatLen ) {
-	NewBuf_PC = (uchar*) malloc( Field_PS->DatLen );
+	NewBuf_PC = (uint8_t*) malloc( Field_PS->DatLen );
 	if ( !NewBuf_PC ) {
 	    free (NewField_PS);
 	    return JAM_NO_MEMORY;
