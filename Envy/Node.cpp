@@ -229,15 +229,17 @@ std::string Node::get_str(int length, char mask) {
     while (ss.str().length() < length) {
         char c = getch();
         if (c == '\b' || c == 127) {
-            std::string s = ss.str();
-            s.erase(s.length() - 1, 1);
-            if (ansi_supported) {
-                bprintf("\033[D \033[D");
-            } else {
-                bprintf("\b \b");
+            if (ss.str().length() > 0) {
+                std::string s = ss.str();
+                s.erase(s.length() - 1, 1);
+                if (ansi_supported) {
+                    bprintf("\033[D \033[D");
+                } else {
+                    bprintf("\b \b");
+                }
+                ss.str("");
+                ss << s;
             }
-            ss.str("");
-            ss << s;
         } else if (c == '\r') {
             if (ansi_supported) {
                 bprintf("\033[0m\r\n");
