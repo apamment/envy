@@ -9,7 +9,7 @@ extern "C" {
 #include "Node.h"
 
 struct msg_header_t {
-    ulong id;
+    uint32_t id;
     std::string from;
     std::string to;
     std::string subject;
@@ -42,27 +42,27 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
     jsf.LoID = JAMSFLD_SENDERNAME;
     jsf.HiID = 0;
     jsf.DatLen = n->get_username().length();
-    jsf.Buffer = (uchar *)n->get_username().c_str();
+    jsf.Buffer = (uint8_t *)n->get_username().c_str();
     JAM_PutSubfield(jsp, &jsf);
 
     jsf.LoID = JAMSFLD_RECVRNAME;
     jsf.HiID = 0;
     jsf.DatLen = recipient.length();
-    jsf.Buffer = (uchar *)recipient.c_str();
+    jsf.Buffer = (uint8_t *)recipient.c_str();
     JAM_PutSubfield(jsp, &jsf);
 
     jsf.LoID = JAMSFLD_SUBJECT;
     jsf.HiID = 0;
     jsf.DatLen = subject.length();
-    jsf.Buffer = (uchar *)subject.c_str();
+    jsf.Buffer = (uint8_t *)subject.c_str();
     JAM_PutSubfield(jsp, &jsf);
 
     int ret;
-    ret = JAM_OpenMB((uchar *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
+    ret = JAM_OpenMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
     if (ret != 0) {
         free(jb);
         if (ret == JAM_IO_ERROR) {
-            ret = JAM_CreateMB((uchar *)std::string(n->get_msg_path() + "/" + file).c_str(), 1, &jb);
+            ret = JAM_CreateMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), 1, &jb);
             if (ret != 0) {
                 free(jb);
                 return false;
@@ -86,7 +86,7 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
         body << msg.at(i) << "\r";
     }
 
-    if (JAM_AddMessage(jb, &jmh, jsp, (uchar *)body.str().c_str(), body.str().length())) {
+    if (JAM_AddMessage(jb, &jmh, jsp, (uint8_t *)body.str().c_str(), body.str().length())) {
         // failed to add message
         JAM_UnlockMB(jb);
         JAM_CloseMB(jb);
@@ -156,11 +156,11 @@ void MessageBase::list_messages(Node *n, int startingat) {
     s_JamMsgHeader jmh;
     s_JamSubPacket *jsp;
     int ret;
-    ret = JAM_OpenMB((uchar *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
+    ret = JAM_OpenMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
     if (ret != 0) {
         free(jb);
         if (ret == JAM_IO_ERROR) {
-            ret = JAM_CreateMB((uchar *)std::string(n->get_msg_path() + "/" + file).c_str(), 1, &jb);
+            ret = JAM_CreateMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), 1, &jb);
             if (ret != 0) {
                 free(jb);
                 return;
