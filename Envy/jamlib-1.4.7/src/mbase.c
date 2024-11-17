@@ -89,7 +89,7 @@
  **
  **  File-global functions {{{
  **/
-int jam_Open( s_JamBase* Base_PS, uchar* Filename_PC, char* Mode_PC );
+int jam_Open( s_JamBase* Base_PS, uint8_t* Filename_PC, char* Mode_PC );
 int jam_Lock( s_JamBase* Base_PS, int DoLock_I );
 /** }}}
  **
@@ -99,7 +99,7 @@ int jam_Lock( s_JamBase* Base_PS, int DoLock_I );
  **
  **  JAM_OpenMB - Open message base {{{
  **/
-int JAM_OpenMB( uchar* Basename_PC, s_JamBase** NewArea_PPS )
+int JAM_OpenMB( uint8_t* Basename_PC, s_JamBase** NewArea_PPS )
 {
     s_JamBase*  Base_PS;
     int		Status_I;
@@ -129,8 +129,8 @@ int JAM_OpenMB( uchar* Basename_PC, s_JamBase** NewArea_PPS )
  **
  **  JAM_CreateMB - Create a new message base {{{
  **/
-int JAM_CreateMB( uchar*	Basename_PC,
-		  ulong		BaseMsg_I,
+int JAM_CreateMB( uint8_t*	Basename_PC,
+		  uint32_t		BaseMsg_I,
 		  s_JamBase**	NewArea_PPS )
 {
     s_JamBaseHeader	Base_S;
@@ -216,9 +216,9 @@ int JAM_CloseMB( s_JamBase* Base_PS )
  **
  **  JAM_RemoveMB - Remove a message base {{{
  **/
-int JAM_RemoveMB( s_JamBase* Base_PS, uchar* Basename_PC )
+int JAM_RemoveMB( s_JamBase* Base_PS, uint8_t* Basename_PC )
 {
-    uchar Filename_AC[250];
+    uint8_t Filename_AC[250];
     int   Status_AI[4];
 
     /* .JHR file */
@@ -258,9 +258,9 @@ int JAM_RemoveMB( s_JamBase* Base_PS, uchar* Basename_PC )
  **
  **  JAM_GetMBSize - Get the number of messages in message base {{{
  **/
-int JAM_GetMBSize( s_JamBase* Base_PS, ulong* Messages_PI )
+int JAM_GetMBSize( s_JamBase* Base_PS, uint32_t* Messages_PI )
 {
-    ulong Offset_I;
+    uint32_t Offset_I;
 
     /* go to end of index file */
     if ( fseek( Base_PS->IdxFile_PS, 0, SEEK_END ) ) {
@@ -407,11 +407,11 @@ int JAM_WriteMBHeader( s_JamBase* Base_PS, s_JamBaseHeader* Header_PS )
  **  JAM_FindUser - Scan scan file for messages to a user {{{
  **/
 int JAM_FindUser( s_JamBase*	Base_PS,
-		  ulong		UserCrc_I,
-		  ulong		StartMsg_I,
-		  ulong*	MsgNo_PI )
+		  uint32_t		UserCrc_I,
+		  uint32_t		StartMsg_I,
+		  uint32_t*	MsgNo_PI )
 {
-    ulong MsgNo_I;
+    uint32_t MsgNo_I;
 
     /* go to start message */
     if ( fseek( Base_PS->IdxFile_PS, StartMsg_I * sizeof( s_JamIndex ), SEEK_SET ) ) {
@@ -453,7 +453,7 @@ int jam_Lock( s_JamBase* Base_PS, int DoLock_I )
 #if defined(__OS2__)
     FILELOCK Area_S;
     APIRET   Status_I;
-    ULONG    Timeout_I = 0;
+    uint32_t    Timeout_I = 0;
     int      Handle_I;
 
     Handle_I = fileno( Base_PS->HdrFile_PS );
@@ -561,9 +561,9 @@ int jam_Lock( s_JamBase* Base_PS, int DoLock_I )
  **
  **  jam_Open - Open/create message base files {{{
  **/
-int jam_Open( s_JamBase* Base_PS, uchar* Basename_PC, char* Mode_PC )
+int jam_Open( s_JamBase* Base_PS, uint8_t* Basename_PC, char* Mode_PC )
 {
-    uchar Filename_AC[250];
+    uint8_t Filename_AC[250];
 
     /* .JHR file */
     sprintf( Filename_AC, "%s%s", Basename_PC, EXT_HDRFILE );

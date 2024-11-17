@@ -1,6 +1,6 @@
 /*
    JAMLIB - A JAM subroutine library
-   Copyright (C) 1999 Björn Stenberg
+   Copyright (C) 1999 Bjï¿½rn Stenberg
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@
  **
  **  LASTREAD.C -- Lastread pointer handling
  **
- **  Author: Bj”rn Stenberg (bjorn.stenberg@sth.frontec.se)
+ **  Author: Bjï¿½rn Stenberg (bjorn.stenberg@sth.frontec.se)
  **
  ***********************************************************************/
 #ifdef HAVE_CONFIG_H
@@ -44,7 +44,7 @@
  **  JAM_ReadLastRead - Read LastRead record {{{
  **/
 int JAM_ReadLastRead( s_JamBase*	Base_PS,
-		      ulong		User_I,
+		      uint32_t		User_I,
 		      s_JamLastRead*	Record_PS )
 {
     s_JamLastRead Record_S;
@@ -86,7 +86,7 @@ int JAM_ReadLastRead( s_JamBase*	Base_PS,
  **  JAM_WriteLastRead - Write LastRead record {{{
  **/
 int JAM_WriteLastRead( s_JamBase*	Base_PS,
-		       ulong		User_I,
+		       uint32_t		User_I,
 		       s_JamLastRead*	Record_PS )
 {
     s_JamLastRead Record_S;
