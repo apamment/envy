@@ -22,6 +22,18 @@ Node::Node(int node, int socket, bool telnet) {
     tstage = 0;
 };
 
+void Node::pause() {
+    if (ansi_supported) {
+        bprintf("\x1b[s|10Press a key..|07");
+        getch();
+        bprintf("\x1b[u\x1b[K");
+    } else {
+        bprintf("Press a key...");
+        getch();
+        bprintf("\r\n");
+    }
+}
+
 void Node::disconnect() {
     close(socket);
 
@@ -118,7 +130,103 @@ void Node::bprintf(const char *fmt, ...) {
     va_start(args, fmt);
 
     vsnprintf(buffer, sizeof buffer, fmt, args);
-    send(socket, buffer, strlen(buffer), 0);
+
+    std::stringstream ss;
+
+    for (size_t i = 0; i < strlen(buffer); i++) {
+        if (buffer[i] == '|') {
+            if (i <= strlen(buffer) - 3) {
+                int pipe_color = 0;
+                if (buffer[i+1] >= '0' && buffer[i+1] <= '9' && buffer[i+2] >= '0' && buffer[i+2] <= '9') {
+                    pipe_color = (buffer[i+1] - '0') * 10 + (buffer[i+2] - '0');
+
+                    if (ansi_supported) {
+                        ss << "\x1b[";
+                        switch (pipe_color) {
+                            case 0:
+                                ss << "0;30";
+                                break;
+                            case 1:
+                                ss << "0;34";
+                                break;
+                            case 2:
+                                ss << "0;32";
+                                break;
+                            case 3:
+                                ss << "0;36";
+                                break;
+                            case 4:
+                                ss << "0;31";
+                                break;
+                            case 5:
+                                ss <<"0;35";
+                                break;
+                            case 6:
+                                ss << "0;33";
+                                break;
+                            case 7:
+                                ss << "0;37";
+                                break;
+                            case 8:
+                                ss << "1;30";
+                                break;
+                            case 9:
+                                ss << "1;34";
+                                break;
+                            case 10:
+                                ss << "1;32";
+                                break;
+                            case 11:
+                                ss << "1;36";
+                                break;
+                            case 12:
+                                ss << "1;31";
+                                break;
+                            case 13:
+                                ss << "1;35";
+                                break;
+                            case 14:
+                                ss << "1;33";
+                                break;
+                            case 15:
+                                ss << "1;37";
+                                break;
+                            case 16:
+                                ss << "40";
+                                break;
+                            case 17:
+                                ss << "44";
+                                break;
+                            case 18:
+                                ss << "42";
+                                break;
+                            case 19:
+                                ss << "46";
+                                break;
+                            case 20:
+                                ss << "41";
+                                break;
+                            case 21:
+                                ss << "45";
+                                break;
+                            case 22:
+                                ss << "43";
+                                break;
+                            case 23:
+                                ss << "47";
+                                break;
+                        }
+                        ss << "m";
+                    }
+                    i+=2;
+                    continue;
+                }
+            }
+        }
+        ss << buffer[i];
+    }
+
+    send(socket, ss.str().c_str(), ss.str().length(), 0);
 
     va_end(args);
 }
@@ -506,29 +614,27 @@ int Node::run() {
     cls();
 
     if (total_calls == 1) {
-        bprintf("Welcome %s, this is your first call!\r\n", username.c_str());
+        bprintf("Welcome |15%s|07, this is your first call!\r\n", username.c_str());
     } else {
         if (total_calls % 10 == 1 && total_calls % 100 != 11) {
-            bprintf("Welcome back %s, this is your %dst call!\r\n", username.c_str(), total_calls);
+            bprintf("Welcome back |15%s|07, this is your |15%dst|07 call!\r\n", username.c_str(), total_calls);
         } else if (total_calls % 10 == 2 && total_calls % 100 != 12) {
-            bprintf("Welcome back %s, this is your %dnd call!\r\n", username.c_str(), total_calls);
+            bprintf("Welcome back |15%s|07, this is your |15%dnd|07 call!\r\n", username.c_str(), total_calls);
         } else if (total_calls % 10 == 3 && total_calls % 100 != 13) {
-            bprintf("Welcome back %s, this is your %drd call!\r\n", username.c_str(), total_calls);
+            bprintf("Welcome back |15%s|07, this is your |15%drd|07 call!\r\n", username.c_str(), total_calls);
         } else {
-            bprintf("Welcome back %s, this is your %dth call!\r\n", username.c_str(), total_calls);
+            bprintf("Welcome back |15%s|07, this is your |15%dth|07 call!\r\n", username.c_str(), total_calls);
         }
 
         struct tm timetm;
         localtime_r(&last_call, &timetm);
         if (timetm.tm_hour > 11) {
-            bprintf("You last called on %s %d at %d:%02dpm\r\n", months[timetm.tm_mon], timetm.tm_mday, (timetm.tm_hour == 12 ? 12 : timetm.tm_hour - 12), timetm.tm_min);
+            bprintf("You last called on |15%s %d |07at |15%d:%02dpm|07\r\n", months[timetm.tm_mon], timetm.tm_mday, (timetm.tm_hour == 12 ? 12 : timetm.tm_hour - 12), timetm.tm_min);
         } else {
-            bprintf("You last called on %s %d at %d:%02dam\r\n", months[timetm.tm_mon], timetm.tm_mday, (timetm.tm_hour == 0 ? 12 : timetm.tm_hour), timetm.tm_min);
+            bprintf("You last called on |15%s %d |07at |15%d:%02dam|07\r\n", months[timetm.tm_mon], timetm.tm_mday, (timetm.tm_hour == 0 ? 12 : timetm.tm_hour), timetm.tm_min);
         }
     }
-
-    bprintf("Press a key...");
-    getch();
+    pause();
 
     Script::run(this, "menu");
 

@@ -112,7 +112,7 @@ void MessageBase::enter_message(Node *n) {
     std::string subject = n->get_str(32);
 
     if (subject.length() == 0) {
-        n->bprintf("Aborted!\r\n");
+        n->bprintf("|12Aborted!|07\r\n");
         return;
     }
 
@@ -128,12 +128,14 @@ void MessageBase::enter_message(Node *n) {
             switch (tolower(line_str.at(1))) {
                 case 's': {
                     if (!save_message(n, recipient, subject, msg)) {
-                        n->bprintf("Saving message failed...\r\n");
+                        n->bprintf("|12Saving message failed.|07\r\n");
+                    } else {
+                        n->bprintf("|10Saved message!|07\r\n");
                     }
                 }
                 return;
                 case 'a': 
-                    n->bprintf("Aborted!\r\n");
+                    n->bprintf("|12Aborted!|07\r\n");
                 return;
                 default:
                 break;
@@ -173,9 +175,8 @@ void MessageBase::list_messages(Node *n, int startingat) {
     if (jbh.ActiveMsgs <= 0) {
         JAM_CloseMB(jb);
         free(jb);
-        n->bprintf("No messages in message base...\r\n");
-        n->bprintf("Press a key...");
-        n->getch();
+        n->bprintf("|14No messages in message base..,|07\r\n");
+        n->pause();
         return;
     }
 
@@ -183,7 +184,6 @@ void MessageBase::list_messages(Node *n, int startingat) {
         struct msg_header_t hdr;
         int ret = JAM_ReadMsgHeader(jb, i, &jmh, &jsp);
         if (ret != 0) {
-            n->bprintf("RET %d ERRNO %d\r\n", ret, JAM_Errno(jb));
             continue;
         }
     
@@ -212,11 +212,11 @@ void MessageBase::list_messages(Node *n, int startingat) {
 
     for (size_t i = startingat; i < hdrs.size(); i++) {
 
-	struct tm dt;
+	    struct tm dt;
 
-	gmtime_r(&hdrs.at(i).date, &dt);
+	    gmtime_r(&hdrs.at(i).date, &dt);
 
-        n->bprintf("[%5d] %-25.25s %-16.16s %-16.16s %04d/%02d/%02d\r\n", i + 1, hdrs.at(i).subject.c_str(), hdrs.at(i).to.c_str(), hdrs.at(i).from.c_str(), dt.tm_year + 1900, dt.tm_mon + 1, dt.tm_mday);
+        n->bprintf("|08[|07%5d|08] |15%-25.25s |10%-16.16s |11%-16.16s |13%04d/%02d/%02d|07\r\n", i + 1, hdrs.at(i).subject.c_str(), hdrs.at(i).to.c_str(), hdrs.at(i).from.c_str(), dt.tm_year + 1900, dt.tm_mon + 1, dt.tm_mday);
         lines++;
         if (lines == 23) {
             n->bprintf("Continue (Y/N)?");
@@ -229,6 +229,5 @@ void MessageBase::list_messages(Node *n, int startingat) {
         }
     }
 
-    n->bprintf("Press a key...");
-    n->getch();
+    n->pause();
 }

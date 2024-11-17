@@ -30,6 +30,7 @@ public:
     void bprintf(const char *fmt, ...);
     int run();
     void disconnect();
+    void pause();
 
     MessageBase *get_curr_msgbase();
 
