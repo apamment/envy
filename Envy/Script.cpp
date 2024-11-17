@@ -240,6 +240,16 @@ static duk_ret_t blistmsgs(duk_context *ctx) {
     return 0;
 }
 
+static duk_ret_t bwritemsg(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    MessageBase *mb = n->get_curr_msgbase();
+    if (mb != nullptr) {
+        mb->enter_message(n);
+    }
+    return 0;
+}
+
 int Script::run(Node *n, std::string script) {
     std::string filename = n->get_script_path() + "/" + script + ".js";
     std::ifstream t(filename);
@@ -298,6 +308,9 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, blistmsgs, 1);
     duk_put_global_string(ctx, "listmsgs");
+
+    duk_push_c_function(ctx, bwritemsg, 0);
+    duk_put_global_string(ctx, "writemsg");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
