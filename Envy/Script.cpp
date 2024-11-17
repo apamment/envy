@@ -5,6 +5,7 @@
 #include "Node.h"
 #include "User.h"
 #include "duktape.h"
+#include "MessageBase.h"
 
 struct script_data {
     Node *n;
@@ -227,6 +228,18 @@ static duk_ret_t bgetusername(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t blistmsgs(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    
+    int startingat = duk_get_int(ctx, 0);
+
+    MessageBase *mb = n->get_curr_msgbase();
+    if (mb != nullptr) {
+        mb->list_messages(n, startingat);
+    }
+    return 0;
+}
+
 int Script::run(Node *n, std::string script) {
     std::string filename = n->get_script_path() + "/" + script + ".js";
     std::ifstream t(filename);
@@ -282,6 +295,9 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bgetusername, 0);
     duk_put_global_string(ctx, "getusername");
+
+    duk_push_c_function(ctx, blistmsgs, 1);
+    duk_put_global_string(ctx, "listmsgs");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));

@@ -7,7 +7,9 @@
 #include <sstream>
 #include <fstream>
 #include "../Common/INIReader.h"
+#include "../Common/toml.hpp"
 #include "Node.h"
+#include "MessageBase.h"
 #include "Disconnect.h"
 #include "Script.h"
 #include "User.h"
@@ -277,10 +279,13 @@ int Node::run() {
     gfile_path = inir.Get("paths", "gfile path", "gfiles");
     data_path = inir.Get("paths", "data path", "data");
     script_path = inir.Get("paths", "scripts path", "scripts");
-    log_path = inir.Get("paths", "logs", "logs");
+    log_path = inir.Get("paths", "log path", "logs");
+    msg_path = inir.Get("paths", "message path", "msgs");
 
     log = new Logger();
     log->load(log_path + "/envy." + std::to_string(node) + ".log");
+
+    load_msgbases();
 
     log->log(LOG_INFO, "Connected!");
 
@@ -473,6 +478,23 @@ int Node::run() {
 
     log->log(LOG_INFO, "%s logged in!", username.c_str());
 
+    curr_msgbase = -1;
+    std::string cmb = User::get_attrib(this, "curr_mbase", "");
+
+    if (cmb != "") {
+        for (size_t i = 0; i < msgbases.size(); i++) {
+            if (msgbases.at(i)->file == cmb) {
+                curr_msgbase = i;
+                break;
+            }
+        }
+    }
+    if (curr_msgbase == -1) {
+        if (msgbases.size() > 0) {
+            curr_msgbase = 0;
+        }
+    }
+
     time_t last_call = std::stoi(User::get_attrib(this, "last-call", "0"));
     int total_calls = std::stoi(User::get_attrib(this, "total-calls", "0"));
 
@@ -513,4 +535,47 @@ int Node::run() {
     disconnect();
 
     return 0;
+}
+
+void Node::load_msgbases() {
+    try {
+        auto data = toml::parse_file(data_path + "/msgbases.toml");
+        auto baseitems = data.get_as<toml::array>("msgbase");
+
+        for (size_t i = 0; i < baseitems->size(); i++) {
+            auto itemtable = baseitems->get(i)->as_table();
+
+            std::string myname;
+            std::string myfile;
+
+            auto name = itemtable->get("name");
+            if (name != nullptr) {
+                myname = name->as_string()->value_or("Invalid Name");
+            } else {
+                myname = "Unknown Name";
+            }
+
+            auto file = itemtable->get("file");
+            if (file != nullptr) {
+                myfile = file->as_string()->value_or("");
+            } else {
+                myfile = "";
+            }
+            if (myfile != "") {
+                msgbases.push_back(new MessageBase(myname, myfile));
+            }
+        }
+
+    } catch (toml::parse_error const &p) {
+        log->log(LOG_ERROR, "Error parsing %s/msgbases.toml, Line %d, Column %d", data_path.c_str(), p.source().begin.line, p.source().begin.column);
+        log->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
+    }
+}
+
+MessageBase *Node::get_curr_msgbase() {
+    if (curr_msgbase != -1) {
+        return msgbases.at(curr_msgbase);
+    }
+
+    return nullptr;
 }
