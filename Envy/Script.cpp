@@ -262,6 +262,22 @@ static duk_ret_t bwritemsg(duk_context *ctx) {
     return 0;
 }
 
+static duk_ret_t bselectarea(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    n->select_msg_base();
+
+    return 0;
+}
+
+static duk_ret_t bgetarea(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    duk_push_string(ctx, n->get_curr_msgbase()->name.c_str());
+
+    return 1;
+}
+
 int Script::run(Node *n, std::string script) {
     std::string filename = n->get_script_path() + "/" + script + ".js";
     std::ifstream t(filename);
@@ -326,6 +342,12 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bwritemsg, 0);
     duk_put_global_string(ctx, "writemsg");
+
+    duk_push_c_function(ctx, bselectarea, 0);
+    duk_put_global_string(ctx, "selectarea");
+
+    duk_push_c_function(ctx, bgetarea, 0);
+    duk_put_global_string(ctx, "getarea");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));

@@ -19,6 +19,7 @@ while(true) {
     cls()
     if (!gfile("mainmenu")) {
         print(">>>> Main Menu <<<<\r\n")
+        print("S - Select Msg Area\r\n")
         print("W - Write Message\r\n")
         print("L - List Messages\r\n")
         print("R - Read Messages\r\n")
@@ -26,7 +27,7 @@ while(true) {
         print("O - Oneliners\r\n")
         print("G - Goodbye!\r\n\r\n")
     }
-    print(":> ")
+    print("|08(|10" + getarea() + "|08) :> |07")
 
     var c = getch()
 
@@ -39,7 +40,9 @@ while(true) {
     } else if (c == 'l' || c == 'L') {
         listmsgs(0)
     } else if (c == 'r' || c == 'R') {
-        readmsgs(0);
+        readmsgs(0)
+    } else if (c == 's' || c == 'S') {
+        selectarea()
     } else if (c == 'a' || c == 'A') {
         cls()
         exec("automsg")

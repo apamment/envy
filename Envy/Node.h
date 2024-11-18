@@ -31,6 +31,7 @@ public:
     int run();
     void disconnect();
     void pause();
+    void select_msg_base();
 
     MessageBase *get_curr_msgbase();
 

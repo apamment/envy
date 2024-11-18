@@ -43,7 +43,7 @@ if (amsg == "") {
 }
 
 print("E. Enter Auto Message\r\n")
-print("\r\n:> ")
+print("\r\n|08:> |07")
 var ch = getch()
 
 if (ch == 'e' || ch == 'E') {

@@ -685,3 +685,33 @@ MessageBase *Node::get_curr_msgbase() {
 
     return nullptr;
 }
+
+void Node::select_msg_base() {
+    cls();
+    
+    int lines = 0;
+    
+    for (size_t i = 0; i < msgbases.size(); i++) {
+        bprintf("%4d. %s\r\n", i + 1, msgbases.at(i)->name.c_str());
+        if (lines == 22) {
+            pause();
+            lines = 0;
+        }
+    }
+
+    bprintf("\r\nSelect area: ");
+    std::string num = get_str(4);
+
+    if (num.length() > 0) {
+        try {
+            int n = std::stoi(num);
+
+            if (n - 1 >= 0 && n - 1 < msgbases.size()) {
+                curr_msgbase = n - 1;
+                User::set_attrib(this, "curr_mbase", msgbases.at(curr_msgbase)->file);
+            }
+        } catch (std::out_of_range const &) {
+        } catch (std::invalid_argument const &) {
+        }
+    }
+}

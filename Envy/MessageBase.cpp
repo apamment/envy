@@ -192,6 +192,11 @@ JAM_ReadMBHeader(jb, &jbh);
 	    hdr.date = jmh.DateWritten;
         hdr.body_len = jmh.TxtLen;
         hdr.body_off = jmh.TxtOffset;
+
+        hdr.subject = "No Subject";
+        hdr.to = "Unknown";
+        hdr.from = "Unknown";
+
         for (size_t f = 0; f < jsp->NumFields; f++) {
             hdr.id = i;
             if (jsp->Fields[f]->LoID == JAMSFLD_SUBJECT) {
