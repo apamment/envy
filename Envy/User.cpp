@@ -178,7 +178,7 @@ void User::set_attrib(Node *n, std::string attrib, std::string value) {
     }
 }
 
-int User::inst_user(Node *n, std::string username, std::string password, std::string fullname, std::string location, std::string email) {
+int User::inst_user(Node *n, std::string username, std::string password) {
     sqlite3 *db;
     sqlite3_stmt *stmt;
 
@@ -231,10 +231,6 @@ int User::inst_user(Node *n, std::string username, std::string password, std::st
     int id = sqlite3_last_insert_rowid(db);
     sqlite3_finalize(stmt);
     sqlite3_close(db);
-
-    set_attrib(n, "fullname", fullname);
-    set_attrib(n, "location", location);
-    set_attrib(n, "email", email);
 
     return id;
 }

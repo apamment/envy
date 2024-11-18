@@ -592,11 +592,14 @@ int Node::run() {
                 continue;
             }
 
-            uid = User::inst_user(this, username, password, firstname + " " + lastname, location, email);
+            uid = User::inst_user(this, username, password);
 
             if (uid == -1) {
                 disconnect();
             } else {
+                User::set_attrib(this, "fullname",  firstname + " " + lastname);
+                User::set_attrib(this, "location", location);
+                User::set_attrib(this, "email", email);
                 break;
             }
         } else {
