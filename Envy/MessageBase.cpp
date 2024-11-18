@@ -181,6 +181,10 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
         body << msg.at(i) << "\r";
     }
 
+    if (mbtype == ECHO) {
+        body << "\r--- envy\r * Origin: " << tagline << " (" << address << ")\r";
+    }
+
     if (JAM_AddMessage(jb, &jmh, jsp, (uint8_t *)body.str().c_str(), body.str().length())) {
         // failed to add message
         JAM_UnlockMB(jb);
