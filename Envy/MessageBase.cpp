@@ -282,7 +282,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
 
         struct tm date_tm;
 
-        localtime_r(&hdrs.at(reading).date, &date_tm);
+        gmtime_r(&hdrs.at(reading).date, &date_tm);
 
         n->bprintf("|10Date: |15%02d:%02d %02d-%02d-%04d\r\n", date_tm.tm_hour, date_tm.tm_min, date_tm.tm_mday, date_tm.tm_mon + 1, date_tm.tm_year + 1900);
         n->bprintf("|08-------------------------------------------------------------------------------|07\r\n");
