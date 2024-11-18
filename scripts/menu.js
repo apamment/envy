@@ -16,6 +16,8 @@ function goodbye() {
 exec("last10")
 exec("automsg")
 
+scanbases()
+
 while(true) {
     cls()
     if (!gfile("mainmenu")) {

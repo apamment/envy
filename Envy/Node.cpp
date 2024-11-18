@@ -762,7 +762,9 @@ void Node::select_msg_base() {
     int lines = 0;
     
     for (size_t i = 0; i < msgbases.size(); i++) {
-        bprintf("%4d. %s\r\n", i + 1, msgbases.at(i)->name.c_str());
+        uint32_t ur = msgbases.at(i)->get_unread(this);
+        uint32_t tot = msgbases.at(i)->get_total(this);
+        bprintf("|07%4d. |15%-40.40s |10%d UNREAD |13%d TOTAL|07\r\n", i + 1, msgbases.at(i)->name.c_str(), ur, tot);
         if (lines == 22) {
             pause();
             lines = 0;
@@ -784,4 +786,22 @@ void Node::select_msg_base() {
         } catch (std::invalid_argument const &) {
         }
     }
+}
+
+void Node::scan_msg_bases() {
+    int lines = 0;
+
+    cls();
+    for (size_t i = 0; i < msgbases.size(); i++) {
+        uint32_t ur = msgbases.at(i)->get_unread(this);
+        uint32_t tot = msgbases.at(i)->get_total(this);
+
+        bprintf("|07%4d. |15%-40.40s |10%d UNREAD |13%d TOTAL|07\r\n", i + 1, msgbases.at(i)->name.c_str(), ur, tot);
+        lines++;
+        if (lines == 22) {
+            pause();
+            lines = 0;
+        }
+    }
+    pause();
 }

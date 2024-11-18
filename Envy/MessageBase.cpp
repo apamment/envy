@@ -324,6 +324,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
 	    hdr.date = jmh.DateWritten;
         hdr.body_len = jmh.TxtLen;
         hdr.body_off = jmh.TxtOffset;
+        hdr.id = jmh.MsgNum;
 
         hdr.subject = "No Subject";
         hdr.to = "Unknown";
@@ -331,7 +332,6 @@ void MessageBase::read_messages(Node *n, int startingat) {
         hdr.msgid = "";
 
         for (size_t f = 0; f < jsp->NumFields; f++) {
-            hdr.id = i;
             if (jsp->Fields[f]->LoID == JAMSFLD_SUBJECT) {
 			    hdr.subject = std::string((const char*)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
 		    } else if (jsp->Fields[f]->LoID == JAMSFLD_SENDERNAME) {
@@ -369,8 +369,13 @@ void MessageBase::read_messages(Node *n, int startingat) {
         }
         
         JAM_ReadMsgText(jb, hdrs.at(reading).body_off, hdrs.at(reading).body_len, (uint8_t *)body);
+
+
         JAM_CloseMB(jb);
         free(jb);
+
+        set_lastread(n, hdrs.at(reading).id);
+
         std::stringstream ss;
         std::vector<std::string> msg;
 
@@ -450,6 +455,9 @@ void MessageBase::list_messages(Node *n, int startingat) {
     s_JamBaseHeader jbh;
     s_JamMsgHeader jmh;
     s_JamSubPacket *jsp;
+
+    uint32_t hr = get_highread(n);
+
     int ret;
     ret = JAM_OpenMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
     if (ret != 0) {
@@ -514,8 +522,11 @@ void MessageBase::list_messages(Node *n, int startingat) {
 	    struct tm dt;
 
 	    gmtime_r(&hdrs.at(i).date, &dt);
-
-        n->bprintf("|08[|07%5d|08] |15%-25.25s |10%-16.16s |11%-16.16s |13%04d/%02d/%02d|07\r\n", i + 1, hdrs.at(i).subject.c_str(), hdrs.at(i).to.c_str(), hdrs.at(i).from.c_str(), dt.tm_year + 1900, dt.tm_mon + 1, dt.tm_mday);
+        if (hdrs.at(i).id > hr) {
+            n->bprintf("|08[|07%5d|08]|14*|15%-25.25s |10%-16.16s |11%-16.16s |13%04d/%02d/%02d|07\r\n", i + 1, hdrs.at(i).subject.c_str(), hdrs.at(i).to.c_str(), hdrs.at(i).from.c_str(), dt.tm_year + 1900, dt.tm_mon + 1, dt.tm_mday);
+        } else {
+            n->bprintf("|08[|07%5d|08] |15%-25.25s |10%-16.16s |11%-16.16s |13%04d/%02d/%02d|07\r\n", i + 1, hdrs.at(i).subject.c_str(), hdrs.at(i).to.c_str(), hdrs.at(i).from.c_str(), dt.tm_year + 1900, dt.tm_mon + 1, dt.tm_mday);
+        }
         lines++;
         if (lines == 23) {
             n->bprintf("|10Continue (Y/N) or Read MSG NO: |07");
@@ -550,4 +561,206 @@ void MessageBase::list_messages(Node *n, int startingat) {
         } catch (std::invalid_argument const &) {
         }
     }
+}
+
+void MessageBase::set_lastread(Node *n, uint32_t msgid) {
+    s_JamBase *jb;
+    s_JamLastRead jlr;
+
+    int ret;
+    ret = JAM_OpenMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
+    if (ret != 0) {
+        free(jb);
+        if (ret == JAM_IO_ERROR) {
+            ret = JAM_CreateMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), 1, &jb);
+            if (ret != 0) {
+                free(jb);
+                return;
+            }
+        } else {
+            return;
+        }
+    }
+
+    ret = JAM_ReadLastRead(jb, n->get_uid(), &jlr);
+
+    if (ret != 0) {
+        if (ret == JAM_NO_USER) {
+            jlr.HighReadMsg = msgid;
+            jlr.LastReadMsg = msgid;
+            char *buffer = (char *)malloc(n->get_username().length() + 1);
+            for (size_t i = 0; i < n->get_username().length(); i++) {
+                buffer[i] = tolower(n->get_username().at(i));
+                buffer[i + 1] = '\0';
+            }
+
+            jlr.UserCRC = JAM_Crc32((uint8_t *)buffer, n->get_username().length());
+            jlr.UserID = n->get_uid();
+            free(buffer);
+            JAM_WriteLastRead(jb, n->get_uid(), &jlr);
+
+            JAM_CloseMB(jb);
+            free(jb);
+
+            return;
+        } else {
+            JAM_CloseMB(jb);
+            free(jb);
+            return;
+        }
+    }
+
+    if (jlr.HighReadMsg < msgid) {
+        jlr.HighReadMsg = msgid;
+    }
+    jlr.LastReadMsg = msgid;
+    JAM_WriteLastRead(jb, n->get_uid(), &jlr);
+
+    JAM_CloseMB(jb);
+    free(jb);
+    return;
+}
+
+uint32_t MessageBase::get_lastread(Node *n) {
+    s_JamBase *jb;
+    s_JamLastRead jlr;
+
+    int ret;
+    ret = JAM_OpenMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
+    if (ret != 0) {
+        free(jb);
+        if (ret == JAM_IO_ERROR) {
+            ret = JAM_CreateMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), 1, &jb);
+            if (ret != 0) {
+                free(jb);
+                return 0;
+            }
+        } else {
+            return 0;
+        }
+    }
+
+    ret = JAM_ReadLastRead(jb, n->get_uid(), &jlr);
+
+    if (ret != 0) {
+        JAM_CloseMB(jb);
+        free(jb);
+        return 0;
+    } else {
+        uint32_t retval = jlr.LastReadMsg;
+        JAM_CloseMB(jb);
+        free(jb);
+        return retval;
+    }
+}
+
+uint32_t MessageBase::get_highread(Node *n) {
+    s_JamBase *jb;
+    s_JamLastRead jlr;
+
+    int ret;
+    ret = JAM_OpenMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
+    if (ret != 0) {
+        free(jb);
+        if (ret == JAM_IO_ERROR) {
+            ret = JAM_CreateMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), 1, &jb);
+            if (ret != 0) {
+                free(jb);
+                return 0;
+            }
+        } else {
+            return 0;
+        }
+    }
+
+    ret = JAM_ReadLastRead(jb, n->get_uid(), &jlr);
+
+    if (ret != 0) {
+        JAM_CloseMB(jb);
+        free(jb);
+        return 0;
+    } else {
+        uint32_t retval = jlr.HighReadMsg;
+        JAM_CloseMB(jb);
+        free(jb);
+        return retval;
+    }
+}
+
+uint32_t MessageBase::get_total(Node *n) {
+    s_JamBase *jb;
+    s_JamBaseHeader jbh;
+    int ret;
+    ret = JAM_OpenMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
+    if (ret != 0) {
+        free(jb);
+        if (ret == JAM_IO_ERROR) {
+            ret = JAM_CreateMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), 1, &jb);
+            if (ret != 0) {
+                free(jb);
+                return 0;
+            }
+        } else {
+            return 0;
+        }
+    }
+
+    JAM_ReadMBHeader(jb, &jbh);
+
+    ret = jbh.ActiveMsgs;
+
+    JAM_CloseMB(jb);
+    free(jb);
+
+    return ret;
+}
+
+uint32_t MessageBase::get_unread(Node *n) {
+    uint32_t hr = get_highread(n);
+    uint32_t unread = 0;
+    s_JamBase *jb;
+    s_JamBaseHeader jbh;
+    s_JamMsgHeader jmh;
+    s_JamSubPacket *jsp;
+    int ret;
+    ret = JAM_OpenMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
+    if (ret != 0) {
+        free(jb);
+        if (ret == JAM_IO_ERROR) {
+            ret = JAM_CreateMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), 1, &jb);
+            if (ret != 0) {
+                free(jb);
+                return 0;
+            }
+        } else {
+            return 0;
+        }
+    }
+
+    JAM_ReadMBHeader(jb, &jbh);
+
+    if (jbh.ActiveMsgs <= 0) {
+        JAM_CloseMB(jb);
+        free(jb);
+        return 0;
+    }
+
+    int k = 0;
+
+    for (size_t i = 0; i < jbh.ActiveMsgs; k++) {
+        struct msg_header_t hdr;
+        int ret = JAM_ReadMsgHeader(jb, k, &jmh, &jsp);
+        if (ret != 0) {
+            continue;
+        }
+        if (jmh.MsgNum > hr) {
+            unread++;
+        }
+        JAM_DelSubPacket(jsp);
+        i++;
+    }
+    JAM_CloseMB(jb);
+    free(jb);
+
+    return unread;
 }

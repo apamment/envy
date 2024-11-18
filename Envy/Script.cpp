@@ -286,6 +286,14 @@ static duk_ret_t bpause(duk_context *ctx) {
     return 0;
 }
 
+static duk_ret_t bscanbases(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    n->scan_msg_bases();
+
+    return 0;
+}
+
 
 int Script::run(Node *n, std::string script) {
     std::string filename = n->get_script_path() + "/" + script + ".js";
@@ -361,6 +369,8 @@ int Script::run(Node *n, std::string script) {
     duk_push_c_function(ctx, bpause, 0);
     duk_put_global_string(ctx, "pause");
 
+    duk_push_c_function(ctx, bscanbases, 0);
+    duk_put_global_string(ctx, "scanbases");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
