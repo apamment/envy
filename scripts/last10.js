@@ -26,7 +26,7 @@ for (var i = 0; i < 10; i++) {
 
 var thetime = new Date();
 var call_count = Number(load("call-count", "0")) + 1;
-var finalline = "|07" + pad("   ", call_count, true) + ". |15" + pad("                 ", getusername(), false) + " |10" + pad("                                ", getattr("location", "Somewhere, The World"), false) + " |13" + thetime.toDateString() + "|07"
+var finalline = "|07" + pad("      ", call_count, true) + ". |15" + pad("                 ", getusername(), false) + " |10" + pad("                                ", getattr("location", "Somewhere, The World"), false) + " |13" + thetime.toDateString() + "|07"
 save("call-count", call_count)
 
 
