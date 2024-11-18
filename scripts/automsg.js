@@ -24,7 +24,8 @@ function enter_automsg() {
     print("\r\nSaved!\r\n")
 }
 
-print("\r\n")
+cls()
+
 if (!gfile("automsg")) {
     print("A U T O M S G\r\n")
 }

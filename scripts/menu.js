@@ -13,6 +13,7 @@ function goodbye() {
     }
 }
 
+exec("last10")
 exec("automsg")
 
 while(true) {
@@ -49,7 +50,7 @@ while(true) {
     } else if (c == 'o' || c == 'O') {
         exec("oneliner")
     } else {
-        print("Huh?\r\n")
-        getch()
+        print("|12Huh?|07\r\n\r\n")
+        pause()
     }
 }

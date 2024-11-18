@@ -278,6 +278,15 @@ static duk_ret_t bgetarea(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t bpause(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    n->pause();
+
+    return 0;
+}
+
+
 int Script::run(Node *n, std::string script) {
     std::string filename = n->get_script_path() + "/" + script + ".js";
     std::ifstream t(filename);
@@ -348,6 +357,10 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bgetarea, 0);
     duk_put_global_string(ctx, "getarea");
+
+    duk_push_c_function(ctx, bpause, 0);
+    duk_put_global_string(ctx, "pause");
+
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
