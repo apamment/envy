@@ -257,7 +257,7 @@ static duk_ret_t bwritemsg(duk_context *ctx) {
 
     MessageBase *mb = n->get_curr_msgbase();
     if (mb != nullptr) {
-        mb->enter_message(n);
+        mb->enter_message(n, "", "", nullptr);
     }
     return 0;
 }

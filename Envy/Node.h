@@ -27,6 +27,9 @@ public:
     bool putgfile(std::string gfile);
     std::string get_str(int length);
     std::string get_str(int length, char mask);
+    std::string get_str(int length, char mask, std::string placeholder);
+    void bprintf_nc(const char *fmt, ...);
+    void bprintf(bool parse_pipes, const char *fmt, va_list args);
     void bprintf(const char *fmt, ...);
     int run();
     void disconnect();
@@ -49,6 +52,18 @@ public:
 
     int get_uid() {
         return uid;
+    }
+
+    int get_term_height() {
+        return term_height;
+    }
+
+    int get_term_width() {
+        return term_width;
+    }
+    
+    bool has_ansi() {
+        return ansi_supported;
     }
 
     std::string get_username() {

@@ -5,6 +5,7 @@ extern "C" {
 #include <cctype>
 #include <ctime>
 #include <sstream>
+#include "FullScreenEditor.h"
 #include "MessageBase.h"
 #include "Node.h"
 
@@ -104,14 +105,17 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
     return true;
 }
 
-void MessageBase::enter_message(Node *n) {
+void MessageBase::enter_message(Node *n, std::string recipient, std::string subject, std::vector<std::string> *quotebuffer) {
+
+
     n->bprintf("Recipient: ");
-    std::string recipient = n->get_str(16);
+    recipient = n->get_str(16, 0, recipient);
     if (recipient.length() == 0) {
         recipient = "All";
     }
+    
     n->bprintf("Subject: ");
-    std::string subject = n->get_str(32);
+    subject = n->get_str(32, 0, subject);
 
     if (subject.length() == 0) {
         n->bprintf("|12Aborted!|07\r\n");
@@ -124,8 +128,25 @@ void MessageBase::enter_message(Node *n) {
     std::string file;  
     std::vector<std::string> msg;
 
+    if (n->has_ansi()) {
+        FullScreenEditor fse(n, recipient, subject, quotebuffer, nullptr);
+        msg = fse.edit();
+        if (msg.size() == 0) {
+            n->bprintf("|12Aborted!|07\r\n");
+            return;
+        } else {
+            if (!save_message(n, recipient, subject, msg)) {
+                n->bprintf("|12Saving message failed.|07\r\n");
+            } else {
+                n->bprintf("|10Saved message!|07\r\n");
+            }
+
+            return;      
+        }
+    }
+
     while (true) {
-        n->bprintf("[%05d]: ", line);
+        n->bprintf("|08[%05d]: |07", line);
         std::string line_str = n->get_str(70);
         if (line_str.length() >= 2 && line_str.at(0) == '/') {
             switch (tolower(line_str.at(1))) {
@@ -172,7 +193,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
             return;
         }
     }
-JAM_ReadMBHeader(jb, &jbh);
+    JAM_ReadMBHeader(jb, &jbh);
 
     if (jbh.ActiveMsgs <= 0) {
         JAM_CloseMB(jb);
@@ -246,7 +267,7 @@ JAM_ReadMBHeader(jb, &jbh);
             } 
             ss << body[i];
 
-            if (ss.str().length() == 79) {
+            if (ss.str().length() == 75) {
                 std::string line = ss.str();
                 msg.push_back(line);
                 ss.str("");
@@ -277,7 +298,7 @@ JAM_ReadMBHeader(jb, &jbh);
             }
         }
 
-        n->bprintf("|10(N)ext, (P)revious, (Q)uit: |07");
+        n->bprintf("|10(R)eply (N)ext, (P)revious, (Q)uit: |07");
         char ch = n->getch();
 
         switch(tolower(ch)) {
@@ -286,6 +307,19 @@ JAM_ReadMBHeader(jb, &jbh);
                 break;
             case 'p':
                 reading = reading - 1;
+                break;
+            case 'r':
+                {
+
+                    n->bprintf("\r\n");
+                    std::vector<std::string> qb;
+
+                    for (size_t q = 0; q < msg.size(); q++) {
+                        qb.push_back(" > " + msg.at(q));
+                    }
+
+                    enter_message(n, hdrs.at(reading).from, hdrs.at(reading).subject, &qb);
+                }
                 break;
             case 'q':
                 return;
@@ -353,7 +387,10 @@ void MessageBase::list_messages(Node *n, int startingat) {
     free(jb);
 
 
-    int lines = 0;
+    n->cls();
+
+    n->bprintf("MSG NO  SUBJECT                   TO               FROM             DATE\r\n");
+    int lines = 1;
 
     for (size_t i = startingat; i < hdrs.size(); i++) {
 
@@ -364,15 +401,36 @@ void MessageBase::list_messages(Node *n, int startingat) {
         n->bprintf("|08[|07%5d|08] |15%-25.25s |10%-16.16s |11%-16.16s |13%04d/%02d/%02d|07\r\n", i + 1, hdrs.at(i).subject.c_str(), hdrs.at(i).to.c_str(), hdrs.at(i).from.c_str(), dt.tm_year + 1900, dt.tm_mon + 1, dt.tm_mday);
         lines++;
         if (lines == 23) {
-            n->bprintf("Continue (Y/N)?");
-            char ch = n->getch();
-            if (tolower(ch) == 'n') {
-                return;
+            n->bprintf("|10Continue (Y/N) or Read MSG NO: |07");
+            std::string ch = n->get_str(5);
+            if (ch.length() > 0) {
+                if (tolower(ch.at(0)) == 'n') {
+                    return;
+                } else {
+                    try {
+                        int num = std::stoi(ch);
+                        read_messages(n, num - 1);
+                        return;
+                    } catch (std::out_of_range const &) {
+                    } catch (std::invalid_argument const &) {
+                    }
+                }
             }
-            n->bprintf("\r\n");
-            lines = 0;
+            n->cls();
+            n->bprintf("MSG NO  SUBJECT                   TO               FROM             DATE\r\n");
+            lines = 1;
         }
     }
+    
+    n->bprintf("|10Read MSG NO:|07");
 
-    n->pause();
+    std::string ch = n->get_str(5);
+    if (ch.length() > 0) {
+        try {
+            int num = std::stoi(ch);
+            read_messages(n, num - 1);
+        } catch (std::out_of_range const &) {
+        } catch (std::invalid_argument const &) {
+        }
+    }
 }

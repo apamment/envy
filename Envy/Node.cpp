@@ -121,20 +121,29 @@ bool Node::detectANSI() {
   return false;
 }
 
-
+void Node::bprintf_nc(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    bprintf(false, fmt, args);
+    va_end(args);
+}
 
 void Node::bprintf(const char *fmt, ...) {
-    char buffer[2048];
     va_list args;
-
     va_start(args, fmt);
+    bprintf(true, fmt, args);
+    va_end(args);
+}
+
+void Node::bprintf(bool parse_pipes, const char *fmt, va_list args) {
+    char buffer[2048];
 
     vsnprintf(buffer, sizeof buffer, fmt, args);
 
     std::stringstream ss;
 
     for (size_t i = 0; i < strlen(buffer); i++) {
-        if (buffer[i] == '|') {
+        if (buffer[i] == '|' && parse_pipes == true) {
             if (i <= strlen(buffer) - 3) {
                 int pipe_color = 0;
                 if (buffer[i+1] >= '0' && buffer[i+1] <= '9' && buffer[i+2] >= '0' && buffer[i+2] <= '9') {
@@ -227,8 +236,6 @@ void Node::bprintf(const char *fmt, ...) {
     }
 
     send(socket, ss.str().c_str(), ss.str().length(), 0);
-
-    va_end(args);
 }
 
 void Node::putfile(std::string filename) {
@@ -320,20 +327,44 @@ char Node::getch() {
 }
 
 std::string Node::get_str(int length) {
-    return get_str(length, 0);
+    return get_str(length, 0, "");
 }
 
+
 std::string Node::get_str(int length, char mask) {
+    return get_str(length, mask, "");
+}
+
+std::string Node::get_str(int length, char mask, std::string placeholder) {
     std::stringstream ss;
 
-    if (ansi_supported) {
-        bprintf("\033[s\033[1;37;42m");
+    placeholder = placeholder.substr(0, length - 1);
 
-        for (int i = 0; i < length; i++) {
+    if (ansi_supported) {
+        bprintf("\033[1;37;42m");
+
+        if (placeholder.length() > 0) {
+            for (int i = 0; i < length; i++) {
+                if (i < placeholder.length() && i < length - 1) {
+                    if (mask) {
+                        bprintf("%c", mask);
+                    } else {
+                        bprintf("%c", placeholder.at(i));
+                    }
+                    ss << placeholder.at(i);
+                }
+            }
+        }
+
+        bprintf("\033[s");
+        for (int i = placeholder.length(); i < length; i++) {
             bprintf(" ");
         }
 
         bprintf("\033[u\033[1;37;42m");
+    } else {
+        bprintf("%s", placeholder.c_str());
+        ss << placeholder;
     }
 
     while (ss.str().length() < length) {
