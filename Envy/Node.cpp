@@ -420,6 +420,8 @@ int Node::run() {
     script_path = inir.Get("paths", "scripts path", "scripts");
     log_path = inir.Get("paths", "log path", "logs");
     msg_path = inir.Get("paths", "message path", "msgs");
+    default_tagline = inir.Get("main", "default tagline", "Unknown BBS");
+
 
     log = new Logger();
     log->load(log_path + "/envy." + std::to_string(node) + ".log");
@@ -687,6 +689,9 @@ void Node::load_msgbases() {
 
             std::string myname;
             std::string myfile;
+            std::string myoaddr;
+            std::string mytagline;
+            MessageBase::MsgBaseType mytype;
 
             auto name = itemtable->get("name");
             if (name != nullptr) {
@@ -701,9 +706,40 @@ void Node::load_msgbases() {
             } else {
                 myfile = "";
             }
-            if (myfile != "") {
-                msgbases.push_back(new MessageBase(myname, myfile));
+
+
+            auto oaddr = itemtable->get("aka");
+            if (oaddr != nullptr) {
+                myoaddr = oaddr->as_string()->value_or("");
+            } else {
+                myoaddr = "";
             }
+
+            auto tagline = itemtable->get("tagline");
+            if (tagline != nullptr) {
+                mytagline = tagline->as_string()->value_or(default_tagline);
+            } else {
+                mytagline = default_tagline;
+            }
+
+            auto mbtype = itemtable->get("type");
+            if (mbtype != nullptr) {
+                std::string mbtypes = mbtype->as_string()->value_or("local");
+
+                if (strcasecmp(mbtypes.c_str(), "echomail") == 0) {
+                    mytype = MessageBase::MsgBaseType::ECHO;
+                } else if (strcasecmp(mbtypes.c_str(), "netmail") == 0) {
+                    mytype = MessageBase::MsgBaseType::NETMAIL;
+                } else {
+                    mytype = MessageBase::MsgBaseType::LOCAL;
+                }
+            } else {
+                mytype = MessageBase::MsgBaseType::LOCAL;
+            }
+
+            if (myfile != "") {
+                msgbases.push_back(new MessageBase(myname, myfile, myoaddr, mytagline, mytype));
+            }            
         }
 
     } catch (toml::parse_error const &p) {

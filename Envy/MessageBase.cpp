@@ -5,19 +5,12 @@ extern "C" {
 #include <cctype>
 #include <ctime>
 #include <sstream>
+#include <iomanip>
 #include "FullScreenEditor.h"
 #include "MessageBase.h"
 #include "Node.h"
 
-struct msg_header_t {
-    uint32_t id;
-    std::string from;
-    std::string to;
-    std::string subject;
-    time_t date;
-    size_t body_len;
-    size_t body_off;
-};
+
 
 time_t MessageBase::utc_to_local(time_t utc) {
     time_t local;
@@ -30,10 +23,24 @@ time_t MessageBase::utc_to_local(time_t utc) {
     return local;
 }
 
-bool MessageBase::save_message(Node *n, std::string recipient, std::string subject, std::vector<std::string> msg) {
+time_t MessageBase::gettz() {
+	time_t offset;
+	struct tm date_time;
+	time_t utc = time(NULL);
+	localtime_r(&utc, &date_time);
+	offset = date_time.tm_gmtoff;
+	return offset;
+}
+
+
+bool MessageBase::save_message(Node *n, std::string recipient, std::string subject, std::vector<std::string> msg, std::string reply, std::string daddress) {
     s_JamBase *jb;
+    s_JamBaseHeader jbh;
     s_JamMsgHeader jmh;
     s_JamSubPacket *jsp;
+    s_JamMsgHeader jmh2;
+    s_JamSubPacket *jsp2;
+
     s_JamSubfield jsf;
 
     JAM_ClearMsgHeader(&jmh);
@@ -60,6 +67,36 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
     jsf.Buffer = (uint8_t *)subject.c_str();
     JAM_PutSubfield(jsp, &jsf);
 
+    std::stringstream kludge;
+
+    kludge << "CHRS: CP437 2";
+
+    jsf.LoID = JAMSFLD_FTSKLUDGE;
+    jsf.HiID = 0;
+    jsf.DatLen = kludge.str().length();
+    jsf.Buffer = (uint8_t *)kludge.str().c_str();
+    JAM_PutSubfield(jsp, &jsf);
+
+    kludge.str("");
+
+    time_t offset = gettz();
+	int offhour = offset / 3600;
+	int offmin = (offset % 3600) / 60;
+
+
+	if (offhour < 0) {
+        kludge << "TZUTC: -" << std::setw(2) << abs(offhour) << offmin;
+	} else {
+		kludge << "TZUTC: " << std::setw(2) << offhour << offmin;
+	}
+
+	jsf.LoID = JAMSFLD_FTSKLUDGE;
+	jsf.HiID = 0;
+	jsf.DatLen = kludge.str().length();
+	jsf.Buffer = (uint8_t *)kludge.str().c_str();
+	JAM_PutSubfield(jsp, &jsf);
+
+
     int ret;
     ret = JAM_OpenMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
     if (ret != 0) {
@@ -75,12 +112,67 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
         }
     }
 
+
     ret = JAM_LockMB(jb, 100);
     if (ret != 0) {
         JAM_CloseMB(jb);
         free(jb);
         JAM_DelSubPacket(jsp);
         return false;
+    }
+
+    if (mbtype == ECHO) {
+        // replyid and msgid
+        if (reply != "") {
+            jsf.LoID = JAMSFLD_REPLYID;
+            jsf.HiID = 0;
+            jsf.DatLen = reply.length();
+            jsf.Buffer = (uint8_t *)reply.c_str();
+            JAM_PutSubfield(jsp, &jsf);
+        }
+        kludge.str("");
+
+        int k = 0;
+        int high_msg = 0;
+
+        for (size_t i = 0; i < jbh.ActiveMsgs; k++) {
+            struct msg_header_t hdr;
+            int ret = JAM_ReadMsgHeader(jb, k, &jmh2, &jsp2);
+            if (ret != 0) {
+                continue;
+            }
+            i++;
+
+            if (high_msg < jmh.MsgNum) {
+                high_msg = jmh.MsgNum;
+            }
+            JAM_DelSubPacket(jsp2);
+        }
+
+        kludge << std::to_string(high_msg + 1) << "." << file << "@" << address;
+        jsf.LoID = JAMSFLD_MSGID;
+        jsf.HiID = 0;
+        jsf.DatLen = kludge.str().length();
+        jsf.Buffer = (uint8_t *)kludge.str().c_str();
+        JAM_PutSubfield(jsp, &jsf);
+
+        jsf.LoID = JAMSFLD_OADDRESS;
+        jsf.HiID = 0;
+        jsf.DatLen = address.length();
+        jsf.Buffer = (uint8_t *)address.c_str();
+        JAM_PutSubfield(jsp, &jsf);
+    } else if (mbtype == NETMAIL) {
+        jsf.LoID = JAMSFLD_OADDRESS;
+        jsf.HiID = 0;
+        jsf.DatLen = address.length();
+        jsf.Buffer = (uint8_t *)address.c_str();
+        JAM_PutSubfield(jsp, &jsf);
+
+        jsf.LoID = JAMSFLD_DADDRESS;
+        jsf.HiID = 0;
+        jsf.DatLen = daddress.length();
+        jsf.Buffer = (uint8_t *)daddress.c_str();
+        JAM_PutSubfield(jsp, &jsf);        
     }
 
     std::stringstream body;
@@ -105,8 +197,9 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
     return true;
 }
 
-void MessageBase::enter_message(Node *n, std::string recipient, std::string subject, std::vector<std::string> *quotebuffer) {
+void MessageBase::enter_message(Node *n, std::string recipient, std::string subject, std::vector<std::string> *quotebuffer, struct msg_header_t *reply) {
 
+    std::string daddress = "";
 
     n->bprintf("Recipient: ");
     recipient = n->get_str(16, 0, recipient);
@@ -122,6 +215,17 @@ void MessageBase::enter_message(Node *n, std::string recipient, std::string subj
         return;
     }
 
+    if (mbtype == NETMAIL) {
+        n->bprintf("Address: ");
+        daddress = n->get_str(32, 0, (reply == nullptr ? "" : reply->oaddr));
+
+        if (daddress.length() == 0) {
+            // TODO: sanitize
+            n->bprintf("|12Aborted!|07\r\n");
+            return;
+        }
+    }
+
     int line = 1;
 
     std::string name;
@@ -135,7 +239,7 @@ void MessageBase::enter_message(Node *n, std::string recipient, std::string subj
             n->bprintf("|12Aborted!|07\r\n");
             return;
         } else {
-            if (!save_message(n, recipient, subject, msg)) {
+            if (!save_message(n, recipient, subject, msg, (reply == nullptr ? "" : reply->msgid), daddress)) {
                 n->bprintf("|12Saving message failed.|07\r\n");
             } else {
                 n->bprintf("|10Saved message!|07\r\n");
@@ -151,7 +255,7 @@ void MessageBase::enter_message(Node *n, std::string recipient, std::string subj
         if (line_str.length() >= 2 && line_str.at(0) == '/') {
             switch (tolower(line_str.at(1))) {
                 case 's': {
-                    if (!save_message(n, recipient, subject, msg)) {
+                    if (!save_message(n, recipient, subject, msg, (reply == nullptr ? "" : reply->msgid), daddress)) {
                         n->bprintf("|12Saving message failed.|07\r\n");
                     } else {
                         n->bprintf("|10Saved message!|07\r\n");
@@ -203,13 +307,16 @@ void MessageBase::read_messages(Node *n, int startingat) {
         return;
     }
 
-    for (size_t i = 0; i < jbh.ActiveMsgs; i++) {
+    int k = 0;
+
+    for (size_t i = 0; i < jbh.ActiveMsgs; k++) {
         struct msg_header_t hdr;
-        int ret = JAM_ReadMsgHeader(jb, i, &jmh, &jsp);
+        int ret = JAM_ReadMsgHeader(jb, k, &jmh, &jsp);
         if (ret != 0) {
             continue;
         }
-    
+        i++;
+
 	    hdr.date = jmh.DateWritten;
         hdr.body_len = jmh.TxtLen;
         hdr.body_off = jmh.TxtOffset;
@@ -217,6 +324,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
         hdr.subject = "No Subject";
         hdr.to = "Unknown";
         hdr.from = "Unknown";
+        hdr.msgid = "";
 
         for (size_t f = 0; f < jsp->NumFields; f++) {
             hdr.id = i;
@@ -226,6 +334,10 @@ void MessageBase::read_messages(Node *n, int startingat) {
 			    hdr.from = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
 		    } else if (jsp->Fields[f]->LoID == JAMSFLD_RECVRNAME) {
                 hdr.to = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
+            } else if (jsp->Fields[f]->LoID == JAMSFLD_MSGID) {
+                hdr.msgid = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
+            } else if (jsp->Fields[f]->LoID == JAMSFLD_OADDRESS) {
+                hdr.oaddr = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
             }
         }
 
@@ -298,7 +410,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
             }
         }
 
-        n->bprintf("|10(R)eply (N)ext, (P)revious, (Q)uit: |07");
+        n->bprintf("|10(R)eply, (N)ext, (P)revious, (Q)uit: |07");
         char ch = n->getch();
 
         switch(tolower(ch)) {
@@ -318,7 +430,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
                         qb.push_back(" > " + msg.at(q));
                     }
 
-                    enter_message(n, hdrs.at(reading).from, hdrs.at(reading).subject, &qb);
+                    enter_message(n, hdrs.at(reading).from, hdrs.at(reading).subject, &qb, &hdrs.at(reading));
                 }
                 break;
             case 'q':
@@ -359,17 +471,18 @@ void MessageBase::list_messages(Node *n, int startingat) {
         return;
     }
 
-    for (size_t i = 0; i < jbh.ActiveMsgs; i++) {
+    int k = 0;
+
+    for (size_t i = 0; i < jbh.ActiveMsgs; k++) {
         struct msg_header_t hdr;
-        int ret = JAM_ReadMsgHeader(jb, i, &jmh, &jsp);
+        int ret = JAM_ReadMsgHeader(jb, k, &jmh, &jsp);
         if (ret != 0) {
             continue;
         }
-    
+        i++;
 	    hdr.date = jmh.DateWritten;
-    
+        hdr.id = jmh.MsgNum;
         for (size_t f = 0; f < jsp->NumFields; f++) {
-            hdr.id = i;
             if (jsp->Fields[f]->LoID == JAMSFLD_SUBJECT) {
 			    hdr.subject = std::string((const char*)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
 		    } else if (jsp->Fields[f]->LoID == JAMSFLD_SENDERNAME) {
@@ -389,7 +502,7 @@ void MessageBase::list_messages(Node *n, int startingat) {
 
     n->cls();
 
-    n->bprintf("MSG NO  SUBJECT                   TO               FROM             DATE\r\n");
+    n->bprintf("|18|14 MSG NO SUBJECT                   TO               FROM             DATE       |07\r\n");
     int lines = 1;
 
     for (size_t i = startingat; i < hdrs.size(); i++) {
@@ -417,7 +530,7 @@ void MessageBase::list_messages(Node *n, int startingat) {
                 }
             }
             n->cls();
-            n->bprintf("MSG NO  SUBJECT                   TO               FROM             DATE\r\n");
+            n->bprintf("|18|14 MSG NO SUBJECT                   TO               FROM             DATE       |07\r\n");
             lines = 1;
         }
     }

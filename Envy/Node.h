@@ -19,6 +19,7 @@ class MessageBase;
 
 class Node {
 public:
+    
     Node(int node, int socket, bool telnet);
 
     char getch();
@@ -85,6 +86,8 @@ private:
     std::string script_path;
     std::string log_path;
     std::string msg_path;
+
+    std::string default_tagline;
 
     bool ansi_supported;
     int term_width;
