@@ -251,7 +251,7 @@ JAM_ReadMBHeader(jb, &jbh);
         free(body);
         n->cls();
         n->bprintf("|10Subj: |15%s\r\n", hdrs.at(reading).subject.c_str());
-        n->bprintf("|10  To: |15%s\r\n", hdrs.at(reading).from.c_str());
+        n->bprintf("|10  To: |15%s\r\n", hdrs.at(reading).to.c_str());
         n->bprintf("|10From: |15%s\r\n", hdrs.at(reading).from.c_str());
 
         struct tm date_tm;
