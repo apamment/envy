@@ -12,6 +12,7 @@ public:
     }
     std::string name;
     std::string file;
+    void read_messages(Node *n, int startingat);
     void list_messages(Node *n, int startingat);
     void enter_message(Node *n);
     bool save_message(Node *n, std::string recipient, std::string subject, std::vector<std::string> msg);

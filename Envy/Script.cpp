@@ -240,6 +240,18 @@ static duk_ret_t blistmsgs(duk_context *ctx) {
     return 0;
 }
 
+static duk_ret_t breadmsgs(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    
+    int startingat = duk_get_int(ctx, 0);
+
+    MessageBase *mb = n->get_curr_msgbase();
+    if (mb != nullptr) {
+        mb->read_messages(n, startingat);
+    }
+    return 0;
+}
+
 static duk_ret_t bwritemsg(duk_context *ctx) {
     Node *n = get_node(ctx);
 
@@ -308,6 +320,9 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, blistmsgs, 1);
     duk_put_global_string(ctx, "listmsgs");
+
+    duk_push_c_function(ctx, breadmsgs, 1);
+    duk_put_global_string(ctx, "readmsgs");
 
     duk_push_c_function(ctx, bwritemsg, 0);
     duk_put_global_string(ctx, "writemsg");

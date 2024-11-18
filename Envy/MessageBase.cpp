@@ -14,6 +14,8 @@ struct msg_header_t {
     std::string to;
     std::string subject;
     time_t date;
+    size_t body_len;
+    size_t body_off;
 };
 
 time_t MessageBase::utc_to_local(time_t utc) {
@@ -118,8 +120,9 @@ void MessageBase::enter_message(Node *n) {
 
     int line = 1;
 
-      std::string name;
-    std::string file;  std::vector<std::string> msg;
+    std::string name;
+    std::string file;  
+    std::vector<std::string> msg;
 
     while (true) {
         n->bprintf("[%05d]: ", line);
@@ -144,6 +147,143 @@ void MessageBase::enter_message(Node *n) {
         } else {
             msg.push_back(line_str);
             line++;
+        }
+    }
+}
+
+void MessageBase::read_messages(Node *n, int startingat) {
+    std::vector<struct msg_header_t> hdrs;
+    
+    s_JamBase *jb;
+    s_JamBaseHeader jbh;
+    s_JamMsgHeader jmh;
+    s_JamSubPacket *jsp;
+    int ret;
+    ret = JAM_OpenMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
+    if (ret != 0) {
+        free(jb);
+        if (ret == JAM_IO_ERROR) {
+            ret = JAM_CreateMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), 1, &jb);
+            if (ret != 0) {
+                free(jb);
+                return;
+            }
+        } else {
+            return;
+        }
+    }
+JAM_ReadMBHeader(jb, &jbh);
+
+    if (jbh.ActiveMsgs <= 0) {
+        JAM_CloseMB(jb);
+        free(jb);
+        n->bprintf("|14No messages in message base..,|07\r\n");
+        n->pause();
+        return;
+    }
+
+    for (size_t i = 0; i < jbh.ActiveMsgs; i++) {
+        struct msg_header_t hdr;
+        int ret = JAM_ReadMsgHeader(jb, i, &jmh, &jsp);
+        if (ret != 0) {
+            continue;
+        }
+    
+	    hdr.date = jmh.DateWritten;
+        hdr.body_len = jmh.TxtLen;
+        hdr.body_off = jmh.TxtOffset;
+        for (size_t f = 0; f < jsp->NumFields; f++) {
+            hdr.id = i;
+            if (jsp->Fields[f]->LoID == JAMSFLD_SUBJECT) {
+			    hdr.subject = std::string((const char*)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
+		    } else if (jsp->Fields[f]->LoID == JAMSFLD_SENDERNAME) {
+			    hdr.from = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
+		    } else if (jsp->Fields[f]->LoID == JAMSFLD_RECVRNAME) {
+                hdr.to = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
+            }
+        }
+
+        hdrs.push_back(hdr);
+        JAM_DelSubPacket(jsp);
+    }
+
+    JAM_CloseMB(jb);
+    free(jb);    
+
+    int reading = startingat;
+    while(true) {
+        if (reading < 0 || reading >= hdrs.size()) {
+            break;
+        }
+        char *body = (char *)malloc(hdrs.at(reading).body_len + 1);
+        if (!body) {
+            break;
+        }
+        ret = JAM_OpenMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
+        if (ret != 0) {
+            free(body);
+            free(jb);
+            break;
+        }
+        
+        JAM_ReadMsgText(jb, hdrs.at(reading).body_off, hdrs.at(reading).body_len, (uint8_t *)body);
+        JAM_CloseMB(jb);
+        free(jb);
+        std::stringstream ss;
+        std::vector<std::string> msg;
+
+        for (size_t i = 0; i < hdrs.at(reading).body_len; i++) {
+            if (body[i] == '\r') {
+                std::string line = ss.str();
+                msg.push_back(line);
+                ss.str("");
+                continue;
+            } 
+            ss << body[i];
+
+            if (ss.str().length() == 79) {
+                std::string line = ss.str();
+                msg.push_back(line);
+                ss.str("");
+            }
+        }
+
+        free(body);
+        n->cls();
+        n->bprintf("|10Subj: |15%s\r\n", hdrs.at(reading).subject.c_str());
+        n->bprintf("|10  To: |15%s\r\n", hdrs.at(reading).from.c_str());
+        n->bprintf("|10From: |15%s\r\n", hdrs.at(reading).from.c_str());
+
+        struct tm date_tm;
+
+        localtime_r(&hdrs.at(reading).date, &date_tm);
+
+        n->bprintf("|10Date: |15%02d:%02d %02d-%02d-%04d\r\n", date_tm.tm_hour, date_tm.tm_min, date_tm.tm_mday, date_tm.tm_mon + 1, date_tm.tm_year + 1900);
+        n->bprintf("|08-------------------------------------------------------------------------------|07\r\n");
+
+        int lines = 5;
+
+        for (size_t i = 0; i < msg.size(); i++) {
+            n->bprintf("%s\r\n", msg.at(i).c_str());
+            lines++;
+            if (lines == 23) {
+                n->pause();
+                lines = 0;
+            }
+        }
+
+        n->bprintf("|10(N)ext, (P)revious, (Q)uit: |07");
+        char ch = n->getch();
+
+        switch(tolower(ch)) {
+            case 'n':
+                reading = reading + 1;
+                break;
+            case 'p':
+                reading = reading - 1;
+                break;
+            case 'q':
+                return;
         }
     }
 }
@@ -187,7 +327,7 @@ void MessageBase::list_messages(Node *n, int startingat) {
             continue;
         }
     
-	hdr.date = jmh.DateWritten;
+	    hdr.date = jmh.DateWritten;
     
         for (size_t f = 0; f < jsp->NumFields; f++) {
             hdr.id = i;

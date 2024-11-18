@@ -6,6 +6,7 @@ while(true) {
         print(">>>> Main Menu <<<<\r\n")
         print("W - Write Message\r\n")
         print("L - List Messages\r\n")
+        print("R - Read Messages\r\n")
         print("A - Automessage\r\n")
         print("G - Goodbye!\r\n\r\n")
     }
@@ -21,8 +22,10 @@ while(true) {
         break
     } else if (c == 'w' || c == 'W') {
         writemsg()
-    } else if (c == 'l' || c == 'l') {
+    } else if (c == 'l' || c == 'L') {
         listmsgs(0)
+    } else if (c == 'r' || c == 'R') {
+        readmsgs(0);
     } else if (c == 'a' || c == 'A') {
         cls()
         exec("automsg")
