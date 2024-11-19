@@ -484,6 +484,9 @@ int Node::run() {
                         case User::InvalidUserReason::INUSE:
                             bprintf("\r\nSorry, that username is in use.\r\n");
                             break;
+                        case User::InvalidUserReason::BADCHARS:
+                            bprintf("\r\nSorry, that username contains unsupported characters.\r\n");
+                            break;
                         case User::InvalidUserReason::TRASHCAN:
                             bprintf("\r\nSorry, that username is not allowed.\r\n");
                             break;

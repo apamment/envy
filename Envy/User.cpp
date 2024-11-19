@@ -4,6 +4,7 @@
 #include <sstream>
 #include <cstring>
 #include <iomanip>
+#include <cctype>
 #include <openssl/evp.h>
 #include "Node.h"
 #include "User.h"
@@ -319,6 +320,12 @@ User::InvalidUserReason User::valid_username(Node *n, std::string username) {
 
     if (username.length() < 2) {
         return User::InvalidUserReason::TOOSHORT;
+    }
+
+    for (size_t i = 0; i < username.length(); i++) {
+        if (!isalnum(username.at(i)) && username.at(i) != ' ') {
+            return User::InvalidUserReason::BADCHARS;
+        }
     }
 
     sqlite3 *db;

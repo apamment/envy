@@ -11,6 +11,7 @@ public:
         TOOSHORT,
         TRASHCAN,
         INUSE,
+        BADCHARS,
         ERROR
     };
 
