@@ -736,7 +736,7 @@ void Node::launch_door(std::string key) {
             std::vector<std::string> args;
 
             args.push_back(std::to_string(node));
-
+            Door::createDropfiles(this);
             Door::runExternal(this, doors.at(i).script, args, false);
             return;
         }
