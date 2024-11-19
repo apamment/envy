@@ -143,8 +143,14 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
             struct msg_header_t hdr;
             int ret = JAM_ReadMsgHeader(jb, k, &jmh2, &jsp2);
             if (ret != 0) {
-                n->bprintf("RET %d\r\n", ret);
-                continue;
+                if (ret == JAM_NO_MESSAGE) {
+                    continue;
+                } else {
+                    n->bprintf("ERROR %d, ERRNO %d\r\n", ret, JAM_Errno(jb));
+                    JAM_CloseMB(jb);
+                    free(jb);
+                    return false;
+                }
             }
             i++;
 
