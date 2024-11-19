@@ -160,7 +160,11 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
             JAM_DelSubPacket(jsp2);
         }
 
-        kludge << std::to_string(high_msg + 1) << "." << file << "@" << address;
+
+        std::string serialno = std::to_string(time(NULL)) + std::to_string(high_msg + 1);
+
+
+        kludge << std::to_string(high_msg + 1) << "." << file << "@" << address <<  " " << std::setw(8) << std::setfill('0') << std::setbase(16) << JAM_Crc32((uint8_t *)serialno.c_str(), serialno.length());
 
         std::string msgid = kludge.str();
 
