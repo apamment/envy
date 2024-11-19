@@ -26,8 +26,6 @@
 #define _stricmp strcasecmp
 #define LINE_END "\r\n"
 
-#ifndef _MSC_VER
-
 int running_door;
 pid_t door_pid;
 
@@ -66,7 +64,6 @@ int ttySetRaw(int fd, struct termios *prevTermios) {
   return 0;
 }
 
-#endif
 
 void Door::createDropfiles(Node *n) {
   std::filesystem::path fpath;

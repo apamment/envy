@@ -26,7 +26,7 @@ if (doors.length == 0) {
             var element = doors[index];
             print("|15" + pad("   ", index + 1, true) + ". |10" + pad("                                ", element['name'], false) + " |13" + pad("     ", Number(load(element['key'], "0")), true) + " PLAYS|07\r\n")
             lines = lines + 1
-            if (lines == 20) {
+            if (lines == 18) {
                 pause()
                 lines = 0
             }

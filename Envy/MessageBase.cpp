@@ -200,7 +200,7 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
     }
 
     if (mbtype == ECHO) {
-        body << "\r--- envy\r * Origin: " << tagline << " (" << address << ")\r";
+        body << "\r--- envy " << VERSION << "\r * Origin: " << tagline << " (" << address << ")\r";
     }
 
     if (JAM_AddMessage(jb, &jmh, jsp, (uint8_t *)body.str().c_str(), body.str().length())) {
