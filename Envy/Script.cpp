@@ -320,6 +320,21 @@ static duk_ret_t brundoor(duk_context *ctx) {
     return 0;
 }
 
+static duk_ret_t bgetmsglr(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    duk_push_number(ctx, n->get_curr_msgbase()->get_highread(n));
+
+    return 1;
+}
+
+static duk_ret_t bgetmsgtot(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    duk_push_number(ctx, n->get_curr_msgbase()->get_total(n));
+
+    return 1;
+}
 
 static duk_ret_t bgetdoors(duk_context *ctx) {
     Node *n = get_node(ctx);
@@ -426,6 +441,12 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bgetdoors, 0);
     duk_put_global_string(ctx, "getdoors");
+
+    duk_push_c_function(ctx, bgetmsglr, 0);
+    duk_put_global_string(ctx, "getmsglr");
+
+    duk_push_c_function(ctx, bgetmsgtot, 0);
+    duk_put_global_string(ctx, "getmsgtot");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));

@@ -42,9 +42,41 @@ while(true) {
     } else if (c == 'w' || c == 'W') {
         writemsg()
     } else if (c == 'l' || c == 'L') {
-        listmsgs(0)
+        var lr = getmsglr()
+        var tot = getmsgtot()
+
+        print("\r\nStart listing at (1-" + tot + ") or (N)ew: ")
+        var sel = gets(6)
+
+        if (sel == 'n' || sel == 'N') {
+            listmsgs(lr)
+        } else if (sel.length == 0) {
+            listmsgs(0)
+        } else {
+            if (Number(sel) - 1 <= 0 || Number(sel) - 1 >= tot) {
+                listmsgs(0)
+            } else {
+                listmsgs(Number(sel) - 1)
+            }
+        }
     } else if (c == 'r' || c == 'R') {
-        readmsgs(0)
+        var lr = getmsglr()
+        var tot = getmsgtot()
+
+        print("\r\nStart reading at (1-" + tot + ") or (N)ew: ")
+        var sel = gets(6)
+
+        if (sel == 'n' || sel == 'N') {
+            readmsgs(lr)
+        } else if (sel.length == 0) {
+            readmsgs(0)
+        } else {
+            if (Number(sel) - 1 <= 0 || Number(sel) - 1 >= tot) {
+                readmsgs(0)
+            } else {
+                readmsgs(Number(sel) - 1)
+            }
+        }
     } else if (c == 's' || c == 'S') {
         selectarea()
     } else if (c == 'a' || c == 'A') {
