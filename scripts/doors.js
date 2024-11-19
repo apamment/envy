@@ -11,11 +11,12 @@ var doors = getdoors()
 
 while (true) {
     cls()
-    print("D O O R S\r\n");
-
+    if (!gfile("doors")) {
+        print("D O O R S\r\n");
+    }
     for (var index = 0; index < doors.length; ++index) {
         var element = doors[index];
-        print(pad("   ", index + 1, true) + ". " + pad("                                ", element['name'], false) + pad("     ", Number(load(element['key'], "0")), true) + " PLAYS\r\n")
+        print("|15" + pad("   ", index + 1, true) + ". |10" + pad("                                ", element['name'], false) + " |13" + pad("     ", Number(load(element['key'], "0")), true) + " PLAYS|07\r\n")
     }
 
     print("\r\n|08:> |07")
