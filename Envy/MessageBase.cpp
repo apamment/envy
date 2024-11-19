@@ -116,6 +116,7 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
         }
     }
 
+    JAM_ReadMBHeader(jb, &jbh);
 
     ret = JAM_LockMB(jb, 100);
     if (ret != 0) {
@@ -140,7 +141,6 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
         int high_msg = 0;
 
         for (size_t i = 0; i < jbh.ActiveMsgs; k++) {
-            struct msg_header_t hdr;
             int ret = JAM_ReadMsgHeader(jb, k, &jmh2, &jsp2);
             if (ret != 0) {
                 if (ret == JAM_NO_MESSAGE) {
