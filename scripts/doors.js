@@ -12,13 +12,13 @@ var doors = getdoors()
 while (true) {
     cls()
     if (!gfile("doors")) {
-        print("D O O R S\r\n");
+        print("D O O R S\r\n\r\n");
     }
     for (var index = 0; index < doors.length; ++index) {
         var element = doors[index];
         print("|15" + pad("   ", index + 1, true) + ". |10" + pad("                                ", element['name'], false) + " |13" + pad("     ", Number(load(element['key'], "0")), true) + " PLAYS|07\r\n")
     }
-
+    print("15  Q. |13Quit to Main Menur\r\n");
     print("\r\n|08:> |07")
     var ch = gets(3)
 
