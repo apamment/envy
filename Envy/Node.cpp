@@ -430,7 +430,8 @@ int Node::run() {
     log->load(log_path + "/envy." + std::to_string(node) + ".log");
 
     load_msgbases();
-
+    load_doors();
+    
     log->log(LOG_INFO, "Connected!");
 
     // send initial telnet negotiation
@@ -734,8 +735,8 @@ void Node::launch_door(std::string key) {
     for (size_t i = 0; i < doors.size(); i++) {
         if (key == doors.at(i).key) {
             std::vector<std::string> args;
-
             args.push_back(std::to_string(node));
+
             Door::createDropfiles(this);
             Door::runExternal(this, doors.at(i).script, args, false);
             return;
