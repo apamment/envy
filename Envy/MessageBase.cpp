@@ -85,19 +85,18 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
 	int offhour = offset / 3600;
 	int offmin = (offset % 3600) / 60;
 
+    char buffer[16];
 
 	if (offhour < 0) {
-        kludge << "TZUTC: -" << std::setw(2) << std::setfill('0') << abs(offhour) << offmin;
+        snprintf(buffer, 16, "TZUTC: -%d%02d", abs(offhour), offmin);
 	} else {
-		kludge << "TZUTC: " << std::setw(2) << std::setfill('0') << offhour << offmin;
+        snprintf(buffer, 16, "TZUTC: %d%02d", offhour, offmin);
 	}
-
-    std::string tzutc = kludge.str();
 
 	jsf.LoID = JAMSFLD_FTSKLUDGE;
 	jsf.HiID = 0;
-	jsf.DatLen = tzutc.length();
-	jsf.Buffer = (uint8_t *)tzutc.c_str();
+	jsf.DatLen = strlen(buffer);
+	jsf.Buffer = (uint8_t *)buffer;
 	JAM_PutSubfield(jsp, &jsf);
 
 
