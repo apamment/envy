@@ -13,18 +13,22 @@ while (true) {
     cls()
     print("D O O R S\r\n");
 
-    for (let index = 0; index < doors.length; ++index) {
-        const element = theArray[index];
-        print(pad("   ", index + 1, true) + ". " + element['name'])
+    for (var index = 0; index < doors.length; ++index) {
+        var element = doors[index];
+        print(pad("   ", index + 1, true) + ". " + pad("                                ", element['name'], false) + pad("     ", load(element['key'], "0"), true) + " PLAYS\r\n")
     }
-    var ch = get_str(3)
+
+    print("\r\n|08:> |07")
+    var ch = gets(3)
 
     if (ch == "q" || ch == "Q") {
         return;
     } else {
         var num = Number(ch) - 1;
         if (num >= 0 && num < doors.length) {
-            rundoor(theArray[num]['key'])
+            rundoor(doors[num]['key'])
+            plays = Number(load(doors[num]['key'])) + 1;
+            save(doors[num]['key'], plays)
         }
     }
 }
