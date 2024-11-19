@@ -1,6 +1,3 @@
-#ifdef _MSC_VER
-#include <Windows.h>
-#else
 #include <sys/wait.h>
 #include <unistd.h>
 #if defined(__OpenBSD__) || defined(__NetBSD__) || defined(__FreeBSD__) || defined(__APPLE__)
@@ -16,7 +13,6 @@
 #include <pty.h>
 #endif
 #include <signal.h>
-#endif
 #include "Door.h"
 #include "Node.h"
 #include "User.h"
@@ -25,13 +21,10 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <sys/socket.h>
 
-#ifndef _MSC_VER
 #define _stricmp strcasecmp
 #define LINE_END "\r\n"
-#else
-#define LINE_END "\n"
-#endif
 
 #ifndef _MSC_VER
 
