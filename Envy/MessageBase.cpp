@@ -139,14 +139,13 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
         int k = 0;
         int high_msg = 0;
 
-        for (size_t i = 0; i < jbh.ActiveMsgs; k++) {
+        for (size_t i = 1; i <= jbh.ActiveMsgs; k++) {
             struct msg_header_t hdr;
             int ret = JAM_ReadMsgHeader(jb, k, &jmh2, &jsp2);
             if (ret != 0) {
                 if (ret == JAM_NO_MESSAGE) {
                     continue;
                 } else {
-                    n->bprintf("ERROR %d, ERRNO %s\r\n", ret, strerror(JAM_Errno(jb)));
                     JAM_UnlockMB(jb);
                     JAM_CloseMB(jb);
                     free(jb);

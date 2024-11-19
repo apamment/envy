@@ -66,12 +66,14 @@ int JAM_ReadMsgHeader( s_JamBase*	Base_PS,
     /* find index record */
     if ( fseek( Base_PS->IdxFile_PS, MsgNo_I * sizeof( s_JamIndex ), SEEK_SET ) ) {
 	Base_PS->Errno_I = errno;
+    printf("1\n");
 	return JAM_IO_ERROR;
     }
 
     /* read index record */
     if ( 1 > freadjamindex(Base_PS->IdxFile_PS,&Index_S) ) {
 	Base_PS->Errno_I = errno;
+    printf("2\n");
 	return JAM_IO_ERROR;
     }
 
@@ -84,12 +86,14 @@ int JAM_ReadMsgHeader( s_JamBase*	Base_PS,
     /* find header */
     if ( fseek( Base_PS->HdrFile_PS, Index_S.HdrOffset, SEEK_SET ) ) {
 	Base_PS->Errno_I = errno;
+    printf("3\n");
 	return JAM_IO_ERROR;
     }
 
     /* read header */
     if ( 1 > freadjammsgheader(Base_PS->HdrFile_PS,Header_PS) ) {
 	Base_PS->Errno_I = errno;
+    printf("4\n");
 	return JAM_IO_ERROR;
     }
 
@@ -111,6 +115,7 @@ int JAM_ReadMsgHeader( s_JamBase*	Base_PS,
 	if ( 1 > fread( Buf_PC, BufSize_I, 1, Base_PS->HdrFile_PS ) ) {
 	    Base_PS->Errno_I = errno;
 	    free (Buf_PC);
+        printf("5\n");
 	    return JAM_IO_ERROR;
 	}
 
