@@ -99,6 +99,9 @@ public:
         return ansi_supported;
     }
 
+    std::vector<struct door_cfg_s> get_doors() {
+        return doors;
+    }
     std::string get_username() {
         return username;
     }

@@ -28,6 +28,7 @@ while(true) {
         print("R - Read Messages\r\n")
         print("A - Automessage\r\n")
         print("O - Oneliners\r\n")
+        print("D - Door Games\r\n")
         print("G - Goodbye!\r\n\r\n")
     }
     print("|08(|10" + getarea() + "|08) :> |07")
@@ -51,6 +52,8 @@ while(true) {
         exec("automsg")
     } else if (c == 'o' || c == 'O') {
         exec("oneliner")
+    } else if (c == 'd' || c == 'D') {
+        exec("doors")
     } else {
         print("|12Huh?|07\r\n\r\n")
         pause()

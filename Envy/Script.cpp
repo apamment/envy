@@ -320,6 +320,24 @@ static duk_ret_t brundoor(duk_context *ctx) {
     return 0;
 }
 
+
+static duk_ret_t bgetdoors(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    std::vector<struct door_cfg_s> doors = n->get_doors();
+
+
+    duk_idx_t arr_idx;
+    arr_idx = duk_push_array(ctx);
+    for (size_t i = 0; i < doors.size(); i++) {
+        duk_idx_t obj_idx = duk_push_object(ctx);
+        duk_push_string(ctx, doors.at(i).key.c_str());
+        duk_put_prop_string(ctx, obj_idx, "key");
+        duk_push_string(ctx, doors.at(i).name.c_str());
+        duk_put_prop_string(ctx, obj_idx, "name");
+        duk_put_prop_index(ctx, arr_idx, i);
+    }
+    return 1;
+}
 int Script::run(Node *n, std::string script) {
     std::string filename = n->get_script_path() + "/" + script + ".js";
     std::ifstream t(filename);
@@ -405,6 +423,9 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, brundoor, 1);
     duk_put_global_string(ctx, "rundoor");
+
+    duk_push_c_function(ctx, bgetdoors, 0);
+    duk_put_global_string(ctx, "getdoors");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
