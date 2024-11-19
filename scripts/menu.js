@@ -17,7 +17,9 @@ function check_email() {
     var unread = unreademail()
     var total = countemail()
     cls()
+
     if (unread > 0) {
+        gfile("emailnew")
         print("|13You have " + total + " emails, " + unread + " are unread.|07\r\n\r\n");
         print("View your email now? (Y/N)\r\n");
 
@@ -26,6 +28,7 @@ function check_email() {
             listemail()
         }
     } else {
+        gfile("emailold")
         print("|13You have " + total + " emails.|07\r\n\r\n");
         pause()
     }
