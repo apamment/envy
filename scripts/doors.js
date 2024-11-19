@@ -15,7 +15,7 @@ while (true) {
 
     for (var index = 0; index < doors.length; ++index) {
         var element = doors[index];
-        print(pad("   ", index + 1, true) + ". " + pad("                                ", element['name'], false) + pad("     ", load(element['key'], "0"), true) + " PLAYS\r\n")
+        print(pad("   ", index + 1, true) + ". " + pad("                                ", element['name'], false) + pad("     ", Number(load(element['key'], "0")), true) + " PLAYS\r\n")
     }
 
     print("\r\n|08:> |07")
@@ -27,7 +27,7 @@ while (true) {
         var num = Number(ch) - 1;
         if (num >= 0 && num < doors.length) {
             rundoor(doors[num]['key'])
-            plays = Number(load(doors[num]['key'])) + 1;
+            plays = Number(load(doors[num]['key'], "0")) + 1;
             save(doors[num]['key'], plays)
         }
     }
