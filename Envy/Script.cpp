@@ -204,6 +204,14 @@ static duk_ret_t bexec(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t bsaveglobal(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    Script::set_attrib(n, "GLOBAL", std::string(duk_to_string(ctx, 0)), std::string(duk_to_string(ctx, -1)));
+
+    return 0;   
+}
+
 static duk_ret_t bsaveval(duk_context *ctx) {
     Node *n = get_node(ctx);
     std::string script = get_script(ctx);
@@ -211,6 +219,14 @@ static duk_ret_t bsaveval(duk_context *ctx) {
     Script::set_attrib(n, script, std::string(duk_to_string(ctx, 0)), std::string(duk_to_string(ctx, -1)));
 
     return 0;
+}
+
+static duk_ret_t bloadglobal(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    duk_push_string(ctx, Script::get_attrib(n, "GLOBAL", std::string(duk_to_string(ctx, 0)), std::string(duk_to_string(ctx, -1))).c_str());
+
+    return 1;
 }
 
 static duk_ret_t bloadval(duk_context *ctx) {
@@ -347,6 +363,12 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bloadval, 2);
     duk_put_global_string(ctx, "load");
+
+    duk_push_c_function(ctx, bsaveglobal, 2);
+    duk_put_global_string(ctx, "globalsave");
+
+    duk_push_c_function(ctx, bloadglobal, 2);
+    duk_put_global_string(ctx, "globalload");
 
     duk_push_c_function(ctx, bgetusername, 0);
     duk_put_global_string(ctx, "getusername");

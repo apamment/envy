@@ -71,10 +71,12 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
 
     kludge << "CHRS: CP437 2";
 
+    std::string chrs = kludge.str();
+
     jsf.LoID = JAMSFLD_FTSKLUDGE;
     jsf.HiID = 0;
-    jsf.DatLen = kludge.str().length();
-    jsf.Buffer = (uint8_t *)kludge.str().c_str();
+    jsf.DatLen = chrs.length();
+    jsf.Buffer = (uint8_t *)chrs.c_str();
     JAM_PutSubfield(jsp, &jsf);
 
     kludge.str("");
@@ -85,15 +87,17 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
 
 
 	if (offhour < 0) {
-        kludge << "TZUTC: -" << std::setw(2) << abs(offhour) << offmin;
+        kludge << "TZUTC: -" << std::setw(2) << std::setfill('0') << abs(offhour) << offmin;
 	} else {
-		kludge << "TZUTC: " << std::setw(2) << offhour << offmin;
+		kludge << "TZUTC: " << std::setw(2) << std::setfill('0') << offhour << offmin;
 	}
+
+    std::string tzutc = kludge.str();
 
 	jsf.LoID = JAMSFLD_FTSKLUDGE;
 	jsf.HiID = 0;
-	jsf.DatLen = kludge.str().length();
-	jsf.Buffer = (uint8_t *)kludge.str().c_str();
+	jsf.DatLen = tzutc.length();
+	jsf.Buffer = (uint8_t *)tzutc.c_str();
 	JAM_PutSubfield(jsp, &jsf);
 
 
@@ -150,10 +154,13 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
         }
 
         kludge << std::to_string(high_msg + 1) << "." << file << "@" << address;
+
+        std::string msgid = kludge.str();
+
         jsf.LoID = JAMSFLD_MSGID;
         jsf.HiID = 0;
-        jsf.DatLen = kludge.str().length();
-        jsf.Buffer = (uint8_t *)kludge.str().c_str();
+        jsf.DatLen = msgid.length();
+        jsf.Buffer = (uint8_t *)msgid.c_str();
         JAM_PutSubfield(jsp, &jsf);
 
         jsf.LoID = JAMSFLD_OADDRESS;

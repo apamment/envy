@@ -670,6 +670,7 @@ int Node::run() {
             bprintf("You last called on |15%s %d |07at |15%d:%02dam|07\r\n", months[timetm.tm_mon], timetm.tm_mday, (timetm.tm_hour == 0 ? 12 : timetm.tm_hour), timetm.tm_min);
         }
     }
+    
     pause();
 
     Script::run(this, "menu");
