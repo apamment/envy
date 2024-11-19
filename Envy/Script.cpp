@@ -310,6 +310,15 @@ static duk_ret_t bscanbases(duk_context *ctx) {
     return 0;
 }
 
+static duk_ret_t brundoor(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    
+    std::string doorkey = duk_get_string(ctx, 0);
+
+    n->launch_door(doorkey);
+
+    return 0;
+}
 
 int Script::run(Node *n, std::string script) {
     std::string filename = n->get_script_path() + "/" + script + ".js";
@@ -393,6 +402,9 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bscanbases, 0);
     duk_put_global_string(ctx, "scanbases");
+
+    duk_push_c_function(ctx, brundoor, 0);
+    duk_put_global_string(ctx, "rundoor");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
