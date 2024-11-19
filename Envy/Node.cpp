@@ -13,6 +13,7 @@
 #include "Disconnect.h"
 #include "Script.h"
 #include "User.h"
+#include "Door.h"
 
 Node::Node(int node, int socket, bool telnet) {
     this->node = node;
@@ -420,8 +421,10 @@ int Node::run() {
     script_path = inir.Get("paths", "scripts path", "scripts");
     log_path = inir.Get("paths", "log path", "logs");
     msg_path = inir.Get("paths", "message path", "msgs");
+    tmp_path = inir.Get("paths", "temp path", "tmp");
     default_tagline = inir.Get("main", "default tagline", "Unknown BBS");
-
+    bbsname = inir.Get("main", "bbs name", "Unknown BBS");
+    opname = inir.Get("main", "sysop name", "Unknown");
 
     log = new Logger();
     log->load(log_path + "/envy." + std::to_string(node) + ".log");
@@ -678,6 +681,66 @@ int Node::run() {
     disconnect();
 
     return 0;
+}
+
+void Node::load_doors() {
+    try {
+        auto data = toml::parse_file(data_path + "/doors.toml");
+        auto baseitems = data.get_as<toml::array>("door");
+
+        for (size_t i = 0; i < baseitems->size(); i++) {
+            auto itemtable = baseitems->get(i)->as_table();
+            std::string mykey;
+            std::string myname;
+            std::string myscript;
+
+            auto key = itemtable->get("key");
+            if (key != nullptr) {
+                mykey = key->as_string()->value_or("");
+            } else {
+                mykey = "";
+            }
+            auto name = itemtable->get("name");
+            if (name != nullptr) {
+                myname = name->as_string()->value_or(mykey);
+            } else {
+                myname = mykey;
+            }
+            auto script = itemtable->get("script");
+            if (script != nullptr) {
+                myscript = script->as_string()->value_or("");
+            } else {
+                myscript = "";
+            }
+
+            if (mykey != "" && myscript != "") {
+                struct door_cfg_s doorcfg;
+
+                doorcfg.key = mykey;
+                doorcfg.name = myname;
+                doorcfg.script = myscript;
+
+                doors.push_back(doorcfg);
+            }
+
+        }  
+    } catch (toml::parse_error const &p) {
+        log->log(LOG_ERROR, "Error parsing %s/doors.toml, Line %d, Column %d", data_path.c_str(), p.source().begin.line, p.source().begin.column);
+        log->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
+    }
+}
+
+void Node::launch_door(std::string key) {
+    for (size_t i = 0; i < doors.size(); i++) {
+        if (key == doors.at(i).key) {
+            std::vector<std::string> args;
+
+            args.push_back(std::to_string(node));
+
+            Door::runExternal(this, doors.at(i).script, args, false);
+            return;
+        }
+    }
 }
 
 void Node::load_msgbases() {

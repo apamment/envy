@@ -15,6 +15,12 @@ const unsigned char IAC_TRANSMIT_BINARY = 0;
 const unsigned char IAC_SUPPRESS_GO_AHEAD = 3;
 const unsigned char IAC_ECHO = 1;
 
+struct door_cfg_s {
+    std::string name;
+    std::string key;
+    std::string script;
+};
+
 class MessageBase;
 
 class Node {
@@ -26,6 +32,7 @@ public:
     void cls();
     void putfile(std::string filename);
     bool putgfile(std::string gfile);
+    void launch_door(std::string key);
     std::string get_str(int length);
     std::string get_str(int length, char mask);
     std::string get_str(int length, char mask, std::string placeholder);
@@ -52,6 +59,26 @@ public:
         return msg_path;
     }
 
+    std::string get_tmp_path() {
+        return tmp_path;
+    }
+    
+    std::string get_gfile_path() {
+        return gfile_path;
+    }
+
+    std::string get_bbsname() {
+        return bbsname;
+    }
+
+    std::string get_opname() {
+        return opname;
+    }
+
+    int get_socket() {
+        return socket;
+    }
+
     int get_uid() {
         return uid;
     }
@@ -62,6 +89,10 @@ public:
 
     int get_term_width() {
         return term_width;
+    }
+
+    int get_node() {
+        return node;
     }
     
     bool has_ansi() {
@@ -77,9 +108,10 @@ private:
     bool detectANSI();
 
     void load_msgbases();
+    void load_doors();
 
     std::vector<MessageBase *> msgbases;
-
+    std::vector<struct door_cfg_s> doors;
     std::string username;
 
     std::string gfile_path;
@@ -87,6 +119,10 @@ private:
     std::string script_path;
     std::string log_path;
     std::string msg_path;
+    std::string tmp_path;
+
+    std::string bbsname;
+    std::string opname;
 
     std::string default_tagline;
 
