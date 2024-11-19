@@ -143,13 +143,12 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
             struct msg_header_t hdr;
             int ret = JAM_ReadMsgHeader(jb, k, &jmh2, &jsp2);
             if (ret != 0) {
-                n->bprintf("ERR %d\n", ret);
                 continue;
             }
             i++;
 
-            if (high_msg < jmh.MsgNum) {
-                high_msg = jmh.MsgNum;
+            if (high_msg < jmh2.MsgNum) {
+                high_msg = jmh2.MsgNum;
             }
             JAM_DelSubPacket(jsp2);
         }
