@@ -139,7 +139,7 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
         int k = 0;
         int high_msg = 0;
 
-        for (size_t i = 1; i <= jbh.ActiveMsgs; k++) {
+        for (size_t i = 0; i < jbh.ActiveMsgs; k++) {
             struct msg_header_t hdr;
             int ret = JAM_ReadMsgHeader(jb, k, &jmh2, &jsp2);
             if (ret != 0) {
