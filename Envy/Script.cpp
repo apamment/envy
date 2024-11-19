@@ -403,7 +403,7 @@ int Script::run(Node *n, std::string script) {
     duk_push_c_function(ctx, bscanbases, 0);
     duk_put_global_string(ctx, "scanbases");
 
-    duk_push_c_function(ctx, brundoor, 0);
+    duk_push_c_function(ctx, brundoor, 1);
     duk_put_global_string(ctx, "rundoor");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
