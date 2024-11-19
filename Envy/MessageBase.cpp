@@ -147,6 +147,7 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
                     continue;
                 } else {
                     n->bprintf("ERROR %d, ERRNO %d\r\n", ret, JAM_Errno(jb));
+                    JAM_UnlockMB(jb);
                     JAM_CloseMB(jb);
                     free(jb);
                     return false;
