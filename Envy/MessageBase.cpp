@@ -6,6 +6,7 @@ extern "C" {
 #include <ctime>
 #include <sstream>
 #include <iomanip>
+#include <cstring>
 #include "FullScreenEditor.h"
 #include "MessageBase.h"
 #include "Node.h"
