@@ -22,7 +22,7 @@ while (true) {
     var ch = gets(3)
 
     if (ch == "q" || ch == "Q") {
-        return;
+        break
     } else {
         var num = Number(ch) - 1;
         if (num >= 0 && num < doors.length) {
