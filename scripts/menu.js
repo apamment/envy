@@ -13,6 +13,43 @@ function goodbye() {
     }
 }
 
+function check_email() {
+    var unread = unreademail()
+    var total = countemail()
+    cls()
+    if (unread > 0) {
+        print("|13You have " + total + " emails, " + unread + " are unread.|07\r\n\r\n");
+        print("View your email now? (Y/N)\r\n");
+
+        var c = getch()
+        if (c == 'y' || c == 'Y') {
+            listemail()
+        }
+    } else {
+        print("|13You have " + total + " emails.|07\r\n\r\n");
+        pause()
+    }
+}
+
+function write_email() {
+    print("To: ")
+    var user = gets(64)
+    var user = checkuser(user)
+
+    if (user == "") {
+        print("|12No such user!|07\r\n\r\n")
+        return
+    }
+
+    print("\r\n|14Sending email to \"" + user + "\"...|07\r\n\r\n")
+
+    print("Subject: ")
+    var subject = gets(32)
+
+    enteremail(user, subject)
+}
+
+check_email()
 exec("last10")
 exec("automsg")
 
@@ -29,6 +66,8 @@ while(true) {
         print("A - Automessage\r\n")
         print("O - Oneliners\r\n")
         print("D - Door Games\r\n")
+        print("E - Enter Email\r\n")
+        print("M - Read Email\r\n")
         print("G - Goodbye!\r\n\r\n")
     }
     print("|08(|10" + getarea() + "|08) :> |07")
@@ -86,6 +125,10 @@ while(true) {
         exec("oneliner")
     } else if (c == 'd' || c == 'D') {
         exec("doors")
+    } else if (c == 'e' || c == 'E') {
+        write_email()
+    } else if (c == 'm' || c == 'M') {
+        listemail()
     } else {
         print("|12Huh?|07\r\n\r\n")
         pause()

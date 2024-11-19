@@ -6,6 +6,7 @@
 #include "User.h"
 #include "duktape.h"
 #include "MessageBase.h"
+#include "Email.h"
 
 struct script_data {
     Node *n;
@@ -336,6 +337,42 @@ static duk_ret_t bgetmsgtot(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t blistemail(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    Email::list_email(n);
+
+    return 0;
+}
+
+static duk_ret_t benteremail(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    Email::enter_message(n, std::string(duk_get_string(ctx, 0)), std::string(duk_get_string(ctx, -1)), nullptr);
+    return 0;
+}
+
+static duk_ret_t bcheckuser(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    duk_push_string(ctx, User::exists(n, std::string(duk_get_string(ctx, 0))).c_str());
+    return 1;
+}
+
+static duk_ret_t bcountemail(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    duk_push_number(ctx, Email::count_email(n));
+
+    return 1;
+}
+
+static duk_ret_t bunreademail(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    duk_push_number(ctx, Email::unread_email(n));
+
+    return 1;
+}
+
 static duk_ret_t bgetdoors(duk_context *ctx) {
     Node *n = get_node(ctx);
     std::vector<struct door_cfg_s> doors = n->get_doors();
@@ -447,6 +484,21 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bgetmsgtot, 0);
     duk_put_global_string(ctx, "getmsgtot");
+
+    duk_push_c_function(ctx, blistemail, 0);
+    duk_put_global_string(ctx, "listemail");
+
+    duk_push_c_function(ctx, benteremail, 2);
+    duk_put_global_string(ctx, "enteremail");
+
+    duk_push_c_function(ctx, bcheckuser, 1);
+    duk_put_global_string(ctx, "checkuser");
+
+    duk_push_c_function(ctx, bcountemail, 0);
+    duk_put_global_string(ctx, "countemail");
+
+    duk_push_c_function(ctx, bunreademail, 0);
+    duk_put_global_string(ctx, "unreademail");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));

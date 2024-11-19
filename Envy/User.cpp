@@ -262,6 +262,59 @@ bool User::valid_fullname(Node *n, std::string fullname) {
     return true;
 }
 
+std::string User::exists(Node *n, std::string search) {
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+
+    static const char *sql1 = "SELECT username FROM users WHERE username = ?";
+    static const char *sql2 = "SELECT uid FROM details WHERE attrib = 'fullname' and value = ?";
+    static const char *sql3 = "SELECT username FROM users WHERE id = ?";
+    if (!open_database(n->get_data_path() + "/users.sqlite3", &db)) {
+        return "";
+    }
+    if (sqlite3_prepare_v2(db, sql1, -1, &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return "";
+    }
+    sqlite3_bind_text(stmt, 1, search.c_str(), -1, NULL);
+
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        std::string result = std::string((const char *)sqlite3_column_text(stmt, 0));
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return result;
+    }
+
+    sqlite3_finalize(stmt);
+
+    if (sqlite3_prepare_v2(db, sql2, -1, &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return "";
+    }
+    sqlite3_bind_text(stmt, 1, search.c_str(), -1, NULL);
+
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        int uid = sqlite3_column_int(stmt, 0);
+        sqlite3_finalize(stmt);
+        if (sqlite3_prepare_v2(db, sql3, -1, &stmt, NULL) != SQLITE_OK) {
+            sqlite3_close(db);
+            return "";
+        }
+        sqlite3_bind_int(stmt, 1, uid);
+
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            std::string result = std::string((const char *)sqlite3_column_text(stmt, 0));
+            sqlite3_finalize(stmt);
+            sqlite3_close(db);
+            return result;  
+        }
+
+    }
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return "";
+}
+
 User::InvalidUserReason User::valid_username(Node *n, std::string username) {
 
     if (username.length() < 2) {

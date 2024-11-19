@@ -14,6 +14,7 @@ public:
         ERROR
     };
 
+    static std::string exists(Node *n, std::string search);
     static int check_password(Node *n, std::string username, std::string password);
     static void set_attrib(Node *n, std::string attrib, std::string value);
     static std::string get_attrib(Node *n, std::string attrib, std::string fallback);
