@@ -288,7 +288,7 @@ char Node::getch() {
     int timeout = 0;
 
     if (!time_check()) {
-        bprintf("|14Sorry, you're out of time for today!|07\r\n\r\n");
+        bprintf("\r\n\r\n|14Sorry, you're out of time for today!|07\r\n");
         disconnect();
     }
 
@@ -311,7 +311,7 @@ char Node::getch() {
             }
 
             if (!time_check()) {
-                bprintf("|14Sorry, you're out of time for today!|07\r\n\r\n");
+                bprintf("\r\n\r\n|14Sorry, you're out of time for today!|07\r\n");
                 disconnect();
             }
         } else if (rs == -1 && errno != EINTR) {
