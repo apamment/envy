@@ -188,6 +188,8 @@ static duk_ret_t bgetattro(duk_context *ctx) {
     std::string attr = std::string(duk_to_string(ctx, -1));
     std::string def = std::string(duk_to_string(ctx, -2));
     
+    printf("%u %s %s\n", uid, attr.c_str(), def.c_str());
+
     duk_push_string(ctx, User::get_attrib(n, uid, attr, def).c_str());
     return 1;
 }
