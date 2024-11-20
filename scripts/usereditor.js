@@ -9,7 +9,7 @@ while (true) {
     print("(L)ocation: " + getattro(Number(users[index]['uid']), "location", "Somewhere, The World") + "\r\n")
     print("(E)mail: " + getattro(Number(users[index]['uid']), "email", "UNKNOWN") + "\r\n")
     print("(S)ecLevel: " + getattro(Number(users[index]['uid']), "seclevel", "10") + "\r\n")
-    print("(N)ext, (P)revious, (Q)uit\r\n")
+    print("\r\n(N)ext, (P)revious, (Q)uit\r\n")
     var ch = getch()
 
     if (ch == 'p' || ch == 'P') {
