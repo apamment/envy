@@ -22,6 +22,7 @@ Node::Node(int node, int socket, bool telnet) {
     this->ansi_supported = true;
     this->uid = 0;
     this->timeleft = 15 * 60;
+    this->last_time_check = 0;
     tstage = 0;
 };
 
@@ -288,6 +289,11 @@ char Node::getch() {
     unsigned char dowillwontdont = 0;
     struct timeval tv;
     int timeout = 0;
+
+    if (!time_check()) {
+        bprintf("|14Sorry, you're out of time for today!|07\r\n\r\n");
+        disconnect();
+    }
 
     while(true) {
         fd_set rfd;
