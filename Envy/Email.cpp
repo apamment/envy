@@ -244,6 +244,12 @@ void Email::list_email(Node *n) {
       return;
     }
 
+    if (emails.size() == 0) {
+      n->bprintf("|14You don't have any emails...|07\r\n");
+      n->pause();
+      return;
+    }
+
     reload = false;
 
     n->cls();
