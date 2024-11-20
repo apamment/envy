@@ -20,6 +20,8 @@ Node::Node(int node, int socket, bool telnet) {
     this->socket = socket;
     this->telnet = telnet;
     this->ansi_supported = true;
+    this->uid = 0;
+    this->timeleft = 15 * 60;
     tstage = 0;
 };
 
@@ -37,6 +39,8 @@ void Node::pause() {
 
 void Node::disconnect() {
     close(socket);
+
+    User::set_attrib(this, "time-left", std::to_string(timeleft / 60));
 
     throw(DisconnectException("Disconnected"));
 }
@@ -282,45 +286,71 @@ bool Node::putgfile(std::string gfile) {
 char Node::getch() {
     unsigned char c;
     unsigned char dowillwontdont = 0;
+    struct timeval tv;
+    int timeout = 0;
 
     while(true) {
-        ssize_t ret = recv(socket, &c, 1, 0);
-        if (ret == -1 && errno != EINTR) {
-            disconnect();
-        } else if (ret == 0) {
-            disconnect();
-        } else {
-            if (tstage == 0) {
-                if (c == 255) {
-                    tstage = 1;
-                    continue;
-                } else if (c != '\n' && c != '\0') {
-                    return (char)c;
-                }
+        fd_set rfd;
+        FD_ZERO(&rfd);
+        FD_SET(socket, &rfd);
+
+        tv.tv_sec = 60;
+        tv.tv_usec = 0;
+
+        int rs = select(socket + 1, &rfd, NULL, NULL, &tv);
+
+        if (rs == 0) {
+            timeout++;
+
+            if (timeout > (uid > 0 ? get_timeout() : 15)) {
+                bprintf("|14You've timed out, call back when you're there!|07");
             }
-            if (tstage == 1) {
-                if (c == 255) {
-                    tstage = 0;
-                    return (char)c;
-                } else if (c == 250){
-                    tstage = 3;
-                    continue;
-                } else {
-                    dowillwontdont = c;
-                    tstage = 2;
-                    continue;
-                }
+
+            if (!time_check()) {
+                bprintf("|14Sorry, you're out of time for today!|07\r\n\r\n");
+                disconnect();
             }
-            if (tstage == 2) {
+        } else if (rs == -1 && errno != EINTR) {
+            disconnect();
+        } else if (FD_ISSET(socket, &rfd)) {
+            ssize_t ret = recv(socket, &c, 1, 0);
+            if (ret == -1 && errno != EINTR) {
+                disconnect();
+            } else if (ret == 0) {
+                disconnect();
+            } else {
+                if (tstage == 0) {
+                    if (c == 255) {
+                        tstage = 1;
+                        continue;
+                    } else if (c != '\n' && c != '\0') {
+                        return (char)c;
+                    }
+                }
+                if (tstage == 1) {
+                    if (c == 255) {
+                        tstage = 0;
+                        return (char)c;
+                    } else if (c == 250){
+                        tstage = 3;
+                        continue;
+                    } else {
+                        dowillwontdont = c;
+                        tstage = 2;
+                        continue;
+                    }
+                }
+                if (tstage == 2) {
 
 
-                tstage = 0;
-                continue;
-            }
-            if (tstage == 3) {
-                if (c == 240) {
                     tstage = 0;
                     continue;
+                }
+                if (tstage == 3) {
+                    if (c == 240) {
+                        tstage = 0;
+                        continue;
+                    }
                 }
             }
         }
@@ -431,6 +461,7 @@ int Node::run() {
 
     load_msgbases();
     load_doors();
+    load_seclevels();
     
     log->log(LOG_INFO, "Connected!");
 
@@ -649,6 +680,20 @@ int Node::run() {
     time_t last_call = std::stoi(User::get_attrib(this, "last-call", "0"));
     int total_calls = std::stoi(User::get_attrib(this, "total-calls", "0"));
 
+    struct tm timetm;
+    struct tm nowtm;
+    
+    time_t now = time(NULL);
+    
+    localtime_r(&last_call, &timetm);
+    localtime_r(&now, &nowtm);
+    if (timetm.tm_yday != nowtm.tm_yday || timetm.tm_year != nowtm.tm_year) {
+        timeleft = get_timeperday() * 60;
+        User::set_attrib(this, "time-left", std::to_string(timeleft / 60));
+    } else {
+        timeleft = std::stoi(User::get_attrib(this, "time-left", std::to_string(get_timeperday()))) * 60;
+    }
+
     total_calls++;
 
     User::set_attrib(this, "total-calls", std::to_string(total_calls));
@@ -669,8 +714,7 @@ int Node::run() {
             bprintf("Welcome back |15%s|07, this is your |15%dth|07 call!\r\n", username.c_str(), total_calls);
         }
 
-        struct tm timetm;
-        localtime_r(&last_call, &timetm);
+
         if (timetm.tm_hour > 11) {
             bprintf("You last called on |15%s %d |07at |15%d:%02dpm|07\r\n", months[timetm.tm_mon], timetm.tm_mday, (timetm.tm_hour == 12 ? 12 : timetm.tm_hour - 12), timetm.tm_min);
         } else {
@@ -685,6 +729,63 @@ int Node::run() {
     disconnect();
 
     return 0;
+}
+
+void Node::load_seclevels() {
+    try {
+        auto data = toml::parse_file(data_path + "/seclevels.toml");
+        auto baseitems = data.get_as<toml::array>("seclevel"); 
+        for (size_t i = 0; i < baseitems->size(); i++) {
+            auto itemtable = baseitems->get(i)->as_table();
+            std::string myname;
+            int mylevel;
+            int mytime;
+            int mytimeout;
+
+            auto level = itemtable->get("level");
+            if (level != nullptr) {
+                mylevel = level->as_integer()->value_or(0);
+            } else {
+                mylevel = 0;
+            }
+
+            auto timeout = itemtable->get("timeout");
+            if (timeout != nullptr) {
+                mytimeout = timeout->as_integer()->value_or(15);
+            } else {
+                mytimeout = 15;
+            }
+
+            auto timepday = itemtable->get("time");
+            if (timepday != nullptr) {
+                mytime = timepday->as_integer()->value_or(60);
+            } else {
+                mytime = 60;
+            }
+
+            auto name = itemtable->get("name");
+            if (name != nullptr) {
+                myname = name->as_string()->value_or("Level " + std::to_string(mylevel));
+            } else {
+                myname = "Level " + std::to_string(mylevel);
+            }
+
+            if (mylevel != 0) {
+                struct seclevel_s seccfg;
+
+                seccfg.name = myname;
+                seccfg.level = mylevel;
+                seccfg.time_per_day = mytime;
+                seccfg.timeout = mytimeout;
+
+                seclevels.push_back(seccfg);
+            }
+
+        }  
+    } catch (toml::parse_error const &p) {
+        log->log(LOG_ERROR, "Error parsing %s/seclevels.toml, Line %d, Column %d", data_path.c_str(), p.source().begin.line, p.source().begin.column);
+        log->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
+    }
 }
 
 void Node::load_doors() {
@@ -872,4 +973,52 @@ void Node::scan_msg_bases() {
         }
     }
     pause();
+}
+
+int Node::get_seclevel() {
+    return std::stoi(User::get_attrib(this, "seclevel", "10"));
+}
+
+int Node::get_timeperday() {
+    int seclevel = get_seclevel();
+
+    for (size_t i = 0; i < seclevels.size(); i++) {
+        if (seclevels.at(i).level == seclevel) {
+            return seclevels.at(i).time_per_day;
+        }
+    }
+    return 25;
+}
+
+int Node::get_timeout() {
+    int seclevel = get_seclevel();
+
+    for (size_t i = 0; i < seclevels.size(); i++) {
+        if (seclevels.at(i).level == seclevel) {
+            return seclevels.at(i).timeout;
+        }
+    }
+    return 5;
+}
+
+bool Node::time_check() {
+    time_t now = time(NULL);
+
+    if (last_time_check == 0) {
+        last_time_check = now;
+    }
+
+    if (now - last_time_check >= 60) {
+        timeleft -= (now - last_time_check);
+        if (uid != 0) {
+            User::set_attrib(this, "time-left", std::to_string(timeleft / 60));
+        }
+        last_time_check = now;
+    }
+
+    if (timeleft <= 0) {
+        return false;
+    }
+
+    return true;
 }

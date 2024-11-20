@@ -373,6 +373,12 @@ static duk_ret_t bunreademail(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t bgettimeleft(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    duk_push_number(ctx, n->get_timeleft());
+    return 1;
+}
+
 static duk_ret_t bgetdoors(duk_context *ctx) {
     Node *n = get_node(ctx);
     std::vector<struct door_cfg_s> doors = n->get_doors();
@@ -499,6 +505,9 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bunreademail, 0);
     duk_put_global_string(ctx, "unreademail");
+
+    duk_push_c_function(ctx, bgettimeleft, 0);
+    duk_put_global_string(ctx, "timeleft");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));

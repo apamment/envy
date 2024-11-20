@@ -73,7 +73,7 @@ while(true) {
         print("M - Read Email\r\n")
         print("G - Goodbye!\r\n\r\n")
     }
-    print("|08(|10" + getarea() + "|08) :> |07")
+    print("|08(|10" + getarea() + "|08) (|11Time: |15" + timeleft() + "m|08)" + " :> |07")
 
     var c = getch()
 

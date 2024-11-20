@@ -21,6 +21,13 @@ struct door_cfg_s {
     std::string script;
 };
 
+struct seclevel_s {
+    std::string name;
+    int level;
+    int time_per_day;
+    int timeout;
+};
+
 class MessageBase;
 
 class Node {
@@ -105,16 +112,31 @@ public:
     std::string get_username() {
         return username;
     }
+
+    int get_timeleft() {
+        return timeleft / 60;
+    }
+
+    int get_seclevel();
+
     Logger *log;
 private:
+
+    bool time_check();
 
     bool detectANSI();
 
     void load_msgbases();
     void load_doors();
+    void load_seclevels();
+
+    int get_timeperday();
+    int get_timeout();
 
     std::vector<MessageBase *> msgbases;
     std::vector<struct door_cfg_s> doors;
+    std::vector<struct seclevel_s> seclevels;
+
     std::string username;
 
     std::string gfile_path;
@@ -141,4 +163,6 @@ private:
     int node;
     bool telnet;
     int tstage;
+    int timeleft;
+    time_t last_time_check;
 };
