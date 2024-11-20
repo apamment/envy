@@ -182,6 +182,28 @@ static duk_ret_t bputattr(duk_context *ctx) {
     return 0;
 }
 
+static duk_ret_t bgetattro(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    uint32_t uid = duk_to_uint32(ctx, 0);
+    std::string attr = std::string(duk_to_string(ctx, -1));
+    std::string def = std::string(duk_to_string(ctx, -2));
+    
+    duk_push_string(ctx, User::get_attrib(n, uid, attr, def).c_str());
+    return 1;
+}
+
+static duk_ret_t bputattro(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    uint32_t uid = duk_to_uint32(ctx, 0);
+    std::string attr = std::string(duk_to_string(ctx, -1));
+    std::string val = std::string(duk_to_string(ctx, -2));
+
+    User::set_attrib(n, uid, attr, val);
+
+    return 0;
+}
+
+
 static duk_ret_t bcls(duk_context *ctx) {
     Node *n = get_node(ctx);
     n->cls();
@@ -379,6 +401,23 @@ static duk_ret_t bgettimeleft(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t bgetusers(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    std::vector<struct userid_s> users = User::get_users(n);
+
+    duk_idx_t arr_idx;
+    arr_idx = duk_push_array(ctx);
+    for (size_t i = 0; i < users.size(); i++) {
+        duk_idx_t obj_idx = duk_push_object(ctx);
+        duk_push_number(ctx, users.at(i).uid);
+        duk_put_prop_string(ctx, obj_idx, "uid");
+        duk_push_string(ctx, users.at(i).username.c_str());
+        duk_put_prop_string(ctx, obj_idx, "username");
+        duk_put_prop_index(ctx, arr_idx, i);
+    }
+    return 1;
+}
+
 static duk_ret_t bgetdoors(duk_context *ctx) {
     Node *n = get_node(ctx);
     std::vector<struct door_cfg_s> doors = n->get_doors();
@@ -396,6 +435,7 @@ static duk_ret_t bgetdoors(duk_context *ctx) {
     }
     return 1;
 }
+
 int Script::run(Node *n, std::string script) {
     std::string filename = n->get_script_path() + "/" + script + ".js";
     std::ifstream t(filename);
@@ -433,6 +473,12 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bputattr, 2);
     duk_put_global_string(ctx, "putattr");
+
+    duk_push_c_function(ctx, bgetattr, 3);
+    duk_put_global_string(ctx, "getattro");
+
+    duk_push_c_function(ctx, bputattr, 3);
+    duk_put_global_string(ctx, "putattro");
 
     duk_push_c_function(ctx, bcls, 0);
     duk_put_global_string(ctx, "cls");
@@ -508,6 +554,9 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bgettimeleft, 0);
     duk_put_global_string(ctx, "timeleft");
+
+    duk_push_c_function(ctx, bgetusers, 0);
+    duk_put_global_string(ctx, "getusers");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));

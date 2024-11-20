@@ -58,6 +58,8 @@ exec("automsg")
 
 scanbases()
 
+var seclevel = Number(getattr("seclevel", "10"))
+
 while(true) {
     cls()
     if (!gfile("mainmenu")) {
@@ -132,6 +134,8 @@ while(true) {
         write_email()
     } else if (c == 'm' || c == 'M') {
         listemail()
+    } else if (c == '$' && seclevel >= 99) {
+        exec("usereditor")
     } else {
         print("|12Huh?|07\r\n\r\n")
         pause()

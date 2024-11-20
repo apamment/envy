@@ -104,6 +104,10 @@ int User::check_password(Node *n, std::string username, std::string password) {
 }
 
 std::string User::get_attrib(Node *n, std::string attrib, std::string fallback) {
+    return get_attrib(n, n->get_uid(), attrib, fallback);
+}
+
+std::string User::get_attrib(Node *n, int uid, std::string attrib, std::string fallback) {
     sqlite3 *db;
     sqlite3_stmt *stmt;
     std::string ret;
@@ -119,7 +123,7 @@ std::string User::get_attrib(Node *n, std::string attrib, std::string fallback) 
     }
 
     sqlite3_bind_text(stmt, 1, attrib.c_str(), -1, NULL);
-    sqlite3_bind_int(stmt, 2, n->get_uid());
+    sqlite3_bind_int(stmt, 2, uid);
 
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         ret = std::string((const char *)sqlite3_column_text(stmt, 0));
@@ -133,6 +137,10 @@ std::string User::get_attrib(Node *n, std::string attrib, std::string fallback) 
 }
 
 void User::set_attrib(Node *n, std::string attrib, std::string value) {
+    set_attrib(n, n->get_uid(), attrib, value);
+}
+
+void User::set_attrib(Node *n, int uid, std::string attrib, std::string value) {
     sqlite3 *db;
     sqlite3_stmt *stmt;
     static const char *sql1 = "SELECT value FROM details WHERE attrib = ? AND uid = ?";
@@ -148,7 +156,7 @@ void User::set_attrib(Node *n, std::string attrib, std::string value) {
     }
 
     sqlite3_bind_text(stmt, 1, attrib.c_str(), -1, NULL);
-    sqlite3_bind_int(stmt, 2, n->get_uid());
+    sqlite3_bind_int(stmt, 2, uid);
 
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         sqlite3_finalize(stmt);
@@ -158,7 +166,7 @@ void User::set_attrib(Node *n, std::string attrib, std::string value) {
         }
         sqlite3_bind_text(stmt, 1, value.c_str(), -1, NULL);
         sqlite3_bind_text(stmt, 2, attrib.c_str(), -1, NULL);
-        sqlite3_bind_int(stmt, 3, n->get_uid());
+        sqlite3_bind_int(stmt, 3, uid);
 
         sqlite3_step(stmt);
         sqlite3_finalize(stmt);
@@ -169,7 +177,7 @@ void User::set_attrib(Node *n, std::string attrib, std::string value) {
             sqlite3_close(db);
             return;
         }
-        sqlite3_bind_int(stmt, 1, n->get_uid());
+        sqlite3_bind_int(stmt, 1, uid);
         sqlite3_bind_text(stmt, 2, attrib.c_str(), -1, NULL);
         sqlite3_bind_text(stmt, 3, value.c_str(), -1, NULL);
 
@@ -366,4 +374,35 @@ User::InvalidUserReason User::valid_username(Node *n, std::string username) {
     }
     
     return User::InvalidUserReason::OK;
+}
+
+std::vector<struct userid_s> User::get_users(Node *n) {
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    static const char *sql = "SELECT id, username FROM users";
+
+    std::vector<struct userid_s> users;
+
+    if (!open_database(n->get_data_path() + "/users.sqlite3", &db)) {
+        return users;
+    }
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return users;
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        struct userid_s u;
+
+        u.uid = sqlite3_column_int(stmt, 0);
+        u.username = std::string((const char *)sqlite3_column_text(stmt, 1));
+
+        users.push_back(u);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return users;
 }
