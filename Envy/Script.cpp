@@ -185,10 +185,10 @@ static duk_ret_t bputattr(duk_context *ctx) {
 static duk_ret_t bgetattro(duk_context *ctx) {
     Node *n = get_node(ctx);
     uint32_t uid = duk_to_uint32(ctx, 0);
-    std::string attr = std::string(duk_to_string(ctx, -1));
-    std::string def = std::string(duk_to_string(ctx, -2));
+    std::string attr = std::string(duk_to_string(ctx, -2));
+    std::string def = std::string(duk_to_string(ctx, -1));
     
-    printf("%u %s %s\n", uid, attr.c_str(), def.c_str());
+   //printf("%u %s %s\n", uid, attr.c_str(), def.c_str());
 
     duk_push_string(ctx, User::get_attrib(n, uid, attr, def).c_str());
     return 1;
@@ -197,8 +197,8 @@ static duk_ret_t bgetattro(duk_context *ctx) {
 static duk_ret_t bputattro(duk_context *ctx) {
     Node *n = get_node(ctx);
     uint32_t uid = duk_to_uint32(ctx, 0);
-    std::string attr = std::string(duk_to_string(ctx, -1));
-    std::string val = std::string(duk_to_string(ctx, -2));
+    std::string attr = std::string(duk_to_string(ctx, -2));
+    std::string val = std::string(duk_to_string(ctx, -1));
 
     User::set_attrib(n, uid, attr, val);
 
