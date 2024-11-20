@@ -40,9 +40,6 @@ void Node::pause() {
 
 void Node::disconnect() {
     close(socket);
-
-    User::set_attrib(this, "time-left", std::to_string(timeleft / 60));
-
     throw(DisconnectException("Disconnected"));
 }
 
