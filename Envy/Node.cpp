@@ -306,7 +306,8 @@ char Node::getch() {
             timeout++;
 
             if (timeout > (uid > 0 ? get_timeout() : 15)) {
-                bprintf("|14You've timed out, call back when you're there!|07");
+                bprintf("\r\n\r\n|14You've timed out, call back when you're there!|07\r\n");
+                disconnect();
             }
 
             if (!time_check()) {
