@@ -100,8 +100,8 @@ void Door::createDropfiles(Node *n) {
 
   f4 << User::get_attrib(n, "location", "Somewhere, The World") << LINE_END;
   f4 << "1" << LINE_END;
-  f4 << "10" << LINE_END; // sec level
-  f4 << std::to_string(255 * 60) << LINE_END; // time left
+  f4 << n->get_seclevel() << LINE_END; // sec level
+  f4 << std::to_string(n->get_timeleft()) << LINE_END; // time left
   f4 << "-1" << LINE_END;
   f4.close();
 
@@ -125,7 +125,7 @@ void Door::createDropfiles(Node *n) {
   f3 << "0" << LINE_END;
   f3 << "1" << LINE_END;
   f3 << "1" << LINE_END;
-  f3 << std::to_string(255 * 60) << LINE_END; // time left
+  f3 << std::to_string(n->get_timeleft()) << LINE_END; // time left
   f3 << n->get_gfile_path() << LINE_END;
   f3 << n->get_tmp_path() << LINE_END;
   f3 << "NOLOG" << LINE_END;
@@ -156,8 +156,8 @@ void Door::createDropfiles(Node *n) {
   f << n->get_uid() << LINE_END;
   f << User::get_attrib(n, "fullname", "UNKNOWN") << LINE_END;
   f << n->get_username() << LINE_END;
-  f << "20" << LINE_END; // seclevel
-  f << "255" << LINE_END; // time left
+  f << n->get_seclevel() << LINE_END; // seclevel
+  f << std::to_string(n->get_timeleft() / 60) << LINE_END; // time left
   f << (n->has_ansi() ? "1" : "0") << LINE_END;
   f << n->get_node() << LINE_END;
 
@@ -182,11 +182,11 @@ void Door::createDropfiles(Node *n) {
   f2 << "00-0000-0000" << LINE_END;
   f2 << "00-0000-0000" << LINE_END;
   f2 << "SECRET" << LINE_END;
-  f2 << "10" << LINE_END; //sec level
+  f2 << n->get_seclevel() << LINE_END; //sec level
   f2 << User::get_attrib(n, "total-calls", "0") << LINE_END;
   f2 << "01-01-1971" << LINE_END;
-  f2 << std::to_string(255 * 60) << LINE_END;
-  f2 << "255" << LINE_END;
+  f2 << n->get_timeleft() << LINE_END;
+  f2 << std::to_string(n->get_timeleft() / 60) << LINE_END;
   f2 << "GR" << LINE_END;
   f2 << "25" << LINE_END;
   f2 << "N" << LINE_END;
