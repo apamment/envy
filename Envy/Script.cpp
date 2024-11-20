@@ -474,10 +474,10 @@ int Script::run(Node *n, std::string script) {
     duk_push_c_function(ctx, bputattr, 2);
     duk_put_global_string(ctx, "putattr");
 
-    duk_push_c_function(ctx, bgetattr, 3);
+    duk_push_c_function(ctx, bgetattro, 3);
     duk_put_global_string(ctx, "getattro");
 
-    duk_push_c_function(ctx, bputattr, 3);
+    duk_push_c_function(ctx, bputattro, 3);
     duk_put_global_string(ctx, "putattro");
 
     duk_push_c_function(ctx, bcls, 0);
