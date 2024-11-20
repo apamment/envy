@@ -20,13 +20,13 @@ while (true) {
         if (index >= users.length) {
             index = users.length - 1
         }
-    } else if (ch == 'f' || ch == 'F') {
+    } else if (ch == 's' || ch == 'S') {
         print("New SecLevel: ")
         var sl = Number(gets(3))
         if (sl > 0 && sl <= 99) {
             putattro(Number(users[index]['uid']), "seclevel", sl)
         }
-    } else if (ch == 's' || ch == 'S') {
+    } else if (ch == 'f' || ch == 'F') {
         print("New FullName: ")
         var fn = gets(65)
         putattro(Number(users[index]['uid']), "fullname", fn)
