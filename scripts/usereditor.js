@@ -5,8 +5,8 @@ while (true) {
 
     cls()
     print("User Editor - " + users[index]['username'] + "(" + users[index]['uid'] + ")\r\n\r\n")
-    print("(F)ullName: " + getattro(users[index]['uid'].toString(), "fullname", "UNKNOWN") + "\r\n")
-    print("(S)ecLevel: " + getattro(users[index]['uid'].toString(), "seclevel", "10") + "\r\n")
+    print("(F)ullName: " + getattro(Number(users[index]['uid']), "fullname", "UNKNOWN") + "\r\n")
+    print("(S)ecLevel: " + getattro(Number(users[index]['uid']), "seclevel", "10") + "\r\n")
     print("(N)ext, (P)revious, (Q)uit\r\n")
     var ch = getch()
 
@@ -24,12 +24,12 @@ while (true) {
         print("New SecLevel: ")
         var sl = Number(gets(3))
         if (sl > 0 && sl <= 99) {
-            putattro(users[index]['uid'].toString(), "seclevel", sl)
+            putattro(Number(users[index]['uid']), "seclevel", sl)
         }
     } else if (ch == 's' || ch == 'S') {
         print("New FullName: ")
         var fn = gets(65)
-        putattro(users[index]['uid'].toString(), "fullname", fn)
+        putattro(Number(users[index]['uid']), "fullname", fn)
     } else if (ch == 'q' || ch == 'Q') {
         break;
     }
