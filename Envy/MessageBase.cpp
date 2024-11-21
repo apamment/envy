@@ -1188,9 +1188,7 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
       ss << fakescreen[i][j].c;
     }
     if (j < n->get_term_width()) {
-      if (!got_tearline) {
-        ss << "\r\n";
-      }
+      ss << "\r\n";
     }
     new_msg.push_back(ss.str());
   }
