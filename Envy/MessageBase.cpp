@@ -444,7 +444,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
                 } 
                 ss << body[i];
 
-                if (ss.str().length() == 75) {
+                if (ss.str().length() == 76) {
                     ss << "\r\n";
                     std::string line = ss.str();
                     msg.push_back(line);
@@ -1146,6 +1146,7 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
 
     if ((fakescreen[i][0].c == '-' && fakescreen[i][1].c == '-' && fakescreen[i][2].c == '-') && (fakescreen[i][3].c == 0 || fakescreen[i][3].c == ' ')) {
       got_tearline = true;
+      ss << "\x1b[0m";
     }
 
     if (!got_tearline) {
