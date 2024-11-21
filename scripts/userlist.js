@@ -15,7 +15,7 @@ if (!gfile("userlist")) {
 var users = getusers()
 var lines = 0;
 for (var i = 0; i < users.length; i++) {
-    print("|15" + pad("                 ", users[i]['username'], false) + " |11" + pad("                                 ", getattro(users[i]['uid'], "location", "Somewhere, The World"), false) + " |13" + pad("      ", getattro(users[i]['uid'], "total-calls", "0"), true) + " calls|07\r\n")
+    print("    |15" + pad("                 ", users[i]['username'], false) + " |11" + pad("                                 ", getattro(users[i]['uid'], "location", "Somewhere, The World"), false) + " |13" + pad("      ", getattro(users[i]['uid'], "total-calls", "0"), true) + " calls|07\r\n")
     lines++;
     if (lines == 20) {
         pause()
