@@ -12,6 +12,7 @@ extern "C" {
 #include "MessageBase.h"
 #include "Node.h"
 #include "User.h"
+#include "Version.h"
 
 static inline void rtrim(std::string &s) {
   s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
@@ -205,7 +206,7 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
     }
 
     if (mbtype == ECHO) {
-        body << "\r--- envy " << VERSION << "\r * Origin: " << tagline << " (" << address << ")\r";
+        body << "\r--- envy/" << VERSION << "-" << GITV << "\r * Origin: " << tagline << " (" << address << ")\r";
     }
 
     if (JAM_AddMessage(jb, &jmh, jsp, (uint8_t *)body.str().c_str(), body.str().length())) {

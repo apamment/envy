@@ -1,7 +1,5 @@
 #pragma once
 
-#define VERSION "0.1"
-
 #include <string>
 #include <vector>
 #include "Logger.h"

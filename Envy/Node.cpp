@@ -14,6 +14,7 @@
 #include "Script.h"
 #include "User.h"
 #include "Door.h"
+#include "Version.h"
 
 Node::Node(int node, int socket, bool telnet) {
     this->node = node;
@@ -473,7 +474,7 @@ int Node::run() {
     send(socket, (char *)iac_echo, 3, 0);
     send(socket, (char *)iac_sga, 3, 0);
 
-    bprintf("Envy %s - Copyright (C) 2024; Andrew Pamment\r\n", VERSION);
+    bprintf("Envy/%s-%s - Copyright (C) 2024; Andrew Pamment\r\n", VERSION, GITV);
 
     ansi_supported = detectANSI();
 

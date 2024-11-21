@@ -16,6 +16,7 @@
 #include "Door.h"
 #include "Node.h"
 #include "User.h"
+#include "Version.h"
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -152,7 +153,7 @@ void Door::createDropfiles(Node *n) {
   f << "0" << LINE_END;
   f << n->get_socket() << LINE_END;
   f << "38400" << LINE_END;
-  f << "Envy v" << VERSION << LINE_END;
+  f << "Envy " << VERSION << "-" << GITV << LINE_END;
   f << n->get_uid() << LINE_END;
   f << User::get_attrib(n, "fullname", "UNKNOWN") << LINE_END;
   f << n->get_username() << LINE_END;

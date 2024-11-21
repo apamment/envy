@@ -1,12 +1,14 @@
 #include <fstream>
 #include <sstream>
 #include <sqlite3.h>
+#include <sys/utsname.h>
 #include "Script.h"
 #include "Node.h"
 #include "User.h"
 #include "duktape.h"
 #include "MessageBase.h"
 #include "Email.h"
+#include "Version.h"
 
 struct script_data {
     Node *n;
@@ -428,6 +430,38 @@ static duk_ret_t bgetopname(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t bgetversion(duk_context *ctx) {
+    duk_idx_t obj_idx = duk_push_object(ctx);
+    duk_push_string(ctx, std::string(VERSION "-" GITV).c_str());
+    duk_put_prop_string(ctx, obj_idx, "envy");
+
+    struct utsname u;
+
+    if (uname(&u) == 0) {
+        duk_push_string(ctx, u.sysname);
+        duk_put_prop_string(ctx, obj_idx, "system");
+        duk_push_string(ctx, u.release);
+        duk_put_prop_string(ctx, obj_idx, "sysver");
+        duk_push_string(ctx, u.machine);
+        duk_put_prop_string(ctx, obj_idx, "machine");
+
+    } else {
+        duk_push_string(ctx, "???");
+        duk_put_prop_string(ctx, obj_idx, "system");
+        duk_push_string(ctx, "???");
+        duk_put_prop_string(ctx, obj_idx, "sysver");
+        duk_push_string(ctx, "???");
+        duk_put_prop_string(ctx, obj_idx, "machine");
+    }
+
+    std::stringstream ss;
+    ss << (DUK_VERSION / 10000) << "." << (DUK_VERSION % 10000 / 100) << "." << (DUK_VERSION % 100);
+    duk_push_string(ctx, ss.str().c_str());
+    duk_put_prop_string(ctx, obj_idx, "duktape");
+
+    return 1;
+}
+
 static duk_ret_t bgetdoors(duk_context *ctx) {
     Node *n = get_node(ctx);
     std::vector<struct door_cfg_s> doors = n->get_doors();
@@ -570,6 +604,9 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bgetopname, 0);
     duk_put_global_string(ctx, "opname");
+
+    duk_push_c_function(ctx, bgetversion, 0);
+    duk_put_global_string(ctx, "getversion");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
