@@ -64,22 +64,14 @@ var seclevel = Number(getattr("seclevel", "10"))
 while(true) {
     cls()
     if (!gfile("mainmenu")) {
-        print(">>>> Main Menu <<<<\r\n")
-        print("S - Select Msg Area\r\n")
-        print("W - Write Message\r\n")
-        print("L - List Messages\r\n")
-        print("R - Read Messages\r\n")
+        print("|10             >>>> Main Menu <<<<\r\n")
+        print("|15S|07 - Select Msg Area         |15U|07 - User List\r\n")
+        print("|15W|07 - Write Message           |15A|07 - Automessage\r\n")
+        print("|15L|07 - List Messages           |15O|07 - Oneliners\r\n")
+        print("|15R|07 - Read Messages           |15D|07 - Door Games\r\n\r\n")
 
-        print("E - Enter Email\r\n")
-        print("M - Read Email\r\n")
-        
-        print("U - User List\r\n")
-        print("A - Automessage\r\n")
-        print("O - Oneliners\r\n")
-        print("D - Door Games\r\n")
-
-        print("F - Leave Feedback to Sysop\r\n")
-        print("G - Goodbye!\r\n\r\n")
+        print("|15E|07 - Enter Email             |15F|07 - Leave Feedback\r\n")
+        print("|15M|07 - Read Email              |15G|07 - Goodbye!\r\n\r\n")
     }
     print("|08(|10" + getarea() + "|08) (|11Time: |15" + timeleft() + "m|08)" + " :> |07")
 
