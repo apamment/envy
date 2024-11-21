@@ -55,7 +55,8 @@ function write_email() {
 check_email()
 exec("last10")
 exec("automsg")
-
+cls()
+print("|10Scanning message bases...|07\r\n")
 scanbases()
 
 var seclevel = Number(getattr("seclevel", "10"))

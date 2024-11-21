@@ -961,7 +961,7 @@ void Node::select_msg_base() {
     for (size_t i = 0; i < accessablemb.size(); i++) {
         uint32_t ur = accessablemb.at(i)->get_unread(this);
         uint32_t tot = accessablemb.at(i)->get_total(this);
-        bprintf("|07%4d. |15%-40.40s |10%d UNREAD |13%d TOTAL|07\r\n", i + 1, accessablemb.at(i)->name.c_str(), ur, tot);
+        bprintf("|07%4d. |15%-44.44s |10%6d |02UNREAD |13%6d |05TOTAL|07\r\n", i + 1, accessablemb.at(i)->name.c_str(), ur, tot);
         if (lines == 22) {
             pause();
             lines = 0;
@@ -988,12 +988,11 @@ void Node::select_msg_base() {
 void Node::scan_msg_bases() {
     int lines = 0;
 
-    cls();
     for (size_t i = 0; i < accessablemb.size(); i++) {
         uint32_t ur = accessablemb.at(i)->get_unread(this);
         uint32_t tot = accessablemb.at(i)->get_total(this);
 
-        bprintf("|07%4d. |15%-40.40s |10%d UNREAD |13%d TOTAL|07\r\n", i + 1, accessablemb.at(i)->name.c_str(), ur, tot);
+        bprintf("|07%4d. |15%-44.44s |10%6d |02UNREAD |13%6d |05TOTAL|07\r\n", i + 1, accessablemb.at(i)->name.c_str(), ur, tot);
         lines++;
         if (lines == 22) {
             pause();
