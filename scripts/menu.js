@@ -74,6 +74,7 @@ while(true) {
         print("D - Door Games\r\n")
         print("E - Enter Email\r\n")
         print("M - Read Email\r\n")
+        print("U - User List\r\n")
         print("G - Goodbye!\r\n\r\n")
     }
     print("|08(|10" + getarea() + "|08) (|11Time: |15" + timeleft() + "m|08)" + " :> |07")
@@ -135,6 +136,8 @@ while(true) {
         write_email()
     } else if (c == 'm' || c == 'M') {
         listemail()
+    } else if (c == 'u' || c == 'U') {
+        exec("userlist")
     } else if (c == '$' && seclevel >= 99) {
         exec("usereditor")
     } else {
