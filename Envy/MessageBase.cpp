@@ -493,7 +493,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
                     std::vector<std::string> qb;
 
                     for (size_t q = 0; q < msg.size(); q++) {
-                        qb.push_back(" > " + msg.at(q));
+                        qb.push_back(" > " + strip_ansi(msg.at(q)));
                     }
 
                     enter_message(n, hdrs.at(reading).from, hdrs.at(reading).subject, &qb, &hdrs.at(reading));
@@ -1202,3 +1202,17 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
   return new_msg;
 }
 
+std::string MessageBase::strip_ansi(std::string str) {
+  std::stringstream ss;
+
+  for (size_t i = 0; i < str.size(); i++) {
+    if (str.at(i) == '\x1b') {
+      while (i < str.size() && std::string("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz").find(str.at(i)) == std::string::npos) {
+        i++;
+      }
+      continue;
+    }
+    ss << str.at(i);
+  }
+  return ss.str();
+}

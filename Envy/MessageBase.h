@@ -58,4 +58,5 @@ public:
     uint32_t get_total(Node *n);
 private:
     std::vector<std::string> demangle_ansi(Node *n, const char *msg, size_t len);
+    std::string strip_ansi(std::string str);
 };
