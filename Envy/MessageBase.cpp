@@ -436,6 +436,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
         } else {
             for (size_t i = 0; i < hdrs.at(reading).body_len; i++) {
                 if (body[i] == '\r') {
+                    ss << "\r\n";
                     std::string line = ss.str();
                     msg.push_back(line);
                     ss.str("");
@@ -444,6 +445,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
                 ss << body[i];
 
                 if (ss.str().length() == 75) {
+                    ss << "\r\n";
                     std::string line = ss.str();
                     msg.push_back(line);
                     ss.str("");
@@ -466,7 +468,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
         int lines = 5;
 
         for (size_t i = 0; i < msg.size(); i++) {
-            n->bprintf("%s\r\n", msg.at(i).c_str());
+            n->bprintf("%s", msg.at(i).c_str());
             lines++;
             if (lines == 23) {
                 n->pause();
