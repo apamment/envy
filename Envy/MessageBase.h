@@ -10,6 +10,7 @@ struct msg_header_t {
     std::string subject;
     std::string msgid;
     std::string oaddr;
+    std::string daddr;
     time_t date;
     size_t body_len;
     size_t body_off;
@@ -24,18 +25,23 @@ public:
         NETMAIL
     };
 
-    MessageBase(std::string name, std::string file, std::string addr, std::string tagline, MsgBaseType t) {
+    MessageBase(std::string name, std::string file, std::string addr, std::string tagline, MsgBaseType t, int r, int w) {
         this->name = name;
         this->file = file;
         this->address = addr;
         this->tagline = tagline;
         this->mbtype = t;
+        this->read_sec_level = r;
+        this->write_sec_level = w;
     }
     
     std::string name;
     std::string file;
     std::string address;
     std::string tagline;
+
+    int read_sec_level;
+    int write_sec_level;
 
     MsgBaseType mbtype;
 

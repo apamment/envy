@@ -134,6 +134,7 @@ private:
     int get_timeout();
 
     std::vector<MessageBase *> msgbases;
+    std::vector<MessageBase *> accessablemb;
     std::vector<struct door_cfg_s> doors;
     std::vector<struct seclevel_s> seclevels;
 

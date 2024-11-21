@@ -10,6 +10,7 @@ extern "C" {
 #include "FullScreenEditor.h"
 #include "MessageBase.h"
 #include "Node.h"
+#include "User.h"
 
 
 
@@ -221,6 +222,12 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
 
 void MessageBase::enter_message(Node *n, std::string recipient, std::string subject, std::vector<std::string> *quotebuffer, struct msg_header_t *reply) {
 
+    if (n->get_seclevel() < write_sec_level) {
+        n->bprintf("\r\n\r\n|12Sorry, you don't have access to write in this area!\r\n\r\n");
+        n->pause();
+        return;
+    }
+
     std::string daddress = "";
 
     n->bprintf("Recipient: ");
@@ -339,6 +346,8 @@ void MessageBase::read_messages(Node *n, int startingat) {
         }
         i++;
 
+
+
 	    hdr.date = jmh.DateWritten;
         hdr.body_len = jmh.TxtLen;
         hdr.body_off = jmh.TxtOffset;
@@ -360,10 +369,26 @@ void MessageBase::read_messages(Node *n, int startingat) {
                 hdr.msgid = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
             } else if (jsp->Fields[f]->LoID == JAMSFLD_OADDRESS) {
                 hdr.oaddr = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
+            } else if (jsp->Fields[f]->LoID == JAMSFLD_DADDRESS) {
+                hdr.daddr = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
             }
         }
 
-        hdrs.push_back(hdr);
+        bool ok = false;
+
+        if (mbtype == NETMAIL) {
+            if ((hdr.to == n->get_username() || hdr.to == User::get_attrib(n, "fullname", "UNKNOWN")) && hdr.daddr == address) {
+                ok = true;
+            } else if ((hdr.from == n->get_username() || hdr.from == User::get_attrib(n, "fullname", "UNKNOWN")) && hdr.oaddr == address) {
+                ok = true;
+            }
+        } else {
+            ok = true;
+        }
+
+        if (ok) {
+            hdrs.push_back(hdr);
+        }
         JAM_DelSubPacket(jsp);
     }
 
@@ -519,10 +544,29 @@ void MessageBase::list_messages(Node *n, int startingat) {
 			    hdr.from = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
 		    } else if (jsp->Fields[f]->LoID == JAMSFLD_RECVRNAME) {
                 hdr.to = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
+            } else if (jsp->Fields[f]->LoID == JAMSFLD_MSGID) {
+                hdr.msgid = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
+            } else if (jsp->Fields[f]->LoID == JAMSFLD_OADDRESS) {
+                hdr.oaddr = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
+            } else if (jsp->Fields[f]->LoID == JAMSFLD_DADDRESS) {
+                hdr.daddr = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
             }
         }
+        bool ok = false;
 
-        hdrs.push_back(hdr);
+        if (mbtype == NETMAIL) {
+            if ((hdr.to == n->get_username() || hdr.to == User::get_attrib(n, "fullname", "UNKNOWN")) && hdr.daddr == address) {
+                ok = true;
+            } else if ((hdr.from == n->get_username() || hdr.from == User::get_attrib(n, "fullname", "UNKNOWN")) && hdr.oaddr == address) {
+                ok = true;
+            }
+        } else {
+            ok = true;
+        }
+
+        if (ok) {
+            hdrs.push_back(hdr);
+        }
         JAM_DelSubPacket(jsp);
     }
 

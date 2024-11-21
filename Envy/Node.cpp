@@ -664,19 +664,27 @@ int Node::run() {
 
     log->log(LOG_INFO, "%s logged in!", username.c_str());
 
+    int seclevel = get_seclevel();
+
+    for (size_t i = 0; i < msgbases.size(); i++) {
+        if (msgbases.at(i)->read_sec_level <= seclevel) {
+            accessablemb.push_back(msgbases.at(i));
+        }
+    }
+
     curr_msgbase = -1;
     std::string cmb = User::get_attrib(this, "curr_mbase", "");
 
     if (cmb != "") {
-        for (size_t i = 0; i < msgbases.size(); i++) {
-            if (msgbases.at(i)->file == cmb) {
+        for (size_t i = 0; i < accessablemb.size(); i++) {
+            if (accessablemb.at(i)->file == cmb) {
                 curr_msgbase = i;
                 break;
             }
         }
     }
     if (curr_msgbase == -1) {
-        if (msgbases.size() > 0) {
+        if (accessablemb.size() > 0) {
             curr_msgbase = 0;
         }
     }
@@ -864,6 +872,8 @@ void Node::load_msgbases() {
             std::string myfile;
             std::string myoaddr;
             std::string mytagline;
+            int myreads;
+            int mywrites;
             MessageBase::MsgBaseType mytype;
 
             auto name = itemtable->get("name");
@@ -895,6 +905,20 @@ void Node::load_msgbases() {
                 mytagline = default_tagline;
             }
 
+            auto reads = itemtable->get("read-sec");
+            if (reads != nullptr) {
+                myreads = reads->as_integer()->value_or(10);
+            } else {
+                myreads = 10;
+            }
+
+            auto writes = itemtable->get("write-sec");
+            if (writes != nullptr) {
+                mywrites = writes->as_integer()->value_or(10);
+            } else {
+                mywrites = 10;
+            }
+
             auto mbtype = itemtable->get("type");
             if (mbtype != nullptr) {
                 std::string mbtypes = mbtype->as_string()->value_or("local");
@@ -911,7 +935,7 @@ void Node::load_msgbases() {
             }
 
             if (myfile != "") {
-                msgbases.push_back(new MessageBase(myname, myfile, myoaddr, mytagline, mytype));
+                msgbases.push_back(new MessageBase(myname, myfile, myoaddr, mytagline, mytype, myreads, mywrites));
             }            
         }
 
@@ -923,7 +947,7 @@ void Node::load_msgbases() {
 
 MessageBase *Node::get_curr_msgbase() {
     if (curr_msgbase != -1) {
-        return msgbases.at(curr_msgbase);
+        return accessablemb.at(curr_msgbase);
     }
 
     return nullptr;
@@ -934,10 +958,10 @@ void Node::select_msg_base() {
     
     int lines = 0;
     
-    for (size_t i = 0; i < msgbases.size(); i++) {
-        uint32_t ur = msgbases.at(i)->get_unread(this);
-        uint32_t tot = msgbases.at(i)->get_total(this);
-        bprintf("|07%4d. |15%-40.40s |10%d UNREAD |13%d TOTAL|07\r\n", i + 1, msgbases.at(i)->name.c_str(), ur, tot);
+    for (size_t i = 0; i < accessablemb.size(); i++) {
+        uint32_t ur = accessablemb.at(i)->get_unread(this);
+        uint32_t tot = accessablemb.at(i)->get_total(this);
+        bprintf("|07%4d. |15%-40.40s |10%d UNREAD |13%d TOTAL|07\r\n", i + 1, accessablemb.at(i)->name.c_str(), ur, tot);
         if (lines == 22) {
             pause();
             lines = 0;
@@ -951,9 +975,9 @@ void Node::select_msg_base() {
         try {
             int n = std::stoi(num);
 
-            if (n - 1 >= 0 && n - 1 < msgbases.size()) {
+            if (n - 1 >= 0 && n - 1 < accessablemb.size()) {
                 curr_msgbase = n - 1;
-                User::set_attrib(this, "curr_mbase", msgbases.at(curr_msgbase)->file);
+                User::set_attrib(this, "curr_mbase", accessablemb.at(curr_msgbase)->file);
             }
         } catch (std::out_of_range const &) {
         } catch (std::invalid_argument const &) {
@@ -965,11 +989,11 @@ void Node::scan_msg_bases() {
     int lines = 0;
 
     cls();
-    for (size_t i = 0; i < msgbases.size(); i++) {
-        uint32_t ur = msgbases.at(i)->get_unread(this);
-        uint32_t tot = msgbases.at(i)->get_total(this);
+    for (size_t i = 0; i < accessablemb.size(); i++) {
+        uint32_t ur = accessablemb.at(i)->get_unread(this);
+        uint32_t tot = accessablemb.at(i)->get_total(this);
 
-        bprintf("|07%4d. |15%-40.40s |10%d UNREAD |13%d TOTAL|07\r\n", i + 1, msgbases.at(i)->name.c_str(), ur, tot);
+        bprintf("|07%4d. |15%-40.40s |10%d UNREAD |13%d TOTAL|07\r\n", i + 1, accessablemb.at(i)->name.c_str(), ur, tot);
         lines++;
         if (lines == 22) {
             pause();
