@@ -422,22 +422,34 @@ void MessageBase::read_messages(Node *n, int startingat) {
         std::stringstream ss;
         std::vector<std::string> msg;
 
-        for (size_t i = 0; i < hdrs.at(reading).body_len; i++) {
-            if (body[i] == '\r') {
-                std::string line = ss.str();
-                msg.push_back(line);
-                ss.str("");
-                continue;
-            } 
-            ss << body[i];
+        int ansimsg = false;
 
-            if (ss.str().length() == 75) {
-                std::string line = ss.str();
-                msg.push_back(line);
-                ss.str("");
+        for (size_t z = 0; z < hdrs.at(reading).body_len; z++) {
+            if (body[z] == '\x1b') {
+                ansimsg = true;
+                break;
             }
         }
 
+        if (ansimsg) {
+            msg = demangle_ansi(n, body, hdrs.at(reading).body_len);
+        } else {
+            for (size_t i = 0; i < hdrs.at(reading).body_len; i++) {
+                if (body[i] == '\r') {
+                    std::string line = ss.str();
+                    msg.push_back(line);
+                    ss.str("");
+                    continue;
+                } 
+                ss << body[i];
+
+                if (ss.str().length() == 75) {
+                    std::string line = ss.str();
+                    msg.push_back(line);
+                    ss.str("");
+                }
+            }
+        }
         free(body);
         n->cls();
         n->bprintf("|10Subj: |15%s\r\n", hdrs.at(reading).subject.c_str());
@@ -826,3 +838,366 @@ uint32_t MessageBase::get_unread(Node *n) {
 
     return unread;
 }
+
+struct character_t {
+  char c;
+  int fg_color;
+  int bg_color;
+  bool bold;
+};
+
+
+std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, size_t len) {
+  std::vector<std::string> new_msg;
+  int lines = 0;
+  int line_at = 0;
+  int col_at = 0;
+  int params[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int param_count = 0;
+  int fg_color = 7;
+  int bg_color = 0;
+  bool bold = false;
+  int save_col = 0;
+  int save_row = 0;
+
+  if (msg == NULL || len == 0) {
+    return new_msg;
+  }
+
+  for (size_t i = 0; i < len; i++) {
+    if (msg[i] == '\r' || (i >= 1 && msg[i] == '\n' && msg[i - 1] != '\r')) {
+      line_at++;
+      if (line_at > lines) {
+        lines = line_at;
+      }
+      col_at = 0;
+    } else if (msg[i] == '\x1b') {
+      i++;
+      if (msg[i] != '[') {
+        i--;
+        continue;
+      } else {
+        param_count = 0;
+        while (i < len && strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", msg[i]) == NULL) {
+          if (msg[i] == ';') {
+            param_count++;
+          } else if (msg[i] >= '0' && msg[i] <= '9') {
+            if (param_count == 0) {
+              param_count = 1;
+              for (int j = 0; j < 9; j++) {
+                params[j] = 0;
+              }
+            }
+            params[param_count - 1] = params[param_count - 1] * 10 + (msg[i] - '0');
+          }
+          i++;
+        }
+        switch (msg[i]) {
+        case 'A':
+          if (param_count > 0) {
+            line_at -= params[0];
+          } else {
+            line_at--;
+          }
+          if (line_at < 0)
+            line_at = 0;
+          break;
+        case 'B':
+          if (param_count > 0) {
+            line_at += params[0];
+          } else {
+            line_at++;
+          }
+          if (line_at > lines) {
+            lines = line_at;
+          }
+          break;
+        case 'C':
+          if (param_count > 0) {
+            col_at += params[0];
+          } else {
+            col_at++;
+          }
+          if (col_at > (int)n->get_term_width()) {
+            col_at = n->get_term_width();
+          }
+          break;
+        case 'D':
+          if (param_count > 0) {
+            col_at -= params[0];
+          } else {
+            col_at--;
+          }
+          if (col_at < 0)
+            col_at = 0;
+          break;
+        case 'H':
+        case 'f':
+          if (param_count > 1) {
+            params[0]--;
+            params[1]--;
+          }
+          line_at = params[0];
+          col_at = params[1];
+
+          if (line_at > lines) {
+            lines = line_at;
+          }
+          if (col_at > (int)n->get_term_width()) {
+            col_at = n->get_term_width();
+          }
+          if (line_at < 0)
+            line_at = 0;
+          if (col_at < 0)
+            col_at = 0;
+          break;
+        case 'u':
+          col_at = save_col;
+          line_at = save_row;
+          break;
+        case 's':
+          save_col = col_at;
+          save_row = line_at;
+          break;
+        case 'm':
+          break;
+        default:
+
+          break;
+        }
+      }
+    } else if (msg[i] != '\n') {
+      col_at++;
+
+      if (col_at >= (int)n->get_term_width()) {
+        col_at = 0;
+        line_at++;
+        if (line_at > lines) {
+          lines = line_at;
+        }
+      }
+    }
+  }
+
+  struct character_t **fakescreen = (struct character_t **)malloc(sizeof(struct character_t *) * (lines + 1));
+
+  if (!fakescreen) {
+    return new_msg;
+  }
+
+  for (int i = 0; i <= lines; i++) {
+    fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * (n->get_term_width() + 1));
+    if (!fakescreen[i]) {
+      for (int j = i - 1; j >= 0; j--) {
+        free(fakescreen[j]);
+      }
+      free(fakescreen);
+      return new_msg;
+    }
+    for (size_t x = 0; x <= n->get_term_width(); x++) {
+      fakescreen[i][x].c = ' ';
+      fakescreen[i][x].fg_color = 7;
+      fakescreen[i][x].bg_color = 0;
+    }
+  }
+  line_at = 0;
+  col_at = 0;
+  save_row = 0;
+  save_col = 0;
+  for (size_t i = 0; i < len; i++) {
+    if (msg[i] == '\r' || (i >= 1 && msg[i] == '\n' && msg[i - 1] != '\r')) {
+      line_at++;
+      col_at = 0;
+    } else if (msg[i] == '\x1b') {
+      i++;
+      if (msg[i] != '[') {
+        i--;
+        continue;
+      } else {
+        param_count = 0;
+        while (i < len && strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", msg[i]) == NULL) {
+          if (msg[i] == ';') {
+            param_count++;
+          } else if (msg[i] >= '0' && msg[i] <= '9') {
+            if (param_count == 0) {
+              param_count = 1;
+              for (int j = 0; j < 9; j++) {
+                params[j] = 0;
+              }
+            }
+            params[param_count - 1] = params[param_count - 1] * 10 + (msg[i] - '0');
+          }
+          i++;
+        }
+        switch (msg[i]) {
+        case 'A':
+          if (param_count > 0) {
+            line_at -= params[0];
+          } else {
+            line_at--;
+          }
+          if (line_at < 0)
+            line_at = 0;
+          break;
+        case 'B':
+          if (param_count > 0) {
+            line_at += params[0];
+          } else {
+            line_at++;
+          }
+          break;
+        case 'C':
+          if (param_count > 0) {
+            col_at += params[0];
+          } else {
+            col_at++;
+          }
+          if (col_at > (int)n->get_term_width()) {
+            col_at = n->get_term_width();
+          }
+          break;
+        case 'D':
+          if (param_count > 0) {
+            col_at -= params[0];
+          } else {
+            col_at--;
+          }
+          if (col_at < 0)
+            col_at = 0;
+          break;
+        case 'H':
+        case 'f':
+          if (param_count > 1) {
+            params[0]--;
+            params[1]--;
+          }
+          line_at = params[0];
+          col_at = params[1];
+          if (line_at < 0)
+            line_at = 0;
+          if (col_at < 0)
+            col_at = 0;
+          if (col_at > (int)n->get_term_width())
+            col_at = n->get_term_width();
+          break;
+        case 'm':
+          for (int z = 0; z < param_count; z++) {
+            if (params[z] == 0) {
+              bold = false;
+              fg_color = 7;
+              bg_color = 0;
+            } else if (params[z] == 1) {
+              bold = true;
+            } else if (params[z] == 2) {
+              bold = false;
+            }
+
+            else if (params[z] >= 30 && params[z] <= 37) {
+              fg_color = params[z] - 30;
+            } else if (params[z] >= 40 && params[z] <= 47) {
+              bg_color = params[z] - 40;
+            }
+          }
+          break;
+        case 'u':
+          col_at = save_col;
+          line_at = save_row;
+          break;
+        case 's':
+          save_col = col_at;
+          save_row = line_at;
+          break;
+        }
+      }
+    } else if (msg[i] != '\n') {
+      fakescreen[line_at][col_at].c = msg[i];
+      fakescreen[line_at][col_at].bold = bold;
+      fakescreen[line_at][col_at].fg_color = fg_color;
+      fakescreen[line_at][col_at].bg_color = bg_color;
+      col_at++;
+      if (col_at >= (int)n->get_term_width()) {
+        line_at++;
+        col_at = 0;
+      }
+    }
+  }
+
+  for (int i = 0; i < lines; i++) {
+    for (int j = n->get_term_width() - 1; j >= 0; j--) {
+      if (fakescreen[i][j].c == ' ') {
+        fakescreen[i][j].c = '\0';
+      } else {
+        break;
+      }
+    }
+  }
+
+  std::stringstream ss;
+
+  fg_color = 7;
+  bg_color = 0;
+  bold = false;
+  bool got_tearline = false;
+  for (int i = 0; i < lines; i++) {
+    ss.str("");
+    size_t j;
+
+    if ((fakescreen[i][0].c == '-' && fakescreen[i][1].c == '-' && fakescreen[i][2].c == '-') && (fakescreen[i][3].c == 0 || fakescreen[i][3].c == ' ')) {
+      got_tearline = true;
+    }
+
+    if (!got_tearline) {
+      if (fakescreen[i][0].c != '\001') {
+        if (bold) {
+          ss << "\x1b[1m";
+        } else {
+          ss << "\x1b[0m";
+        }
+
+        ss << "\x1b[" << std::to_string(fg_color + 30) << "m";
+        ss << "\x1b[" << std::to_string(bg_color + 40) << "m";
+      }
+    }
+    for (j = 0; j < n->get_term_width(); j++) {
+      if (fakescreen[i][j].c == '\0') {
+        break;
+      }
+      if (!got_tearline) {
+        bool reset = false;
+        if (fakescreen[i][j].bold != bold) {
+          bold = fakescreen[i][j].bold;
+          if (bold) {
+            ss << "\x1b[1m";
+          } else {
+            ss << "\x1b[0m";
+            reset = true;
+          }
+        }
+
+        if (fakescreen[i][j].fg_color != fg_color || reset) {
+          fg_color = fakescreen[i][j].fg_color;
+          ss << "\x1b[" << std::to_string(fg_color + 30) << "m";
+        }
+        if (fakescreen[i][j].bg_color != bg_color) {
+          bg_color = fakescreen[i][j].bg_color;
+          ss << "\x1b[" << std::to_string(bg_color + 40) << "m";
+        }
+      }
+      ss << fakescreen[i][j].c;
+    }
+    if (j < n->get_term_width()) {
+      if (!got_tearline) {
+        ss << "\r\n";
+      }
+    }
+    new_msg.push_back(ss.str());
+  }
+
+  for (int i = 0; i <= lines; i++) {
+    free(fakescreen[i]);
+  }
+  free(fakescreen);
+
+  return new_msg;
+}
+

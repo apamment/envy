@@ -56,4 +56,6 @@ public:
     static time_t gettz();
     uint32_t get_unread(Node *n);
     uint32_t get_total(Node *n);
+private:
+    std::vector<std::string> demangle_ansi(Node *n, const char *msg, size_t len);
 };
