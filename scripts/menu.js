@@ -69,12 +69,16 @@ while(true) {
         print("W - Write Message\r\n")
         print("L - List Messages\r\n")
         print("R - Read Messages\r\n")
+
+        print("E - Enter Email\r\n")
+        print("M - Read Email\r\n")
+        
+        print("U - User List\r\n")
         print("A - Automessage\r\n")
         print("O - Oneliners\r\n")
         print("D - Door Games\r\n")
-        print("E - Enter Email\r\n")
-        print("M - Read Email\r\n")
-        print("U - User List\r\n")
+
+        print("F - Leave Feedback to Sysop\r\n")
         print("G - Goodbye!\r\n\r\n")
     }
     print("|08(|10" + getarea() + "|08) (|11Time: |15" + timeleft() + "m|08)" + " :> |07")
@@ -138,6 +142,11 @@ while(true) {
         listemail()
     } else if (c == 'u' || c == 'U') {
         exec("userlist")
+    } else if (c == 'f' || c =='F') {
+        var user = checkuser(opname())
+        if (user != "") {
+            enteremail(user, "Feedback")
+        }
     } else if (c == '$' && seclevel >= 99) {
         exec("usereditor")
     } else {

@@ -420,6 +420,14 @@ static duk_ret_t bgetusers(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t bgetopname(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    duk_push_string(ctx, n->get_opname().c_str());
+
+    return 1;
+}
+
 static duk_ret_t bgetdoors(duk_context *ctx) {
     Node *n = get_node(ctx);
     std::vector<struct door_cfg_s> doors = n->get_doors();
@@ -559,6 +567,9 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bgetusers, 0);
     duk_put_global_string(ctx, "getusers");
+
+    duk_push_c_function(ctx, bgetopname, 0);
+    duk_put_global_string(ctx, "opname");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
