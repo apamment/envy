@@ -12,6 +12,9 @@ extern "C" {
 #include "Node.h"
 #include "User.h"
 
+static inline void rtrim(std::string &s) {
+  s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
+}
 
 
 time_t MessageBase::utc_to_local(time_t utc) {
@@ -493,7 +496,9 @@ void MessageBase::read_messages(Node *n, int startingat) {
                     std::vector<std::string> qb;
 
                     for (size_t q = 0; q < msg.size(); q++) {
-                        qb.push_back(" > " + strip_ansi(msg.at(q)));
+                        std::string qbl = strip_ansi(msg.at(q));
+                        rtrim(qbl);
+                        qb.push_back(" > " + qbl);
                     }
 
                     enter_message(n, hdrs.at(reading).from, hdrs.at(reading).subject, &qb, &hdrs.at(reading));
