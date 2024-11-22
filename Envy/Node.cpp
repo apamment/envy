@@ -27,6 +27,50 @@ Node::Node(int node, int socket, bool telnet) {
     tstage = 0;
 };
 
+void Node::action(std::string s) {
+    std::ofstream of;
+    
+    std::filesystem::path fpath;
+    fpath.append(tmp_path);
+    fpath.append(std::to_string(node));
+    if (!std::filesystem::exists(fpath)) {
+        std::filesystem::create_directories(fpath);
+    }
+
+    of.open(tmp_path + "/" + std::to_string(node) + "/node.use", std::ofstream::out | std::ofstream::trunc);
+
+    if (of.is_open()) {
+        of << uid << std::endl;
+        of << s << std::endl;
+        of.close();
+    }
+}
+
+std::vector<struct nodeuse_s> Node::get_actions() {
+    std::vector<struct nodeuse_s> ret;
+    for (int i = 0; i < max_nodes; i++) {
+        std::ifstream ifs;
+
+        ifs.open(tmp_path + "/" + std::to_string(i+1) + "/node.use");
+        struct nodeuse_s nu;
+        if (ifs.is_open()) {
+            std::string s;
+            
+            getline(ifs, s);
+            nu.uid = std::stoi(s);
+            getline(ifs, s);
+            nu.action = s;
+            ret.push_back(nu);
+            ifs.close();
+        } else {
+            nu.uid = 0;
+            nu.action = "Waiting for caller...";
+            ret.push_back(nu);
+        }
+    }
+    return ret;
+}
+
 void Node::pause() {
     if (ansi_supported) {
         bprintf("\x1b[s|10Press a key..|07");
@@ -41,6 +85,9 @@ void Node::pause() {
 
 void Node::disconnect() {
     close(socket);
+    if (std::filesystem::exists(tmp_path + "/" + std::to_string(node) + "/node.use")) {
+        std::filesystem::remove(tmp_path + "/" + std::to_string(node) + "/node.use");
+    }
     throw(DisconnectException("Disconnected"));
 }
 
@@ -460,6 +507,7 @@ int Node::run() {
     default_tagline = inir.Get("main", "default tagline", "Unknown BBS");
     bbsname = inir.Get("main", "bbs name", "Unknown BBS");
     opname = inir.Get("main", "sysop name", "Unknown");
+    max_nodes = inir.GetInteger("main", "max nodes", 4);
 
     log = new Logger();
     log->load(log_path + "/envy." + std::to_string(node) + ".log");
@@ -498,6 +546,7 @@ int Node::run() {
         std::string email;
         if (strcasecmp(username.c_str(), "NEW") == 0) {
             log->log(LOG_INFO, "New user signing up!");
+            action("New user signing up");
             cls();
             putgfile("newuser");
             while (true) {
@@ -664,7 +713,7 @@ int Node::run() {
     }
 
     log->log(LOG_INFO, "%s logged in!", username.c_str());
-
+    action("Logging in");
     int seclevel = get_seclevel();
 
     for (size_t i = 0; i < msgbases.size(); i++) {

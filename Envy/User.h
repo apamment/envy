@@ -20,6 +20,7 @@ public:
         ERROR
     };
 
+    static std::string getusername(Node *n, int uid);
     static std::string exists(Node *n, std::string search);
     static int check_password(Node *n, std::string username, std::string password);
     static void set_attrib(Node *n, std::string attrib, std::string value);

@@ -406,3 +406,30 @@ std::vector<struct userid_s> User::get_users(Node *n) {
 
     return users;
 }
+
+std::string User::getusername(Node *n, int uid) {
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    static const char *sql = "SELECT username FROM users WHERE id = ?";
+
+    if (!open_database(n->get_data_path() + "/users.sqlite3", &db)) {
+        return "Unknown";
+    }
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return "Unknown";
+    }
+
+    sqlite3_bind_int(stmt, 1, uid);
+
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        std::string uname = std::string((const char *)sqlite3_column_text(stmt, 0));
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return uname;
+    }
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return "Unknown";
+}

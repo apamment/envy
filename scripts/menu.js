@@ -63,10 +63,11 @@ var seclevel = Number(getattr("seclevel", "10"))
 
 while(true) {
     cls()
+    setaction("Browsing main menu")
     if (!gfile("mainmenu")) {
         print("|10                          >>>> Main Menu <<<<\r\n")
         print("|15S|07 - Select Msg Area     |15U|07 - User List          |15I|07 - System Info\r\n")
-        print("|15W|07 - Write Message       |15A|07 - Automessage\r\n")
+        print("|15W|07 - Write Message       |15A|07 - Automessage        |15N|07 - Who's online\r\n")
         print("|15L|07 - List Messages       |15O|07 - Oneliners\r\n")
         print("|15R|07 - Read Messages       |15D|07 - Door Games\r\n\r\n")
 
@@ -80,10 +81,13 @@ while(true) {
     print("\r\n\r\n")
 
     if (c == 'g' || c == 'G') {
+        setaction("Logging off")
         goodbye()
     } else if (c == 'w' || c == 'W') {
+        setaction("Posting a message")
         writemsg()
     } else if (c == 'l' || c == 'L') {
+        setaction("Listing messages")
         var lr = getmsglr()
         var tot = getmsgtot()
 
@@ -102,6 +106,7 @@ while(true) {
             }
         }
     } else if (c == 'r' || c == 'R') {
+        setaction("Reading messages")
         var lr = getmsglr()
         var tot = getmsgtot()
 
@@ -120,27 +125,39 @@ while(true) {
             }
         }
     } else if (c == 's' || c == 'S') {
+        setaction("Selecting message area")
         selectarea()
     } else if (c == 'a' || c == 'A') {
+        setaction("Viewing automessage")
         cls()
         exec("automsg")
     } else if (c == 'o' || c == 'O') {
+        setaction("Browsing oneliners")
         exec("oneliner")
     } else if (c == 'd' || c == 'D') {
+        setaction("Browsing doors")
         exec("doors")
     } else if (c == 'e' || c == 'E') {
+        setaction("Writing an email")
         write_email()
     } else if (c == 'm' || c == 'M') {
+        setaction("Listing email")
         listemail()
     } else if (c == 'u' || c == 'U') {
+        setaction("Viewing user list")
         exec("userlist")
     } else if (c == 'i' || c == "I") {
+        setaction("Viewing system info")
         exec("sysinfo")
     } else if (c == 'f' || c =='F') {
+        setaction("Entering feedback")
         var user = checkuser(opname())
         if (user != "") {
             enteremail(user, "Feedback")
         }
+    } else if (c == 'n' || c == 'N') {
+        setaction("Viewing who's online")
+        exec("nodeuse")
     } else if (c == '$' && seclevel >= 99) {
         exec("usereditor")
     } else {

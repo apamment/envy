@@ -26,6 +26,11 @@ struct seclevel_s {
     int timeout;
 };
 
+struct nodeuse_s {
+    int uid;
+    std::string action;
+};
+
 class MessageBase;
 
 class Node {
@@ -49,6 +54,8 @@ public:
     void pause();
     void select_msg_base();
     void scan_msg_bases();
+    void action(std::string str);
+    std::vector<struct nodeuse_s> get_actions();
 
     MessageBase *get_curr_msgbase();
 
@@ -164,4 +171,5 @@ private:
     int tstage;
     int timeleft;
     time_t last_time_check;
+    int max_nodes;
 };

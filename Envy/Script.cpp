@@ -271,6 +271,13 @@ static duk_ret_t bgetusername(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t bgetusernameo(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    duk_push_string(ctx, User::getusername(n, duk_get_int(ctx, 0)).c_str());
+
+    return 1;
+}
+
 static duk_ret_t blistmsgs(duk_context *ctx) {
     Node *n = get_node(ctx);
     
@@ -405,6 +412,13 @@ static duk_ret_t bgettimeleft(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t bsetaction(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    n->action(std::string(duk_get_string(ctx, 0)));
+
+    return 0;
+}
+
 static duk_ret_t bgetusers(duk_context *ctx) {
     Node *n = get_node(ctx);
     std::vector<struct userid_s> users = User::get_users(n);
@@ -475,6 +489,23 @@ static duk_ret_t bgetdoors(duk_context *ctx) {
         duk_put_prop_string(ctx, obj_idx, "key");
         duk_push_string(ctx, doors.at(i).name.c_str());
         duk_put_prop_string(ctx, obj_idx, "name");
+        duk_put_prop_index(ctx, arr_idx, i);
+    }
+    return 1;
+}
+
+static duk_ret_t bgetactions(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    std::vector<struct nodeuse_s> nodeuse = n->get_actions();
+
+    duk_idx_t arr_idx;
+    arr_idx = duk_push_array(ctx);
+    for (size_t i = 0; i < nodeuse.size(); i++) {
+        duk_idx_t obj_idx = duk_push_object(ctx);
+        duk_push_number(ctx, nodeuse.at(i).uid);
+        duk_put_prop_string(ctx, obj_idx, "uid");
+        duk_push_string(ctx, nodeuse.at(i).action.c_str());
+        duk_put_prop_string(ctx, obj_idx, "action");
         duk_put_prop_index(ctx, arr_idx, i);
     }
     return 1;
@@ -607,6 +638,15 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bgetversion, 0);
     duk_put_global_string(ctx, "getversion");
+
+    duk_push_c_function(ctx, bsetaction, 1);
+    duk_put_global_string(ctx, "setaction");
+
+    duk_push_c_function(ctx, bgetactions, 0);
+    duk_put_global_string(ctx, "getactions");
+
+    duk_push_c_function(ctx, bgetusernameo, 1);
+    duk_put_global_string(ctx, "getusernameo");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));

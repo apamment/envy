@@ -40,6 +40,7 @@ if (doors.length == 0) {
         } else {
             var num = Number(ch) - 1;
             if (num >= 0 && num < doors.length) {
+                setaction("Playing " + doors[num]['name'])
                 rundoor(doors[num]['key'])
                 plays = Number(load(doors[num]['key'], "0")) + 1;
                 save(doors[num]['key'], plays)
