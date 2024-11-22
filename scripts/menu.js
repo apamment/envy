@@ -158,8 +158,12 @@ while(true) {
     } else if (c == 'n' || c == 'N') {
         setaction("Viewing who's online")
         exec("nodeuse")
-    } else if (c == '$' && seclevel >= 99) {
-        exec("usereditor")
+    } else if (c == '$') {
+        if (seclevel >= 99) {
+            exec("sysopeditor")
+        } else {
+            exec("usereditor")
+        }
     } else {
         print("|12Huh?|07\r\n\r\n")
         pause()

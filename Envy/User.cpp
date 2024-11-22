@@ -433,3 +433,56 @@ std::string User::getusername(Node *n, int uid) {
     sqlite3_close(db);
     return "Unknown";
 }
+
+void User::setpassword(Node *n, int uid, std::string newpass) {
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    static const char *sql = "UPDATE users SET password = ?, salt = ? WHERE id = ?";
+    
+    unsigned char salt[11];
+    std::string hash;
+    std::stringstream ssalt;
+    memset(salt, 0, 11);
+
+    FILE *fptr = fopen("/dev/urandom", "r");
+    if (!fptr) {
+        return;
+    }
+
+    fread(salt, 1, 10, fptr);
+
+    fclose(fptr);
+
+    for (int i = 0; i < 10; i++) {
+        ssalt << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << (int)salt[i];
+    }
+
+
+    std::string saltstr = ssalt.str();
+
+    hash = hash_sha256(newpass, saltstr);
+    if (hash.size() == 0) {
+        return;
+    }
+
+
+    if (!open_database(n->get_data_path() + "/users.sqlite3", &db)) {
+        return;
+    }
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return;
+    }
+
+    sqlite3_bind_text(stmt, 1, hash.c_str(), -1, NULL);
+    sqlite3_bind_text(stmt, 2, saltstr.c_str(), -1, NULL);
+    sqlite3_bind_int(stmt, 3, uid);
+
+    sqlite3_step(stmt);
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return;
+}

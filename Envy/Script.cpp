@@ -165,6 +165,14 @@ static duk_ret_t bgetstr(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t bgetpass(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    int len = duk_to_number(ctx, 0);
+    duk_push_string(ctx, n->get_str(len, '*').c_str());
+
+    return 1; 
+}
+
 static duk_ret_t bgetattr(duk_context *ctx) {
     Node *n = get_node(ctx);
     std::string attr = std::string(duk_to_string(ctx, 0));
@@ -511,6 +519,40 @@ static duk_ret_t bgetactions(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t bsetpassword(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    std::string newpass = std::string(duk_get_string(ctx, 0));
+
+    User::setpassword(n, n->get_uid(), newpass);
+
+    return 0;
+}
+
+static duk_ret_t bsetpasswordo(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    int uid = duk_get_int(ctx, 0);
+    std::string newpass = std::string(duk_get_string(ctx, -1));
+
+    User::setpassword(n, uid, newpass);
+
+    return 0;
+}
+
+static duk_ret_t bcheckpass(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    std::string pass = std::string(duk_get_string(ctx, 0));
+
+    if (User::check_password(n, n->get_username(), pass) > 0) {
+        duk_push_boolean(ctx, true);
+    } else {
+        duk_push_boolean(ctx, false);
+    }
+    return 1;
+}
+
 int Script::run(Node *n, std::string script) {
     std::string filename = n->get_script_path() + "/" + script + ".js";
     std::ifstream t(filename);
@@ -542,6 +584,9 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bgetstr, 1);
     duk_put_global_string(ctx, "gets");
+
+    duk_push_c_function(ctx, bgetpass, 1);
+    duk_put_global_string(ctx, "getpass");
 
     duk_push_c_function(ctx, bgetattr, 2);
     duk_put_global_string(ctx, "getattr");
@@ -647,6 +692,16 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bgetusernameo, 1);
     duk_put_global_string(ctx, "getusernameo");
+
+    duk_push_c_function(ctx, bsetpasswordo, 2);
+    duk_put_global_string(ctx, "setpasswordo");
+
+    duk_push_c_function(ctx, bsetpassword, 1);
+    duk_put_global_string(ctx, "setpassword");
+
+    duk_push_c_function(ctx, bcheckpass, 1);
+    duk_put_global_string(ctx, "checkpassword");
+
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));

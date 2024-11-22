@@ -31,6 +31,7 @@ public:
     static InvalidUserReason valid_username(Node *n, std::string username);
     static bool valid_fullname(Node *n, std::string fullname);
     static int inst_user(Node *n, std::string username, std::string password);
+    static void setpassword(Node *n, int uid, std::string newpass);
     static std::vector<struct userid_s> get_users(Node *n);
 
 private:
