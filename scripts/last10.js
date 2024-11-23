@@ -1,11 +1,11 @@
 function pad(pad, str, padLeft) {
     if (padLeft) {
-      return (pad + str).slice(-pad.length);
+        return (pad + str).slice(-pad.length);
     } else {
-      return (str + pad).substr(0, pad.length);
+        return (str + pad).substr(0, pad.length);
     }
 }
-  
+
 
 var lines = []
 for (var i = 0; i < 10; i++) {
@@ -32,7 +32,7 @@ if (isvisible()) {
     save("call-count", call_count)
 
     for (var i = 1; i < 10; i++) {
-        save("line-" + i, lines[i-1])
+        save("line-" + i, lines[i - 1])
     }
 
     save("line-0", finalline)

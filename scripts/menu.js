@@ -61,7 +61,7 @@ scanbases()
 
 var seclevel = Number(getattr("seclevel", "10"))
 
-while(true) {
+while (true) {
     cls()
     setaction("Browsing main menu")
     if (!gfile("mainmenu")) {
@@ -149,7 +149,7 @@ while(true) {
     } else if (c == 'i' || c == "I") {
         setaction("Viewing system info")
         exec("sysinfo")
-    } else if (c == 'f' || c =='F') {
+    } else if (c == 'f' || c == 'F') {
         setaction("Entering feedback")
         var user = checkuser(opname())
         if (user != "") {

@@ -20,9 +20,9 @@ var newline = gets(60)
 
 if (newline != "" && newline != "Q" && newline != "q" && !newline.includes('\x1b')) {
     var finalline = "|10" + getusername() + " |07-> |15" + newline + "|07"
-   
+
     for (var i = 0; i < 9; i++) {
-        save("line-" + i, lines[i+1])
+        save("line-" + i, lines[i + 1])
     }
 
     save("line-9", finalline)

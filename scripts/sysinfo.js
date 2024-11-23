@@ -14,6 +14,7 @@ print("|15Operating System: |07" + sysinfo['system'] + " (" + sysinfo['sysver'] 
 
 pause()
 
+cls()
 if (gfile("system")) {
     pause()
 }

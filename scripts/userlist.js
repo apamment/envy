@@ -1,8 +1,8 @@
 function pad(pad, str, padLeft) {
     if (padLeft) {
-      return (pad + str).slice(-pad.length);
+        return (pad + str).slice(-pad.length);
     } else {
-      return (str + pad).substr(0, pad.length);
+        return (str + pad).substr(0, pad.length);
     }
 }
 
