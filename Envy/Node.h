@@ -24,6 +24,7 @@ struct seclevel_s {
     int level;
     int time_per_day;
     int timeout;
+    bool visible;
 };
 
 struct nodeuse_s {
@@ -125,6 +126,8 @@ public:
     int get_seclevel();
 
     Logger *log;
+    bool get_visible();
+
 private:
 
     bool time_check();

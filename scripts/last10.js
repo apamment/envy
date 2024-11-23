@@ -28,7 +28,7 @@ var thetime = new Date();
 var call_count = Number(load("call-count", "0")) + 1;
 var finalline = "|07" + pad("      ", call_count, true) + ". |15" + pad("                 ", getusername(), false) + " |10" + pad("                                ", getattr("location", "Somewhere, The World"), false) + " |13" + thetime.toDateString() + "|07"
 
-if (getusername() != opname()) {
+if (isvisible()) {
     save("call-count", call_count)
 
     for (var i = 1; i < 10; i++) {

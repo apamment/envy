@@ -803,6 +803,7 @@ void Node::load_seclevels() {
             int mylevel;
             int mytime;
             int mytimeout;
+            bool myvis;
 
             auto level = itemtable->get("level");
             if (level != nullptr) {
@@ -825,6 +826,13 @@ void Node::load_seclevels() {
                 mytime = 60;
             }
 
+            auto vis = itemtable->get("visible");
+            if (vis != nullptr) {
+                myvis = vis->as_boolean()->value_or(true);
+            } else {
+                myvis = true;
+            }
+
             auto name = itemtable->get("name");
             if (name != nullptr) {
                 myname = name->as_string()->value_or("Level " + std::to_string(mylevel));
@@ -839,7 +847,7 @@ void Node::load_seclevels() {
                 seccfg.level = mylevel;
                 seccfg.time_per_day = mytime;
                 seccfg.timeout = mytimeout;
-
+                seccfg.visible = myvis;
                 seclevels.push_back(seccfg);
             }
 
@@ -1054,6 +1062,17 @@ void Node::scan_msg_bases() {
 
 int Node::get_seclevel() {
     return std::stoi(User::get_attrib(this, "seclevel", "10"));
+}
+
+bool Node::get_visible() {
+    int seclevel = get_seclevel();
+
+    for (size_t i = 0; i < seclevels.size(); i++) {
+        if (seclevels.at(i).level == seclevel) {
+            return seclevels.at(i).visible;
+        }
+    }
+    return true;
 }
 
 int Node::get_timeperday() {

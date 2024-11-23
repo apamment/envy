@@ -553,6 +553,14 @@ static duk_ret_t bcheckpass(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t bisvisible(duk_context *ctx) {
+    Node *n = get_node(ctx);
+
+    duk_push_boolean(ctx, n->get_visible());
+
+    return 1;
+}
+
 int Script::run(Node *n, std::string script) {
     std::string filename = n->get_script_path() + "/" + script + ".js";
     std::ifstream t(filename);
@@ -702,6 +710,8 @@ int Script::run(Node *n, std::string script) {
     duk_push_c_function(ctx, bcheckpass, 1);
     duk_put_global_string(ctx, "checkpassword");
 
+    duk_push_c_function(ctx, bisvisible, 0);
+    duk_put_global_string(ctx, "isvisible");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
