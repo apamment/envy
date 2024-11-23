@@ -41,6 +41,10 @@ time_t MessageBase::gettz() {
 
 
 bool MessageBase::save_message(Node *n, std::string recipient, std::string subject, std::vector<std::string> msg, std::string reply, std::string daddress) {
+  return save_message(n, recipient, n->get_username(), subject, msg, reply, daddress);
+}
+
+bool MessageBase::save_message(Node *n, std::string recipient, std::string sender, std::string subject, std::vector<std::string> msg, std::string reply, std::string daddress) {
     s_JamBase *jb;
     s_JamBaseHeader jbh;
     s_JamMsgHeader jmh;
@@ -58,8 +62,8 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string subje
     jsp = JAM_NewSubPacket();
     jsf.LoID = JAMSFLD_SENDERNAME;
     jsf.HiID = 0;
-    jsf.DatLen = n->get_username().length();
-    jsf.Buffer = (uint8_t *)n->get_username().c_str();
+    jsf.DatLen = sender.length();
+    jsf.Buffer = (uint8_t *)sender.c_str();
     JAM_PutSubfield(jsp, &jsf);
 
     jsf.LoID = JAMSFLD_RECVRNAME;
@@ -409,6 +413,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
         if (!body) {
             break;
         }
+        memset(body, 0, hdrs.at(reading).body_len + 1);
         ret = JAM_OpenMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
         if (ret != 0) {
             free(body);
@@ -1222,4 +1227,86 @@ std::string MessageBase::strip_ansi(std::string str) {
     ss << str.at(i);
   }
   return ss.str();
+}
+
+struct msg_s *MessageBase::get_message(Node *n, int index) {
+    s_JamBase *jb;
+    s_JamBaseHeader jbh;
+    s_JamMsgHeader jmh;
+    s_JamSubPacket *jsp;
+
+    int ret;
+    ret = JAM_OpenMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), &jb);
+    if (ret != 0) {
+        free(jb);
+        if (ret == JAM_IO_ERROR) {
+            ret = JAM_CreateMB((uint8_t *)std::string(n->get_msg_path() + "/" + file).c_str(), 1, &jb);
+            if (ret != 0) {
+                free(jb);
+                return nullptr;
+            }
+        } else {
+            return nullptr;
+        }
+    }
+
+    JAM_ReadMBHeader(jb, &jbh);
+
+    if (jbh.ActiveMsgs <= 0) {
+        JAM_CloseMB(jb);
+        free(jb);
+        return nullptr;
+    }
+
+    int k = 0;
+
+    for (size_t i = 0; i < jbh.ActiveMsgs; k++) {
+        int ret = JAM_ReadMsgHeader(jb, k, &jmh, &jsp);
+        if (ret != 0) {
+            continue;
+        }
+        i++;
+
+        if (jmh.MsgNum >= index) {
+
+          struct msg_s *m = (struct msg_s *)malloc(sizeof(struct msg_s));
+
+          if (!m) {
+            JAM_DelSubPacket(jsp);    
+            JAM_CloseMB(jb);
+            free(jb);
+            return nullptr;
+          }
+
+          m->id = jmh.MsgNum;
+          for (size_t f = 0; f < jsp->NumFields; f++) {
+            if (jsp->Fields[f]->LoID == JAMSFLD_SUBJECT) {
+			        m->subject = std::string((const char*)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
+		        } else if (jsp->Fields[f]->LoID == JAMSFLD_SENDERNAME) {
+			        m->from = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
+		        } else if (jsp->Fields[f]->LoID == JAMSFLD_RECVRNAME) {
+              m->to = std::string((const char *)jsp->Fields[f]->Buffer, jsp->Fields[f]->DatLen);
+            }
+          }
+          char *body = (char *)malloc(jmh.TxtLen + 1);
+          if (!body) {
+              break;
+          }
+          memset(body, 0, jmh.TxtLen + 1);
+          JAM_ReadMsgText(jb, jmh.TxtOffset, jmh.TxtLen, (uint8_t *)body);
+
+          m->body = std::string(body);
+
+          free(body);
+          JAM_DelSubPacket(jsp);    
+          JAM_CloseMB(jb);
+          free(jb);
+          return m;
+        }
+        JAM_DelSubPacket(jsp);
+    }
+
+    JAM_CloseMB(jb);
+    free(jb);
+    return nullptr;
 }

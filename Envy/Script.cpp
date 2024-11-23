@@ -561,6 +561,68 @@ static duk_ret_t bisvisible(duk_context *ctx) {
     return 1;
 }
 
+static duk_ret_t breadmsg(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    MessageBase *mb = n->get_msgbase(std::string(duk_get_string(ctx, 0)));
+
+    if (mb != nullptr) {
+        struct msg_s *m = mb->get_message(n, duk_get_int(ctx, -1));
+        if (m != nullptr) {
+            duk_idx_t obj_idx = duk_push_object(ctx);
+            duk_push_number(ctx, m->id);
+            duk_put_prop_string(ctx, obj_idx, "idx");
+            duk_push_string(ctx, m->from.c_str());
+            duk_put_prop_string(ctx, obj_idx, "from");
+            duk_push_string(ctx, m->to.c_str());
+            duk_put_prop_string(ctx, obj_idx, "to");
+            duk_push_string(ctx, m->subject.c_str());
+            duk_put_prop_string(ctx, obj_idx, "subject");
+            duk_push_string(ctx, m->body.c_str());
+            duk_put_prop_string(ctx, obj_idx, "body");
+
+            free(m);
+            return 1;
+        }
+    }
+
+    duk_push_undefined(ctx);
+    return 1;
+}
+
+// postmsg(file, to, from, subject, body)
+static duk_ret_t bpostmsg(duk_context *ctx) {
+    Node *n = get_node(ctx);
+    MessageBase *mb = n->get_msgbase(std::string(duk_get_string(ctx, 0)));
+
+    std::string body = std::string(duk_get_string(ctx, -1));
+    std::string subject = std::string(duk_get_string(ctx, -2));
+    std::string from = std::string(duk_get_string(ctx, -3));
+    std::string to = std::string(duk_get_string(ctx, -4));
+
+    std::stringstream ss;
+    std::vector<std::string> msg;
+
+    for (size_t i = 0; i < body.size(); i++) {
+        if (body.at(i) == '\n' && i > 1 && body.at(i-1) != '\r') {
+            msg.push_back(ss.str());
+            ss.str("");
+        } else if (body.at(i) == '\r') {
+            msg.push_back(ss.str());
+            ss.str("");
+        } else if (body.at(i) != '\n') {
+            ss << body.at(i);
+        }
+    }
+
+    if (ss.str().size() > 0) {
+        msg.push_back(ss.str());
+    }
+
+    duk_push_boolean(ctx, mb->save_message(n, to, from, subject, msg, std::string(""), std::string("")));
+
+    return 1;
+}
+
 int Script::run(Node *n, std::string script) {
     std::string filename = n->get_script_path() + "/" + script + ".js";
     std::ifstream t(filename);
@@ -712,6 +774,12 @@ int Script::run(Node *n, std::string script) {
 
     duk_push_c_function(ctx, bisvisible, 0);
     duk_put_global_string(ctx, "isvisible");
+
+    duk_push_c_function(ctx, breadmsg, 2);
+    duk_put_global_string(ctx, "readmsg");
+
+    duk_push_c_function(ctx, bpostmsg, 5);
+    duk_put_global_string(ctx, "postmsg");
 
     if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
         n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));

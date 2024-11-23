@@ -1118,3 +1118,12 @@ bool Node::time_check() {
 
     return true;
 }
+
+MessageBase *Node::get_msgbase(std::string file) {
+    for (size_t i = 0; i < msgbases.size(); i++) {
+        if (msgbases.at(i)->file == file) {
+            return msgbases.at(i);
+        }
+    }
+    return nullptr;
+}

@@ -59,6 +59,7 @@ public:
     std::vector<struct nodeuse_s> get_actions();
 
     MessageBase *get_curr_msgbase();
+    MessageBase *get_msgbase(std::string file);
 
     std::string get_script_path() {
         return script_path;
