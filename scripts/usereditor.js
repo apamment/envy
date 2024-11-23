@@ -4,9 +4,10 @@ var index = 0
 while (true) {
 
     cls()
-    print("User Editor - " + getusername() + "\r\n\r\n")
-    print("Pass(W)ord: ****\r\n")
-    print("\r\n(Q)uit\r\n")
+    print("|14User Editor - |15" + getusername() + "|07\r\n\r\n")
+    print("|15(|10E|15)mail: |07" + getattr("email", "UNKNOWN") + "\r\n")
+    print("|15Pass(|10W|15)ord:|07 ****\r\n")
+    print("\r\n|15(|10Q|15)uit|07\r\n")
     var ch = getch()
 
     if (ch == 'w' || ch == 'W') {
@@ -22,16 +23,26 @@ while (true) {
 
             if (p1.length >= 8 && p1 == p2) {
                 setpassword(p1)
-                print("Password Updated...\r\n")
+                print("|10Password Updated...|07\r\n")
             } else {
                 if (p1.length < 8) {
-                    print("Password too short!\r\n")
+                    print("|12Password too short!|07\r\n")
                 } else {
-                    print("Passwords don't match!\r\n")
+                    print("|12Passwords don't match!|07\r\n")
                 }
             }
         } else {
-            print("Incorrect password!\r\n")
+            print("|12Incorrect password!|07\r\n")
+        }
+        pause()
+    } else if (ch == 'e' || ch == 'E') {
+        print("New email: ");
+        var ne = gets(32)
+        if (ne.includes('@') && ne.includes('.')) {
+            putattr("email", ne)
+            print("|10Email address updated!\r\n")
+        } else {
+            print("|12Invalid Email!\r\n")
         }
         pause()
     } else if (ch == 'q' || ch == 'Q') {
