@@ -5,6 +5,7 @@ while (true) {
 
     cls()
     print("|14User Editor - |15" + getusername() + "|07\r\n\r\n")
+    print("|15(|10L|15)ocation: |07" + getattr("location", "Somewhere, The World") + "\r\n")
     print("|15(|10E|15)mail: |07" + getattr("email", "UNKNOWN") + "\r\n")
     print("|15Pass(|10W|15)ord:|07 ****\r\n")
     print("\r\n|15(|10Q|15)uit|07\r\n")
@@ -40,9 +41,19 @@ while (true) {
         var ne = gets(32)
         if (ne.includes('@') && ne.includes('.')) {
             putattr("email", ne)
-            print("|10Email address updated!\r\n")
+            print("|10Email address updated!|07\r\n")
         } else {
-            print("|12Invalid Email!\r\n")
+            print("|12Invalid Email!|07\r\n")
+        }
+        pause()
+    } else if (ch == 'l' || ch == 'L') {
+        print("New location: ");
+        var ne = gets(32)
+        if (ne.length < 1) {
+            print("|12You're nowhere?|07\r\n")
+        } else {
+            putattr("location", ne)
+            print("|10Location updated!|07\r\n")
         }
         pause()
     } else if (ch == 'q' || ch == 'Q') {
