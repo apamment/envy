@@ -40,7 +40,6 @@ std::string User::hash_sha256(std::string pass, std::string salt) {
   return "";
 }
 
-
 bool User::open_database(std::string path, sqlite3 **db) {
   static const char *create_users_sql =
       "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, username TEXT COLLATE NOCASE UNIQUE, password TEXT, salt TEXT);";
@@ -73,416 +72,403 @@ bool User::open_database(std::string path, sqlite3 **db) {
 }
 
 int User::check_password(Node *n, std::string username, std::string password) {
-    sqlite3 *db;
-    sqlite3_stmt *stmt;
-    int uid = -1;
-    static const char *sql = "SELECT password, salt, id FROM users WHERE username = ?";
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+  int uid = -1;
+  static const char *sql = "SELECT password, salt, id FROM users WHERE username = ?";
 
-    if (open_database(n->get_data_path() + "/users.sqlite3", &db) == false) {
-        return -1;
-    }
+  if (open_database(n->get_data_path() + "/users.sqlite3", &db) == false) {
+    return -1;
+  }
 
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
-        sqlite3_close(db);
-        return -1;
-    }
-
-    sqlite3_bind_text(stmt, 1, username.c_str(), -1, NULL);
-
-    if (sqlite3_step(stmt) == SQLITE_ROW) {
-        std::string hash = hash_sha256(password, std::string((const char *)sqlite3_column_text(stmt, 1)));
-
-        if (strcmp(hash.c_str(), (const char *)sqlite3_column_text(stmt, 0)) == 0) {
-            uid = sqlite3_column_int(stmt, 2);
-        }
-    }
-
-    sqlite3_finalize(stmt);
+  if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
     sqlite3_close(db);
+    return -1;
+  }
 
-    return uid;
+  sqlite3_bind_text(stmt, 1, username.c_str(), -1, NULL);
+
+  if (sqlite3_step(stmt) == SQLITE_ROW) {
+    std::string hash = hash_sha256(password, std::string((const char *)sqlite3_column_text(stmt, 1)));
+
+    if (strcmp(hash.c_str(), (const char *)sqlite3_column_text(stmt, 0)) == 0) {
+      uid = sqlite3_column_int(stmt, 2);
+    }
+  }
+
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+
+  return uid;
 }
 
-std::string User::get_attrib(Node *n, std::string attrib, std::string fallback) {
-    return get_attrib(n, n->get_uid(), attrib, fallback);
-}
+std::string User::get_attrib(Node *n, std::string attrib, std::string fallback) { return get_attrib(n, n->get_uid(), attrib, fallback); }
 
 std::string User::get_attrib(Node *n, int uid, std::string attrib, std::string fallback) {
-    sqlite3 *db;
-    sqlite3_stmt *stmt;
-    std::string ret;
-    static const char *sql = "SELECT value FROM details WHERE attrib = ? AND uid = ?";
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+  std::string ret;
+  static const char *sql = "SELECT value FROM details WHERE attrib = ? AND uid = ?";
 
-    if (open_database(n->get_data_path() + "/users.sqlite3", &db) == false) {
-        return fallback;
-    }
+  if (open_database(n->get_data_path() + "/users.sqlite3", &db) == false) {
+    return fallback;
+  }
 
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
-        sqlite3_close(db);
-        return fallback;
-    }
-
-    sqlite3_bind_text(stmt, 1, attrib.c_str(), -1, NULL);
-    sqlite3_bind_int(stmt, 2, uid);
-
-    if (sqlite3_step(stmt) == SQLITE_ROW) {
-        ret = std::string((const char *)sqlite3_column_text(stmt, 0));
-    } else {
-        ret = fallback;
-    }
-    sqlite3_finalize(stmt);
+  if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
     sqlite3_close(db);
-    
-    return ret;
+    return fallback;
+  }
+
+  sqlite3_bind_text(stmt, 1, attrib.c_str(), -1, NULL);
+  sqlite3_bind_int(stmt, 2, uid);
+
+  if (sqlite3_step(stmt) == SQLITE_ROW) {
+    ret = std::string((const char *)sqlite3_column_text(stmt, 0));
+  } else {
+    ret = fallback;
+  }
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+
+  return ret;
 }
 
-void User::set_attrib(Node *n, std::string attrib, std::string value) {
-    set_attrib(n, n->get_uid(), attrib, value);
-}
+void User::set_attrib(Node *n, std::string attrib, std::string value) { set_attrib(n, n->get_uid(), attrib, value); }
 
 void User::set_attrib(Node *n, int uid, std::string attrib, std::string value) {
-    sqlite3 *db;
-    sqlite3_stmt *stmt;
-    static const char *sql1 = "SELECT value FROM details WHERE attrib = ? AND uid = ?";
-    static const char *sql2 = "UPDATE details SET value = ? WHERE attrib = ? and uid = ?";
-    static const char *sql3 = "INSERT INTO details (uid, attrib, value) VALUES(?, ?, ?)";
-    if (open_database(n->get_data_path() + "/users.sqlite3", &db) == false) {
-        return;
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+  static const char *sql1 = "SELECT value FROM details WHERE attrib = ? AND uid = ?";
+  static const char *sql2 = "UPDATE details SET value = ? WHERE attrib = ? and uid = ?";
+  static const char *sql3 = "INSERT INTO details (uid, attrib, value) VALUES(?, ?, ?)";
+  if (open_database(n->get_data_path() + "/users.sqlite3", &db) == false) {
+    return;
+  }
+
+  if (sqlite3_prepare_v2(db, sql1, -1, &stmt, NULL) != SQLITE_OK) {
+    sqlite3_close(db);
+    return;
+  }
+
+  sqlite3_bind_text(stmt, 1, attrib.c_str(), -1, NULL);
+  sqlite3_bind_int(stmt, 2, uid);
+
+  if (sqlite3_step(stmt) == SQLITE_ROW) {
+    sqlite3_finalize(stmt);
+    if (sqlite3_prepare_v2(db, sql2, -1, &stmt, NULL) != SQLITE_OK) {
+      sqlite3_close(db);
+      return;
     }
+    sqlite3_bind_text(stmt, 1, value.c_str(), -1, NULL);
+    sqlite3_bind_text(stmt, 2, attrib.c_str(), -1, NULL);
+    sqlite3_bind_int(stmt, 3, uid);
 
-    if (sqlite3_prepare_v2(db, sql1, -1, &stmt, NULL) != SQLITE_OK) {
-        sqlite3_close(db);
-        return;
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+  } else {
+    sqlite3_finalize(stmt);
+    if (sqlite3_prepare_v2(db, sql3, -1, &stmt, NULL) != SQLITE_OK) {
+      sqlite3_close(db);
+      return;
     }
+    sqlite3_bind_int(stmt, 1, uid);
+    sqlite3_bind_text(stmt, 2, attrib.c_str(), -1, NULL);
+    sqlite3_bind_text(stmt, 3, value.c_str(), -1, NULL);
 
-    sqlite3_bind_text(stmt, 1, attrib.c_str(), -1, NULL);
-    sqlite3_bind_int(stmt, 2, uid);
-
-    if (sqlite3_step(stmt) == SQLITE_ROW) {
-        sqlite3_finalize(stmt);
-        if (sqlite3_prepare_v2(db, sql2, -1, &stmt, NULL) != SQLITE_OK) {
-            sqlite3_close(db);
-            return;
-        }
-        sqlite3_bind_text(stmt, 1, value.c_str(), -1, NULL);
-        sqlite3_bind_text(stmt, 2, attrib.c_str(), -1, NULL);
-        sqlite3_bind_int(stmt, 3, uid);
-
-        sqlite3_step(stmt);
-        sqlite3_finalize(stmt);
-        sqlite3_close(db);
-    } else {
-        sqlite3_finalize(stmt);
-        if (sqlite3_prepare_v2(db, sql3, -1, &stmt, NULL) != SQLITE_OK) {
-            sqlite3_close(db);
-            return;
-        }
-        sqlite3_bind_int(stmt, 1, uid);
-        sqlite3_bind_text(stmt, 2, attrib.c_str(), -1, NULL);
-        sqlite3_bind_text(stmt, 3, value.c_str(), -1, NULL);
-
-        sqlite3_step(stmt);
-        sqlite3_finalize(stmt);
-        sqlite3_close(db);
-    }
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+  }
 }
 
 int User::inst_user(Node *n, std::string username, std::string password) {
-    sqlite3 *db;
-    sqlite3_stmt *stmt;
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
 
-    unsigned char salt[11];
-    std::string hash;
-    std::stringstream ssalt;
-    memset(salt, 0, 11);
+  unsigned char salt[11];
+  std::string hash;
+  std::stringstream ssalt;
+  memset(salt, 0, 11);
 
-    FILE *fptr = fopen("/dev/urandom", "r");
-    if (!fptr) {
-        return -1;
-    }
+  FILE *fptr = fopen("/dev/urandom", "r");
+  if (!fptr) {
+    return -1;
+  }
 
-    fread(salt, 1, 10, fptr);
+  fread(salt, 1, 10, fptr);
 
-    fclose(fptr);
+  fclose(fptr);
 
-    for (int i = 0; i < 10; i++) {
-        ssalt << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << (int)salt[i];
-    }
+  for (int i = 0; i < 10; i++) {
+    ssalt << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << (int)salt[i];
+  }
 
+  std::string saltstr = ssalt.str();
 
-    std::string saltstr = ssalt.str();
+  hash = hash_sha256(password, saltstr);
+  if (hash.size() == 0) {
+    return -1;
+  }
 
-    hash = hash_sha256(password, saltstr);
-    if (hash.size() == 0) {
-        return -1;
-    }
+  static const char *sql = "INSERT INTO users (username, password, salt) VALUES(?, ?, ?)";
 
+  if (open_database(n->get_data_path() + "/users.sqlite3", &db) == false) {
+    return -1;
+  }
 
+  if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+    return -1;
+  }
 
-    static const char *sql = "INSERT INTO users (username, password, salt) VALUES(?, ?, ?)";
+  sqlite3_bind_text(stmt, 1, username.c_str(), -1, NULL);
+  sqlite3_bind_text(stmt, 2, hash.c_str(), -1, NULL);
+  sqlite3_bind_text(stmt, 3, saltstr.c_str(), -1, NULL);
 
+  sqlite3_step(stmt);
+  int id = sqlite3_last_insert_rowid(db);
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
 
-
-    if (open_database(n->get_data_path() + "/users.sqlite3", &db) == false) {
-        return -1;
-    }
-
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
-        return -1;
-    }
-
-
-    sqlite3_bind_text(stmt, 1, username.c_str(), -1, NULL);
-    sqlite3_bind_text(stmt, 2, hash.c_str(), -1, NULL);
-    sqlite3_bind_text(stmt, 3, saltstr.c_str(), -1, NULL);
-
-    sqlite3_step(stmt);
-    int id = sqlite3_last_insert_rowid(db);
-    sqlite3_finalize(stmt);
-    sqlite3_close(db);
-
-    return id;
+  return id;
 }
 
 bool User::valid_fullname(Node *n, std::string fullname) {
-    sqlite3 *db;
-    sqlite3_stmt *stmt;
-    static const char *sql = "SELECT uid FROM details WHERE attrib = 'fullname' AND value = ?";
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+  static const char *sql = "SELECT uid FROM details WHERE attrib = 'fullname' AND value = ?";
 
-    if (open_database(n->get_data_path() + "/users.sqlite3", &db) == false) {
-        return false;
-    }
+  if (open_database(n->get_data_path() + "/users.sqlite3", &db) == false) {
+    return false;
+  }
 
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
-        sqlite3_close(db);
-        return false;
-    }
+  if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+    sqlite3_close(db);
+    return false;
+  }
 
-    sqlite3_bind_text(stmt, 1, fullname.c_str(), -1, NULL);
-    
-    if (sqlite3_step(stmt) == SQLITE_ROW) {
-        sqlite3_finalize(stmt);
-        sqlite3_close(db);
-        return false;
-    }
+  sqlite3_bind_text(stmt, 1, fullname.c_str(), -1, NULL);
+
+  if (sqlite3_step(stmt) == SQLITE_ROW) {
     sqlite3_finalize(stmt);
     sqlite3_close(db);
+    return false;
+  }
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
 
-    return true;
+  return true;
 }
 
 std::string User::exists(Node *n, std::string search) {
-    sqlite3 *db;
-    sqlite3_stmt *stmt;
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
 
-    static const char *sql1 = "SELECT username FROM users WHERE username = ?";
-    static const char *sql2 = "SELECT uid FROM details WHERE attrib = 'fullname' and value = ?";
-    static const char *sql3 = "SELECT username FROM users WHERE id = ?";
-    if (!open_database(n->get_data_path() + "/users.sqlite3", &db)) {
-        return "";
-    }
-    if (sqlite3_prepare_v2(db, sql1, -1, &stmt, NULL) != SQLITE_OK) {
-        sqlite3_close(db);
-        return "";
-    }
-    sqlite3_bind_text(stmt, 1, search.c_str(), -1, NULL);
-
-    if (sqlite3_step(stmt) == SQLITE_ROW) {
-        std::string result = std::string((const char *)sqlite3_column_text(stmt, 0));
-        sqlite3_finalize(stmt);
-        sqlite3_close(db);
-        return result;
-    }
-
-    sqlite3_finalize(stmt);
-
-    if (sqlite3_prepare_v2(db, sql2, -1, &stmt, NULL) != SQLITE_OK) {
-        sqlite3_close(db);
-        return "";
-    }
-    sqlite3_bind_text(stmt, 1, search.c_str(), -1, NULL);
-
-    if (sqlite3_step(stmt) == SQLITE_ROW) {
-        int uid = sqlite3_column_int(stmt, 0);
-        sqlite3_finalize(stmt);
-        if (sqlite3_prepare_v2(db, sql3, -1, &stmt, NULL) != SQLITE_OK) {
-            sqlite3_close(db);
-            return "";
-        }
-        sqlite3_bind_int(stmt, 1, uid);
-
-        if (sqlite3_step(stmt) == SQLITE_ROW) {
-            std::string result = std::string((const char *)sqlite3_column_text(stmt, 0));
-            sqlite3_finalize(stmt);
-            sqlite3_close(db);
-            return result;  
-        }
-
-    }
-    sqlite3_finalize(stmt);
+  static const char *sql1 = "SELECT username FROM users WHERE username = ?";
+  static const char *sql2 = "SELECT uid FROM details WHERE attrib = 'fullname' and value = ?";
+  static const char *sql3 = "SELECT username FROM users WHERE id = ?";
+  if (!open_database(n->get_data_path() + "/users.sqlite3", &db)) {
+    return "";
+  }
+  if (sqlite3_prepare_v2(db, sql1, -1, &stmt, NULL) != SQLITE_OK) {
     sqlite3_close(db);
     return "";
+  }
+  sqlite3_bind_text(stmt, 1, search.c_str(), -1, NULL);
+
+  if (sqlite3_step(stmt) == SQLITE_ROW) {
+    std::string result = std::string((const char *)sqlite3_column_text(stmt, 0));
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return result;
+  }
+
+  sqlite3_finalize(stmt);
+
+  if (sqlite3_prepare_v2(db, sql2, -1, &stmt, NULL) != SQLITE_OK) {
+    sqlite3_close(db);
+    return "";
+  }
+  sqlite3_bind_text(stmt, 1, search.c_str(), -1, NULL);
+
+  if (sqlite3_step(stmt) == SQLITE_ROW) {
+    int uid = sqlite3_column_int(stmt, 0);
+    sqlite3_finalize(stmt);
+    if (sqlite3_prepare_v2(db, sql3, -1, &stmt, NULL) != SQLITE_OK) {
+      sqlite3_close(db);
+      return "";
+    }
+    sqlite3_bind_int(stmt, 1, uid);
+
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+      std::string result = std::string((const char *)sqlite3_column_text(stmt, 0));
+      sqlite3_finalize(stmt);
+      sqlite3_close(db);
+      return result;
+    }
+  }
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+  return "";
 }
 
 User::InvalidUserReason User::valid_username(Node *n, std::string username) {
 
-    if (username.length() < 2) {
-        return User::InvalidUserReason::TOOSHORT;
-    }
+  if (username.length() < 2) {
+    return User::InvalidUserReason::TOOSHORT;
+  }
 
-    for (size_t i = 0; i < username.length(); i++) {
-        if (!isalnum(username.at(i)) && username.at(i) != ' ') {
-            return User::InvalidUserReason::BADCHARS;
-        }
+  for (size_t i = 0; i < username.length(); i++) {
+    if (!isalnum(username.at(i)) && username.at(i) != ' ') {
+      return User::InvalidUserReason::BADCHARS;
     }
+  }
 
-    sqlite3 *db;
-    sqlite3_stmt *stmt;
-    static const char *sql = "SELECT username FROM users WHERE username = ?";
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+  static const char *sql = "SELECT username FROM users WHERE username = ?";
 
-    if (open_database(n->get_data_path() + "/users.sqlite3", &db) == false) {
-        return User::InvalidUserReason::ERROR;
-    }
+  if (open_database(n->get_data_path() + "/users.sqlite3", &db) == false) {
+    return User::InvalidUserReason::ERROR;
+  }
 
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
-        sqlite3_close(db);
-        return User::InvalidUserReason::ERROR;
-    }
+  if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+    sqlite3_close(db);
+    return User::InvalidUserReason::ERROR;
+  }
 
-    sqlite3_bind_text(stmt, 1, username.c_str(), -1, NULL);
-    
-    if (sqlite3_step(stmt) == SQLITE_ROW) {
-        sqlite3_finalize(stmt);
-        sqlite3_close(db);
-        return User::InvalidUserReason::INUSE;
-    }
+  sqlite3_bind_text(stmt, 1, username.c_str(), -1, NULL);
+
+  if (sqlite3_step(stmt) == SQLITE_ROW) {
     sqlite3_finalize(stmt);
     sqlite3_close(db);
+    return User::InvalidUserReason::INUSE;
+  }
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
 
-    std::ifstream inf(n->get_data_path() + "/trashcan.txt");
+  std::ifstream inf(n->get_data_path() + "/trashcan.txt");
 
-    if (inf.is_open()) {
-        std::string line;
-        while(getline(inf, line)) {
-            if (strcasecmp(line.c_str(), username.c_str()) == 0) {
-                inf.close();
-                return User::InvalidUserReason::TRASHCAN;
-            }
-        }
-
+  if (inf.is_open()) {
+    std::string line;
+    while (getline(inf, line)) {
+      if (strcasecmp(line.c_str(), username.c_str()) == 0) {
         inf.close();
+        return User::InvalidUserReason::TRASHCAN;
+      }
     }
-    
-    return User::InvalidUserReason::OK;
+
+    inf.close();
+  }
+
+  return User::InvalidUserReason::OK;
 }
 
 std::vector<struct userid_s> User::get_users(Node *n) {
-    sqlite3 *db;
-    sqlite3_stmt *stmt;
-    static const char *sql = "SELECT id, username FROM users";
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+  static const char *sql = "SELECT id, username FROM users";
 
-    std::vector<struct userid_s> users;
+  std::vector<struct userid_s> users;
 
-    if (!open_database(n->get_data_path() + "/users.sqlite3", &db)) {
-        return users;
-    }
-
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
-        sqlite3_close(db);
-        return users;
-    }
-
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
-        struct userid_s u;
-
-        u.uid = sqlite3_column_int(stmt, 0);
-        u.username = std::string((const char *)sqlite3_column_text(stmt, 1));
-
-        users.push_back(u);
-    }
-
-    sqlite3_finalize(stmt);
-    sqlite3_close(db);
-
+  if (!open_database(n->get_data_path() + "/users.sqlite3", &db)) {
     return users;
+  }
+
+  if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+    sqlite3_close(db);
+    return users;
+  }
+
+  while (sqlite3_step(stmt) == SQLITE_ROW) {
+    struct userid_s u;
+
+    u.uid = sqlite3_column_int(stmt, 0);
+    u.username = std::string((const char *)sqlite3_column_text(stmt, 1));
+
+    users.push_back(u);
+  }
+
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+
+  return users;
 }
 
 std::string User::getusername(Node *n, int uid) {
-    sqlite3 *db;
-    sqlite3_stmt *stmt;
-    static const char *sql = "SELECT username FROM users WHERE id = ?";
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+  static const char *sql = "SELECT username FROM users WHERE id = ?";
 
-    if (!open_database(n->get_data_path() + "/users.sqlite3", &db)) {
-        return "Unknown";
-    }
+  if (!open_database(n->get_data_path() + "/users.sqlite3", &db)) {
+    return "Unknown";
+  }
 
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
-        sqlite3_close(db);
-        return "Unknown";
-    }
-
-    sqlite3_bind_int(stmt, 1, uid);
-
-    if (sqlite3_step(stmt) == SQLITE_ROW) {
-        std::string uname = std::string((const char *)sqlite3_column_text(stmt, 0));
-        sqlite3_finalize(stmt);
-        sqlite3_close(db);
-        return uname;
-    }
-    sqlite3_finalize(stmt);
+  if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
     sqlite3_close(db);
     return "Unknown";
+  }
+
+  sqlite3_bind_int(stmt, 1, uid);
+
+  if (sqlite3_step(stmt) == SQLITE_ROW) {
+    std::string uname = std::string((const char *)sqlite3_column_text(stmt, 0));
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return uname;
+  }
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+  return "Unknown";
 }
 
 void User::setpassword(Node *n, int uid, std::string newpass) {
-    sqlite3 *db;
-    sqlite3_stmt *stmt;
-    static const char *sql = "UPDATE users SET password = ?, salt = ? WHERE id = ?";
-    
-    unsigned char salt[11];
-    std::string hash;
-    std::stringstream ssalt;
-    memset(salt, 0, 11);
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+  static const char *sql = "UPDATE users SET password = ?, salt = ? WHERE id = ?";
 
-    FILE *fptr = fopen("/dev/urandom", "r");
-    if (!fptr) {
-        return;
-    }
+  unsigned char salt[11];
+  std::string hash;
+  std::stringstream ssalt;
+  memset(salt, 0, 11);
 
-    fread(salt, 1, 10, fptr);
-
-    fclose(fptr);
-
-    for (int i = 0; i < 10; i++) {
-        ssalt << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << (int)salt[i];
-    }
-
-
-    std::string saltstr = ssalt.str();
-
-    hash = hash_sha256(newpass, saltstr);
-    if (hash.size() == 0) {
-        return;
-    }
-
-
-    if (!open_database(n->get_data_path() + "/users.sqlite3", &db)) {
-        return;
-    }
-
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
-        sqlite3_close(db);
-        return;
-    }
-
-    sqlite3_bind_text(stmt, 1, hash.c_str(), -1, NULL);
-    sqlite3_bind_text(stmt, 2, saltstr.c_str(), -1, NULL);
-    sqlite3_bind_int(stmt, 3, uid);
-
-    sqlite3_step(stmt);
-
-    sqlite3_finalize(stmt);
-    sqlite3_close(db);
-
+  FILE *fptr = fopen("/dev/urandom", "r");
+  if (!fptr) {
     return;
+  }
+
+  fread(salt, 1, 10, fptr);
+
+  fclose(fptr);
+
+  for (int i = 0; i < 10; i++) {
+    ssalt << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << (int)salt[i];
+  }
+
+  std::string saltstr = ssalt.str();
+
+  hash = hash_sha256(newpass, saltstr);
+  if (hash.size() == 0) {
+    return;
+  }
+
+  if (!open_database(n->get_data_path() + "/users.sqlite3", &db)) {
+    return;
+  }
+
+  if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+    sqlite3_close(db);
+    return;
+  }
+
+  sqlite3_bind_text(stmt, 1, hash.c_str(), -1, NULL);
+  sqlite3_bind_text(stmt, 2, saltstr.c_str(), -1, NULL);
+  sqlite3_bind_int(stmt, 3, uid);
+
+  sqlite3_step(stmt);
+
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+
+  return;
 }

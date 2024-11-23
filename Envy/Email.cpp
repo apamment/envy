@@ -93,54 +93,53 @@ int Email::count_email(Node *n) {
 
 void Email::enter_message(Node *n, std::string recipient, std::string subject, std::vector<std::string> *quotebuffer) {
 
-    int line = 1;
+  int line = 1;
 
-    std::string name;
-    std::string file;  
-    std::vector<std::string> msg;
+  std::string name;
+  std::string file;
+  std::vector<std::string> msg;
 
-    if (n->has_ansi()) {
-        FullScreenEditor fse(n, recipient, subject, quotebuffer, nullptr);
-        msg = fse.edit();
-        if (msg.size() == 0) {
-            n->bprintf("|12Aborted!|07\r\n");
-            return;
-        } else {
-            if (!save_message(n, recipient, n->get_username(), subject, msg)) {
-                n->bprintf("|12Saving message failed.|07\r\n");
-            } else {
-                n->bprintf("|10Saved message!|07\r\n");
-            }
+  if (n->has_ansi()) {
+    FullScreenEditor fse(n, recipient, subject, quotebuffer, nullptr);
+    msg = fse.edit();
+    if (msg.size() == 0) {
+      n->bprintf("|12Aborted!|07\r\n");
+      return;
+    } else {
+      if (!save_message(n, recipient, n->get_username(), subject, msg)) {
+        n->bprintf("|12Saving message failed.|07\r\n");
+      } else {
+        n->bprintf("|10Saved message!|07\r\n");
+      }
 
-            return;      
-        }
+      return;
     }
+  }
 
-    while (true) {
-        n->bprintf("|08[%05d]: |07", line);
-        std::string line_str = n->get_str(70);
-        if (line_str.length() >= 2 && line_str.at(0) == '/') {
-            switch (tolower(line_str.at(1))) {
-                case 's': {
-                    if (!save_message(n, recipient, n->get_username(), subject, msg)) {
-                        n->bprintf("|12Saving message failed.|07\r\n");
-                    } else {
-                        n->bprintf("|10Saved message!|07\r\n");
-                    }
-                }
-                return;
-                case 'a': 
-                    n->bprintf("|12Aborted!|07\r\n");
-                return;
-                default:
-                break;
-                
-            } 
+  while (true) {
+    n->bprintf("|08[%05d]: |07", line);
+    std::string line_str = n->get_str(70);
+    if (line_str.length() >= 2 && line_str.at(0) == '/') {
+      switch (tolower(line_str.at(1))) {
+      case 's': {
+        if (!save_message(n, recipient, n->get_username(), subject, msg)) {
+          n->bprintf("|12Saving message failed.|07\r\n");
         } else {
-            msg.push_back(line_str);
-            line++;
+          n->bprintf("|10Saved message!|07\r\n");
         }
+      }
+        return;
+      case 'a':
+        n->bprintf("|12Aborted!|07\r\n");
+        return;
+      default:
+        break;
+      }
+    } else {
+      msg.push_back(line_str);
+      line++;
     }
+  }
 }
 
 bool Email::save_message(Node *n, std::string to, std::string from, std::string subject, std::vector<std::string> msg) {
@@ -373,7 +372,7 @@ int Email::view_email(Node *n, Email e, int emailno, int tot_emails) {
 #else
   localtime_r(&e.date, &time_tm);
 #endif
-  
+
   n->cls();
   n->bprintf("|10Subj: |15%s\r\n", e.subject.c_str());
   n->bprintf("|10From: |15%s\r\n", e.sender.c_str());
@@ -399,30 +398,28 @@ int Email::view_email(Node *n, Email e, int emailno, int tot_emails) {
   n->bprintf("|10(R)eply, (N)ext, (P)revious, (D)elete, (Q)uit: |07");
   char ch = n->getch();
 
-  switch(tolower(ch)) {
-    case 'n':
-      return 1;
-      break;
-    case 'p':
-      return -1;
-      break;
-    case 'd':
-      delete_email(n, e.id);
-      return 0;
-    case 'r':
-      {
-        n->bprintf("\r\n");
-        std::vector<std::string> qb;
+  switch (tolower(ch)) {
+  case 'n':
+    return 1;
+    break;
+  case 'p':
+    return -1;
+    break;
+  case 'd':
+    delete_email(n, e.id);
+    return 0;
+  case 'r': {
+    n->bprintf("\r\n");
+    std::vector<std::string> qb;
 
-        for (size_t q = 0; q < e.msg.size(); q++) {
-          qb.push_back(" > " + e.msg.at(q));
-        }
+    for (size_t q = 0; q < e.msg.size(); q++) {
+      qb.push_back(" > " + e.msg.at(q));
+    }
 
-        enter_message(n, e.sender, e.subject, &qb);
-      }
-      break;
-    case 'q':
-      return 0;
+    enter_message(n, e.sender, e.subject, &qb);
+  } break;
+  case 'q':
+    return 0;
   }
 
   return 0;
