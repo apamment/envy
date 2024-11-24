@@ -191,7 +191,7 @@ bool Email::load_emails(Node *n, std::vector<Email> *emails) {
   }
 
   if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
-    n->log->log(LOG_ERROR, "Unable to open prepare email sqlite query");
+    n->log->log(LOG_ERROR, "Unable to prepare email sqlite query");
     sqlite3_close(db);
     return false;
   }
@@ -357,7 +357,7 @@ int Email::view_email(Node *n, Email e, int emailno, int tot_emails) {
     }
 
     if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
-      n->log->log(LOG_ERROR, "Unable to open prepare email sqlite query");
+      n->log->log(LOG_ERROR, "Unable to prepare email sqlite query");
       sqlite3_close(db);
       return 0;
     }
@@ -437,7 +437,7 @@ void Email::set_all_seen(Node *n) {
   }
 
   if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
-    n->log->log(LOG_ERROR, "Unable to open prepare email sqlite query");
+    n->log->log(LOG_ERROR, "Unable to prepare email sqlite query");
     sqlite3_close(db);
     return;
   }
@@ -463,7 +463,7 @@ void Email::delete_email(Node *n, int id) {
   }
 
   if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
-    n->log->log(LOG_ERROR, "Unable to open prepare email sqlite query");
+    n->log->log(LOG_ERROR, "Unable to prepare email sqlite query");
     sqlite3_close(db);
     return;
   }
