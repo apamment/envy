@@ -40,8 +40,6 @@ if (msgbase == "UNDEFINED") {
     var lr = Number(load("last-read", "0"))
     var msg = readmsg(msgbase, lr + 1)
 
-    print("1")
-
     while (msg !== undefined) {
         if (msg['subject'] == "ibbslastcall-data" && msg['from'] == "ibbslastcall") {
             var lines = msg['body'].split("\r")
