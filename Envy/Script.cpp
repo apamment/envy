@@ -785,7 +785,9 @@ int Script::run(Node *n, std::string script) {
     return -1;
   }
 
-  duk_pcall(ctx, 0);
+  if (duk_pcall(ctx, 0) != DUK_EXEC_SUCCESS) {
+    n->log->log(LOG_ERROR, "script error: %s", duk_safe_to_string(ctx, -1));
+  }
 
   duk_destroy_heap(ctx);
 

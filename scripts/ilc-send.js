@@ -45,7 +45,7 @@ if (bbsname != "UNDEFINED" && msgbase != "UNDEFINED") {
         var userlocation = getattr("location", "Somewhere, The World")
     var v = getversion()
 
-    if (username != opname()) {
+    if (isvisible()) {
         var body = ">>> BEGIN\r" + rot47(username) + "\r" + rot47(bbsname) + "\r" + rot47(current_date) + "\r" + rot47(current_time) + "\r" + rot47(userlocation) + "\r" + rot47(v['system']) + "\r" + ">>> END\r"
 
         postmsg(msgbase, "ALL", "ibbslastcall", "ibbslastcall-data", body)
