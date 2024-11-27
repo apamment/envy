@@ -19,6 +19,7 @@ private:
   std::vector<std::string> quotelines;
   Node *n;
 
+  std::string timestr();
   bool reply;
   void gotoyx(int y, int x);
   std::vector<std::string> do_quote();

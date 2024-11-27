@@ -305,11 +305,11 @@ void Node::putfile(std::string filename) {
         send(socket, "\r\n", 2, 0);
       }
     }
-
+/*
     if (ch != '\r' && ch != '\n') {
       send(socket, "\r\n", 2, 0);
     }
-
+*/
     t.close();
   }
 }
@@ -330,6 +330,10 @@ bool Node::putgfile(std::string gfile) {
 }
 
 char Node::getch() {
+  return getch_real(false);
+}
+
+char Node::getch_real(bool shouldtimeout) {
   unsigned char c;
   unsigned char dowillwontdont = 0;
   struct timeval tv;
@@ -361,6 +365,9 @@ char Node::getch() {
       if (!time_check()) {
         bprintf("\r\n\r\n|14Sorry, you're out of time for today!|07\r\n");
         disconnect();
+      }
+      if (shouldtimeout) {
+        return -1;
       }
     } else if (rs == -1 && errno != EINTR) {
       disconnect();

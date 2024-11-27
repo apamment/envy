@@ -39,6 +39,7 @@ public:
   Node(int node, int socket, bool telnet);
 
   char getch();
+  char getch_real(bool shouldtimeout);
   void cls();
   void putfile(std::string filename);
   bool putgfile(std::string gfile);

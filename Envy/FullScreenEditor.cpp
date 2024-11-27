@@ -1,6 +1,8 @@
 #include "FullScreenEditor.h"
 #include "Node.h"
 #include <sstream>
+#include <ctime>
+#include <iomanip>
 #include <string>
 #include <vector>
 
@@ -33,8 +35,8 @@ public:
 
     line_at += content.size();
 
-    if (line_at > top + (int)n->get_term_height() - 5) {
-      top += line_at - (top + (int)n->get_term_height() - 5) + 1;
+    if (line_at > top + (int)18) {
+      top += line_at - (top + (int)18) + 1;
     }
   }
 
@@ -45,28 +47,28 @@ public:
       top--;
     }
 
-    if (line_at > top + (int)n->get_term_height() - 5) {
+    if (line_at > top + (int)18) {
       top++;
     }
 
-    n->bprintf_nc("\x1b[%d;%dH", line_at - top + 4, col_at + 1);
+    n->bprintf_nc("\x1b[%d;%dH", line_at - top + 5, col_at + 1);
   }
 
   void refresh_line(int lineno) {
-    if (lineno >= (int)top && lineno <= (int)top + (int)n->get_term_height() - 5) {
-      n->bprintf_nc("\x1b[%d;%dH\x1b[0m%s\x1b[K", lineno - top + 4, 1, lines.at(lineno).c_str());
+    if (lineno >= (int)top && lineno <= (int)top + (int)18) {
+      n->bprintf_nc("\x1b[%d;%dH\x1b[0m%s\x1b[K", lineno - top + 5, 1, lines.at(lineno).c_str());
     }
   }
 
   void refresh_down(int start) {
     for (size_t i = start; i < lines.size(); i++) {
       refresh_line(i);
-      if (i > top + n->get_term_height() - 5) {
+      if (i > top + 18) {
         break;
       }
     }
-    for (size_t i = lines.size(); i <= top + n->get_term_height() - 5; i++) {
-      n->bprintf_nc("\x1b[%d;%dH\x1b[0;31m~\x1b[K", i - top + 4, 1);
+    for (size_t i = lines.size(); i <= top + 18; i++) {
+      n->bprintf_nc("\x1b[%d;%dH\x1b[0;31m\x1b[K", i - top + 5, 1);
     }
   }
 
@@ -98,7 +100,7 @@ public:
       col_at = lines.at(line_at).size();
     }
 
-    if (line_at >= top + n->get_term_height() - 5) {
+    if (line_at > top + 18) {
       top++;
       refresh_screen();
     }
@@ -178,7 +180,7 @@ public:
       line_at++;
       col_at = 0;
     }
-    if (line_at >= top + n->get_term_height() - 5) {
+    if (line_at > top + 18) {
       top++;
       refresh_screen();
     } else {
@@ -399,7 +401,7 @@ public:
         }
       }
       if (line_at > 0) {
-        if (line_at >= top + n->get_term_height() - 5) {
+        if (line_at > top + 18) {
           top++;
           refresh_screen();
         } else {
@@ -448,23 +450,32 @@ std::vector<std::string> FullScreenEditor::do_quote() {
   std::vector<std::string> to_quote;
 
   while (true) {
-    n->bprintf_nc("\x1b[4;1H\x1b[J");
+    n->bprintf_nc("\x1b[s");
+    gotoyx(2, 72);
+    n->bprintf_nc("\x1b[1;32;44m%s\x1b[0m", timestr().c_str());
+    gotoyx(3, 70);
+    n->bprintf_nc("\x1b[1;32;44m%dm\x1b[0m", n->get_timeleft());
+    n->bprintf_nc("\x1b[u");
 
-    n->bprintf_nc("\x1b[%d;1H\x1b[1;37;42mSelect Quote with SPACE, C to Cancel, Q to Quit\x1b[K", ((n->get_term_height() - 4) / 2) + 4);
-
-    for (size_t i = preview_start; i < to_quote.size(); i++) {
-      n->bprintf_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", (i - preview_start) + 4, to_quote.at(i).c_str());
+    for (size_t i = 5; i <= 23; i++) {
+      n->bprintf_nc("\x1b[%d;1H\x1b[K", i);
     }
 
-    for (size_t i = start; i < start + (n->get_term_height() - 4) / 2 - 1 && i < quotelines.size(); i++) {
+    n->bprintf_nc("\x1b[12;1H\x1b[1;37;44mSelect Quote with SPACE, C to Cancel, Q to Quit\x1b[K");
+
+    for (size_t i = preview_start; i < to_quote.size(); i++) {
+      n->bprintf_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", (i - preview_start) + 5, to_quote.at(i).c_str());
+    }
+
+    for (size_t i = start; i < start + 10 - 1 && i < quotelines.size(); i++) {
       if ((int)i == selected) {
-        n->bprintf_nc("\x1b[%d;1H\x1b[1;47;30m%s\x1b[K\x1b[0m", (i - start) + ((n->get_term_height() - 4) / 2) + 5, quotelines.at(i).c_str());
+        n->bprintf_nc("\x1b[%d;1H\x1b[1;47;30m%s\x1b[K\x1b[0m", (i - start) + 13, quotelines.at(i).c_str());
       } else {
-        n->bprintf_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", (i - start) + ((n->get_term_height() - 4) / 2) + 5, quotelines.at(i).c_str());
+        n->bprintf_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", (i - start) + 13, quotelines.at(i).c_str());
       }
     }
 
-    char c = n->getch();
+    char c = n->getch_real(true);
 
     if (c == '\x1b') {
       c = n->getch();
@@ -482,7 +493,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 
         if (selected < start) {
           start = selected;
-        } else if (selected >= start + (((int)n->get_term_height() - 4) / 2) - 1) {
+        } else if (selected >= start + 10 - 1) {
           start++;
         }
 
@@ -492,11 +503,11 @@ std::vector<std::string> FullScreenEditor::do_quote() {
       to_quote.push_back(quotelines.at(selected));
       if (selected < (int)quotelines.size() - 1) {
         selected++;
-        if (selected >= start + (((int)n->get_term_height() - 4) / 2) - 1) {
+        if (selected >= start + 10 - 1) {
           start++;
         }
       }
-      if (to_quote.size() - preview_start > ((n->get_term_height() - 4) / 2) - 1) {
+      if (to_quote.size() - preview_start > 8 - 1) {
         preview_start++;
       }
     } else if (tolower(c) == 'q') {
@@ -607,20 +618,44 @@ std::vector<std::string> FullScreenEditor::edit() {
   FullScreenBuffer fsb(n, initialbuffer);
   n->bprintf("\x1b[?25h");
   n->cls();
-  n->bprintf_nc("\x1b[1;37;42mEnvy/FSE CTRL-Z for Menu\x1b[K\r\n");
-  n->bprintf_nc("\x1b[0;30;47m  Subject: %s\x1b[K\r\n", subject.c_str());
-  n->bprintf_nc("\x1b[0;30;47m       To: %s\x1b[K\x1b[0m\r\n", to.c_str());
+  n->putgfile("editorbd");
+  gotoyx(2, 7);
+  n->bprintf_nc("\x1b[1;37;44m%s", to.c_str());
+  gotoyx(2, 42);
+  n->bprintf_nc("\x1b[1;37;44m%s", n->get_username().c_str());
+  gotoyx(3, 12);
+  n->bprintf_nc("\x1b[1;37;44m%s", subject.c_str());
+  
+  if (n->get_node() / 100 > 0) {
+    gotoyx(4, 75);
+    n->bprintf_nc("\x1b[1;36;40m%d", n->get_node() / 100);
+  }
+
+  if (n->get_node() / 10 % 10 > 0) {
+    gotoyx(4, 76);
+    n->bprintf_nc("\x1b[1;36;40m%d", n->get_node() / 10 % 10);
+  }
+
+  gotoyx(4, 77);
+  n->bprintf_nc("\x1b[1;36;40m%d", n->get_node() % 10);
 
   fsb.refresh_screen();
   fsb.update_cursor();
 
   while (true) {
-    char c = n->getch();
+    n->bprintf_nc("\x1b[s");
+    gotoyx(2, 72);
+    n->bprintf_nc("\x1b[1;32;44m%s\x1b[0m", timestr().c_str());
+    gotoyx(3, 70);
+    n->bprintf_nc("\x1b[1;32;44m%dm\x1b[0m", n->get_timeleft());
+    n->bprintf_nc("\x1b[u");
+
+    char c = n->getch_real(true);
 
     if (c == '\x1b') {
-      c = n->getch();
+      c = n->getch_real(true);
       if (c == '[') {
-        c = n->getch();
+        c = n->getch_real(true);
         if (c == 'A') {
           fsb.move_cursor_up();
         } else if (c == 'B') {
@@ -683,6 +718,39 @@ std::vector<std::string> FullScreenEditor::edit() {
       fsb.update_cursor();
     }
   }
+}
+
+std::string FullScreenEditor::timestr() {
+  time_t now = time(NULL);
+  struct tm nowtm;
+  std::stringstream ss;
+
+  localtime_r(&now, &nowtm);
+
+
+  if (nowtm.tm_hour > 12) {
+    ss << std::setw(2) << std::setfill(' ') << (nowtm.tm_hour - 12);
+  } else if (nowtm.tm_hour == 12 || nowtm.tm_hour == 0) {
+    ss << 12;
+  } else {
+    ss << std::setw(2) << std::setfill(' ') << nowtm.tm_hour;
+  }
+
+  ss << ":";
+
+  ss << std::setw(2) << std::setfill(' ') << nowtm.tm_min;
+
+  if (nowtm.tm_hour > 11) {
+    ss << "pm";
+  } else {
+    ss << "am";
+  }
+
+  return ss.str();
+}
+
+void FullScreenEditor::gotoyx(int y, int x) {
+  n->bprintf_nc("\x1b[%d;%dH", y, x);
 }
 
 FullScreenEditor::~FullScreenEditor() {}
