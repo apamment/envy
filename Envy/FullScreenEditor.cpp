@@ -467,7 +467,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
       n->bprintf_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", (i - preview_start) + 5, to_quote.at(i).c_str());
     }
 
-    for (size_t i = start; i < start + 10 - 1 && i < quotelines.size(); i++) {
+    for (size_t i = start; i < start + 11 && i < quotelines.size(); i++) {
       if ((int)i == selected) {
         n->bprintf_nc("\x1b[%d;1H\x1b[1;47;30m%s\x1b[K\x1b[0m", (i - start) + 13, quotelines.at(i).c_str());
       } else {
@@ -493,7 +493,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 
         if (selected < start) {
           start = selected;
-        } else if (selected >= start + 10 - 1) {
+        } else if (selected >= start + 11) {
           start++;
         }
 
@@ -503,7 +503,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
       to_quote.push_back(quotelines.at(selected));
       if (selected < (int)quotelines.size() - 1) {
         selected++;
-        if (selected >= start + 10 - 1) {
+        if (selected >= start + 11) {
           start++;
         }
       }
@@ -738,7 +738,7 @@ std::string FullScreenEditor::timestr() {
 
   ss << ":";
 
-  ss << std::setw(2) << std::setfill(' ') << nowtm.tm_min;
+  ss << std::setw(2) << std::setfill('0') << nowtm.tm_min;
 
   if (nowtm.tm_hour > 11) {
     ss << "pm";
