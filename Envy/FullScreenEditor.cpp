@@ -452,16 +452,16 @@ std::vector<std::string> FullScreenEditor::do_quote() {
   while (true) {
     n->bprintf_nc("\x1b[s");
     gotoyx(2, 72);
-    n->bprintf_nc("\x1b[1;32;44m%s\x1b[0m", timestr().c_str());
+    n->bprintf_nc("\x1b[1;32;45m%s\x1b[0m", timestr().c_str());
     gotoyx(3, 70);
-    n->bprintf_nc("\x1b[1;32;44m%dm\x1b[0m", n->get_timeleft());
+    n->bprintf_nc("\x1b[1;32;45m%dm\x1b[0m", n->get_timeleft());
     n->bprintf_nc("\x1b[u");
 
     for (size_t i = 5; i <= 23; i++) {
       n->bprintf_nc("\x1b[%d;1H\x1b[K", i);
     }
 
-    n->bprintf_nc("\x1b[12;1H\x1b[1;37;44mSelect Quote with SPACE, C to Cancel, Q to Quit\x1b[K");
+    n->bprintf_nc("\x1b[12;1H\x1b[1;37;45mSelect Quote with SPACE, C to Cancel, Q to Quit\x1b[K");
 
     for (size_t i = preview_start; i < to_quote.size(); i++) {
       n->bprintf_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", (i - preview_start) + 5, to_quote.at(i).c_str());
@@ -620,11 +620,11 @@ std::vector<std::string> FullScreenEditor::edit() {
   n->cls();
   n->putgfile("editorbd");
   gotoyx(2, 7);
-  n->bprintf_nc("\x1b[1;37;44m%s", to.c_str());
+  n->bprintf_nc("\x1b[1;35;45m%s", to.c_str());
   gotoyx(2, 42);
-  n->bprintf_nc("\x1b[1;37;44m%s", n->get_username().c_str());
+  n->bprintf_nc("\x1b[1;35;45m%s", n->get_username().c_str());
   gotoyx(3, 12);
-  n->bprintf_nc("\x1b[1;37;44m%s", subject.c_str());
+  n->bprintf_nc("\x1b[1;35;45m%s", subject.c_str());
   
   if (n->get_node() / 100 > 0) {
     gotoyx(4, 75);
@@ -645,9 +645,9 @@ std::vector<std::string> FullScreenEditor::edit() {
   while (true) {
     n->bprintf_nc("\x1b[s");
     gotoyx(2, 72);
-    n->bprintf_nc("\x1b[1;32;44m%s\x1b[0m", timestr().c_str());
+    n->bprintf_nc("\x1b[1;32;45m%s\x1b[0m", timestr().c_str());
     gotoyx(3, 70);
-    n->bprintf_nc("\x1b[1;32;44m%dm\x1b[0m", n->get_timeleft());
+    n->bprintf_nc("\x1b[1;32;45m%dm\x1b[0m", n->get_timeleft());
     n->bprintf_nc("\x1b[u");
 
     char c = n->getch_real(true);
