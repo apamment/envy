@@ -494,6 +494,7 @@ int Node::run() {
   unsigned char iac_sga[] = {IAC, IAC_WILL, IAC_SUPPRESS_GO_AHEAD, '\0'};
 
   INIReader inir("envy.ini");
+  int newuserseclevel = 10;
   if (inir.ParseError() != 0) {
     return -1;
   }
@@ -510,7 +511,7 @@ int Node::run() {
   opname = inir.Get("main", "sysop name", "Unknown");
   max_nodes = inir.GetInteger("main", "max nodes", 4);
   cmdscript = inir.Get("main", "command script", "menu");
-
+  newuserseclevel = inir.GetInteger("main", "new user seclevel", 10);
   log = new Logger();
   log->load(log_path + "/envy." + std::to_string(node) + ".log");
 
@@ -695,6 +696,7 @@ int Node::run() {
         User::set_attrib(this, "fullname", firstname + " " + lastname);
         User::set_attrib(this, "location", location);
         User::set_attrib(this, "email", email);
+        User::set_attrib(this, "seclevel", std::to_string(newuserseclevel));
         break;
       }
     } else {
