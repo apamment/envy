@@ -164,7 +164,7 @@ while (true) {
         setaction("Viewing IBBS Lastcallers")
         exec("ilc")
     } else if (c == '$') {
-        if (seclevel >= 99) {
+        if (opname() == getusername() || seclevel >= 99) {
             exec("sysopeditor")
         } else {
             exec("usereditor")
