@@ -489,6 +489,7 @@ int Node::run() {
 
   const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
+  std::string cmdscript;
   unsigned char iac_echo[] = {IAC, IAC_WILL, IAC_ECHO, '\0'};
   unsigned char iac_sga[] = {IAC, IAC_WILL, IAC_SUPPRESS_GO_AHEAD, '\0'};
 
@@ -508,6 +509,7 @@ int Node::run() {
   bbsname = inir.Get("main", "bbs name", "Unknown BBS");
   opname = inir.Get("main", "sysop name", "Unknown");
   max_nodes = inir.GetInteger("main", "max nodes", 4);
+  cmdscript = inir.Get("main", "command script", "menu");
 
   log = new Logger();
   log->load(log_path + "/envy." + std::to_string(node) + ".log");
@@ -786,7 +788,7 @@ int Node::run() {
 
   pause();
 
-  Script::run(this, "menu");
+  Script::run(this, cmdscript);
 
   disconnect();
 
