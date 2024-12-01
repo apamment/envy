@@ -881,14 +881,14 @@ void Node::load_protocols() {
       } else {
         myname = "Protocol " + std::to_string(i + 1);
       }
-      auto upcmd = itemtable->get("upload command");
+      auto upcmd = itemtable->get("upload");
       if (upcmd != nullptr) {
         myupcmd = upcmd->as_string()->value_or("");
       } else {
         myupcmd = "";
       }
 
-      auto downcmd = itemtable->get("download command");
+      auto downcmd = itemtable->get("download");
       if (downcmd != nullptr) {
         mydowncmd = downcmd->as_string()->value_or("");
       } else {
