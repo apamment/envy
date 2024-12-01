@@ -53,6 +53,7 @@ function write_email() {
 }
 
 exec("ilc-send")
+cls()
 if (gfile("system")) {
     pause()
 }
