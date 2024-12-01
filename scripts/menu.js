@@ -53,6 +53,9 @@ function write_email() {
 }
 
 exec("ilc-send")
+if (gfile("system")) {
+    pause()
+}
 check_email()
 exec("last10")
 exec("automsg")
