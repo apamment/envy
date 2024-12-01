@@ -32,6 +32,13 @@ struct nodeuse_s {
   std::string action;
 };
 
+struct protocol_s {
+  std::string name;
+  std::string upcmd;
+  std::string downcmd;
+  bool prompt;
+};
+
 class MessageBase;
 
 class Node {
@@ -56,6 +63,11 @@ public:
   void select_msg_base();
   void scan_msg_bases();
   void action(std::string str);
+
+  struct protocol_s *select_protocol();
+  void send_file(std::string filename);
+  void send_file(struct protocol_s *p, std::string filename);
+
   std::vector<struct nodeuse_s> get_actions();
 
   MessageBase *get_curr_msgbase();
@@ -105,6 +117,7 @@ private:
   void load_msgbases();
   void load_doors();
   void load_seclevels();
+  void load_protocols();
 
   int get_timeperday();
   int get_timeout();
@@ -113,6 +126,7 @@ private:
   std::vector<MessageBase *> accessablemb;
   std::vector<struct door_cfg_s> doors;
   std::vector<struct seclevel_s> seclevels;
+  std::vector<struct protocol_s> protocols;
 
   std::string username;
 

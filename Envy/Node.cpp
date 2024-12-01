@@ -861,6 +861,61 @@ void Node::load_seclevels() {
   }
 }
 
+
+void Node::load_protocols() {
+  try {
+    auto data = toml::parse_file(data_path + "/protocols.toml");
+    auto baseitems = data.get_as<toml::array>("protocol");
+
+    for (size_t i = 0; i < baseitems->size(); i++) {
+      auto itemtable = baseitems->get(i)->as_table();
+      std::string myname;
+      std::string myupcmd;
+      std::string mydowncmd;
+      bool myprompt;
+
+      auto name = itemtable->get("name");
+      if (name != nullptr) {
+        myname = name->as_string()->value_or("Protocol " + std::to_string(i + 1));
+      } else {
+        myname = "Protocol " + std::to_string(i + 1);
+      }
+      auto upcmd = itemtable->get("upload command");
+      if (upcmd != nullptr) {
+        myupcmd = upcmd->as_string()->value_or("");
+      } else {
+        myupcmd = "";
+      }
+
+      auto downcmd = itemtable->get("download command");
+      if (downcmd != nullptr) {
+        mydowncmd = downcmd->as_string()->value_or("");
+      } else {
+        mydowncmd = "";
+      }
+
+      auto prompt = itemtable->get("prompt");
+      if (prompt != nullptr) {
+        myprompt = prompt->as_boolean()->value_or(false);
+      } else {
+        myprompt = false;
+      }
+
+      if (myupcmd != "" && mydowncmd != "") {
+        struct protocol_s p;
+        p.name = myname;
+        p.upcmd = myupcmd;
+        p.downcmd = mydowncmd;
+        p.prompt = myprompt;
+        protocols.push_back(p);
+      }
+    }
+  } catch (toml::parse_error const &p) {
+    log->log(LOG_ERROR, "Error parsing %s/protocols.toml, Line %d, Column %d", data_path.c_str(), p.source().begin.line, p.source().begin.column);
+    log->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
+  }
+}
+
 void Node::load_doors() {
   try {
     auto data = toml::parse_file(data_path + "/doors.toml");
@@ -1125,4 +1180,67 @@ MessageBase *Node::get_msgbase(std::string file) {
     }
   }
   return nullptr;
+}
+
+static std::vector<std::string> split (const std::string &s, char delim) {
+    std::vector<std::string> result;
+    std::stringstream ss (s);
+    std::string item;
+
+    while (getline (ss, item, delim)) {
+        result.push_back (item);
+    }
+
+    return result;
+}
+
+struct protocol_s *Node::select_protocol() {
+  bprintf("Select Protocol:\r\n\r\n");
+  for (size_t i = 0; i < protocols.size(); i++) {
+    bprintf("(%d) %s\r\n", i + 1, protocols.at(i).name.c_str());
+  }
+
+  bprintf(":> ");
+  std::string s = get_str(3);
+
+  try {
+    int num = std::stoi(s) - 1;
+
+    if (num < 0 || num >= protocols.size()) {
+      bprintf("|12Invalid Selection!\r\n");
+      return nullptr;
+    } else {
+      return &protocols.at(num);
+    }
+  } catch (std::out_of_range const &) {
+    bprintf("|12Invalid Selection!\r\n");
+    return nullptr;
+  } catch (std::invalid_argument const &) {
+    bprintf("|12Invalid Selection!\r\n");
+    return nullptr;
+  }
+}
+
+void Node::send_file(std::string filename) {
+  struct protocol_s * p = select_protocol();
+  if (p == nullptr) {
+    return;
+  } else {
+    send_file(p, filename);
+  }
+}
+
+void Node::send_file(struct protocol_s *p, std::string filename) {
+  std::vector<std::string> parts = split(p->downcmd, ' ');
+  std::vector<std::string> args;
+
+  for (size_t i = 1; i < parts.size(); i++) {
+    if (parts.at(i) == "*f") {
+      args.push_back(filename);
+    } else {
+      args.push_back(parts.at(i));
+    }
+  }
+
+  Door::runExternal(this, parts.at(0), args, true);
 }

@@ -560,6 +560,14 @@ static duk_ret_t bisvisible(duk_context *ctx) {
   return 1;
 }
 
+static duk_ret_t bsendfile(duk_context *ctx) {
+  Node *n = get_node(ctx);
+
+  n->send_file(std::string(duk_get_string(ctx, 0)));
+
+  return 0;
+}
+
 static duk_ret_t breadmsg(duk_context *ctx) {
   Node *n = get_node(ctx);
   MessageBase *mb = n->get_msgbase(std::string(duk_get_string(ctx, 0)));
@@ -779,6 +787,9 @@ int Script::run(Node *n, std::string script) {
 
   duk_push_c_function(ctx, bpostmsg, 5);
   duk_put_global_string(ctx, "postmsg");
+
+  duk_push_c_function(ctx, bsendfile, 1);
+  duk_put_global_string(ctx, "sendfile");
 
   if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
     n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
