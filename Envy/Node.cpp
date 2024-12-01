@@ -1196,12 +1196,12 @@ static std::vector<std::string> split (const std::string &s, char delim) {
 }
 
 struct protocol_s *Node::select_protocol() {
-  bprintf("Select Protocol:\r\n\r\n");
+  bprintf("|10Select Protocol:|07\r\n\r\n");
   for (size_t i = 0; i < protocols.size(); i++) {
-    bprintf("(%d) %s\r\n", i + 1, protocols.at(i).name.c_str());
+    bprintf("|10(|15%d|10) |15%s|07\r\n", i + 1, protocols.at(i).name.c_str());
   }
 
-  bprintf(":> ");
+  bprintf("|08:> |07");
   std::string s = get_str(3);
 
   try {
