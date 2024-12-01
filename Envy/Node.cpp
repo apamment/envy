@@ -518,6 +518,7 @@ int Node::run() {
   load_msgbases();
   load_doors();
   load_seclevels();
+  load_protocols();
 
   log->log(LOG_INFO, "Connected!");
 
