@@ -587,7 +587,7 @@ static duk_ret_t breadmsg(duk_context *ctx) {
       duk_push_string(ctx, m->body.c_str());
       duk_put_prop_string(ctx, obj_idx, "body");
 
-      free(m);
+      delete m;
       return 1;
     }
   }

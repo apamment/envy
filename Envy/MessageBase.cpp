@@ -1260,7 +1260,7 @@ struct msg_s *MessageBase::get_message(Node *n, int index) {
 
     if (jmh.MsgNum >= index) {
 
-      struct msg_s *m = (struct msg_s *)malloc(sizeof(struct msg_s));
+      struct msg_s *m = new struct msg_s;
 
       if (!m) {
         JAM_DelSubPacket(jsp);
