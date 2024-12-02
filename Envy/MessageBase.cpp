@@ -439,9 +439,9 @@ void MessageBase::read_messages(Node *n, int startingat) {
     } else {
       for (size_t i = 0; i < hdrs.at(reading).body_len; i++) {
         if (body[i] == '\r') {
-          ss << "\r\n";
           std::string line = ss.str();
-          msg.push_back(line);
+          rtrim(line);
+          msg.push_back(line + "\r\n");
           ss.str("");
           continue;
         }
@@ -450,9 +450,9 @@ void MessageBase::read_messages(Node *n, int startingat) {
           ss << body[i];
 
           if (ss.str().length() == 79) {
-            ss << "\r\n";
             std::string line = ss.str();
-            msg.push_back(line);
+            rtrim(line);
+            msg.push_back(line + "\r\n");
             ss.str("");
           }
         }
