@@ -443,7 +443,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
           while (line.length() > 79) {
             std::string leftover;
 
-            size_t pos = line.rfind(' ');
+            size_t pos = line.rfind(' ', 79);
 
             if (pos != std::string::npos) {
               leftover = line.substr(pos + 1);
