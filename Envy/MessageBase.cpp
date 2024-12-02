@@ -440,7 +440,24 @@ void MessageBase::read_messages(Node *n, int startingat) {
       for (size_t i = 0; i < hdrs.at(reading).body_len; i++) {
         if (body[i] == '\r') {
           std::string line = ss.str();
-          rtrim(line);
+          while (line.length() > 79) {
+            std::string leftover;
+
+            size_t pos = line.rfind(' ');
+
+            if (pos != std::string::npos) {
+              leftover = line.substr(pos + 1);
+              line = line.substr(0, pos - 1);
+            } else {
+              leftover = line.substr(79);
+              line = line.substr(0, 79);
+            }
+
+            msg.push_back(line + "\r\n");
+            
+            line = leftover;
+          }
+
           msg.push_back(line + "\r\n");
           ss.str("");
           continue;
@@ -448,13 +465,6 @@ void MessageBase::read_messages(Node *n, int startingat) {
 
         if (body[i] != '\n') {
           ss << body[i];
-
-          if (ss.str().length() == 79) {
-            std::string line = ss.str();
-            rtrim(line);
-            msg.push_back(line + "\r\n");
-            ss.str("");
-          }
         }
       }
     }
