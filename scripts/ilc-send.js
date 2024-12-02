@@ -1,5 +1,6 @@
 var msgbase = "UNDEFINED"
 var bbsname = "UNDEFINED"
+var bbsaddr = "UNDEFINED"
 
 function pad(pad, str, padLeft) {
     if (padLeft) {
@@ -22,7 +23,7 @@ function rot47(s) {
     return str.join('')
 }
 
-if (bbsname != "UNDEFINED" && msgbase != "UNDEFINED") {
+if (bbsname != "UNDEFINED" && msgbase != "UNDEFINED" && bbsaddr != "UNDEFINED") {
     var username = getusername()
     var dt = new Date()
 
@@ -46,7 +47,7 @@ if (bbsname != "UNDEFINED" && msgbase != "UNDEFINED") {
     var v = getversion()
 
     if (isvisible()) {
-        var body = ">>> BEGIN\r" + rot47(username) + "\r" + rot47(bbsname) + "\r" + rot47(current_date) + "\r" + rot47(current_time) + "\r" + rot47(userlocation) + "\r" + rot47(v['system']) + "\r" + ">>> END\r"
+        var body = ">>> BEGIN\r" + rot47(username) + "\r" + rot47(bbsname) + "\r" + rot47(current_date) + "\r" + rot47(current_time) + "\r" + rot47(userlocation) + "\r" + rot47(v['system']) + "\r" + rot47(bbsaddr) + "\r" + ">>> END\r"
 
         postmsg(msgbase, "ALL", "ibbslastcall", "ibbslastcall-data", body)
     }

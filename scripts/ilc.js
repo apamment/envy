@@ -47,7 +47,7 @@ if (msgbase == "UNDEFINED") {
             for (;start< lines.length;start++) {
                 if (lines[start] == ">>> BEGIN") break;
             }
-            if (start + 7 <= lines.length && lines[start + 7] == ">>> END") {
+            if (start + 8 <= lines.length && lines[start + 8] == ">>> END") {
                 var entry = {}
                 entry['username'] = rot47(lines[start + 1])
                 entry['location'] = rot47(lines[start + 5])
