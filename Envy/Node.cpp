@@ -1077,6 +1077,7 @@ void Node::select_msg_base() {
     uint32_t ur = accessablemb.at(i)->get_unread(this);
     uint32_t tot = accessablemb.at(i)->get_total(this);
     bprintf("|07%4d. |15%-44.44s |10%6d |02UNREAD |13%6d |05TOTAL|07\r\n", i + 1, accessablemb.at(i)->name.c_str(), ur, tot);
+    lines++;
     if (lines == 22) {
       pause();
       lines = 0;
