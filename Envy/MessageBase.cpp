@@ -445,13 +445,16 @@ void MessageBase::read_messages(Node *n, int startingat) {
           ss.str("");
           continue;
         }
-        ss << body[i];
 
-        if (ss.str().length() == 79) {
-          ss << "\r\n";
-          std::string line = ss.str();
-          msg.push_back(line);
-          ss.str("");
+        if (body[i] != '\n') {
+          ss << body[i];
+
+          if (ss.str().length() == 79) {
+            ss << "\r\n";
+            std::string line = ss.str();
+            msg.push_back(line);
+            ss.str("");
+          }
         }
       }
     }
