@@ -1443,6 +1443,11 @@ void Node::select_file_base() {
 }
 
 void Node::upload() {
+  if (get_curr_filebase()->up_sec_level > get_seclevel()) {
+    bprintf("|12Sorry, you don't have access to upload to this area!|07\r\n");
+    pause();
+    return;
+  }
   struct protocol_s *p = select_protocol();
   char *oldwd;
   std::string filename = "";
@@ -1488,7 +1493,7 @@ void Node::upload() {
   free(oldwd);
 
   // find files in upload path
-  for (auto &f : std::filesystem::directory_iterator(ulpath)) {
+  for (auto &f : std::filesystem::directory_iterator(std::filesystem::path(ulpath))) {
     std::filesystem::path np(std::filesystem::absolute(get_curr_filebase()->uppath + "/" +f.path().filename().u8string()));
     if (std::filesystem::exists(np)) {
       bprintf("\r\n\r\n|12File Exists: |15%s\r\n", f.path().filename().u8string().c_str());
