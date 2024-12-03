@@ -10,6 +10,7 @@
 #include "../Common/toml.hpp"
 #include "Node.h"
 #include "MessageBase.h"
+#include "FileBase.h"
 #include "Disconnect.h"
 #include "Script.h"
 #include "User.h"
@@ -521,6 +522,7 @@ int Node::run() {
   load_doors();
   load_seclevels();
   load_protocols();
+  load_filebases();
 
   log->log(LOG_INFO, "Connected!");
 
@@ -725,6 +727,28 @@ int Node::run() {
   for (size_t i = 0; i < msgbases.size(); i++) {
     if (msgbases.at(i)->read_sec_level <= seclevel) {
       accessablemb.push_back(msgbases.at(i));
+    }
+  }
+
+  for (size_t i = 0; i < filebases.size(); i++) {
+    if (filebases.at(i)->down_sec_level <= seclevel) {
+      accessablefb.push_back(filebases.at(i));
+    }
+  }
+
+  curr_filebase = -1;
+  std::string cfb = User::get_attrib(this, "curr_fbase", "");
+  if (cfb != "") {
+    for (size_t i = 0; i < accessablefb.size(); i++) {
+      if (accessablefb.at(i)->database == cfb) {
+        curr_filebase = i;
+        break;
+      }
+    }
+  }
+  if (curr_filebase == -1) {
+    if (accessablefb.size() > 0) {
+      curr_filebase = 0;
     }
   }
 
@@ -975,6 +999,63 @@ void Node::launch_door(std::string key) {
       Door::runExternal(this, doors.at(i).script, args, false);
       return;
     }
+  }
+}
+
+void Node::load_filebases() {
+  try {
+    auto data = toml::parse_file(data_path + "/filebases.toml");
+    auto baseitems = data.get_as<toml::array>("filebase");
+
+    for (size_t i = 0; i < baseitems->size(); i++) {
+      auto itemtable = baseitems->get(i)->as_table();
+      std::string myname;
+      std::string mydatabase;
+      std::string myuppath;
+      int mydownloadsec;
+      int myuploadsec;
+
+      auto name = itemtable->get("name");
+      if (name != nullptr) {
+        myname = name->as_string()->value_or("Invalid Name");
+      } else {
+        myname = "Unknown Name";
+      }
+
+      auto database = itemtable->get("database");
+      if (database != nullptr) {
+        mydatabase = database->as_string()->value_or("");
+      } else {
+        mydatabase = "";
+      }
+      auto uppath = itemtable->get("upload-path");
+      if (uppath != nullptr) {
+        myuppath = uppath->as_string()->value_or("");
+      } else {
+        myuppath = "";
+      }
+
+      auto downloads = itemtable->get("download-sec");
+      if (downloads != nullptr) {
+        mydownloadsec = downloads->as_integer()->value_or(10);
+      } else {
+        mydownloadsec = 10;
+      }
+
+      auto uploads = itemtable->get("upload-sec");
+      if (uploads != nullptr) {
+        myuploadsec = uploads->as_integer()->value_or(10);
+      } else {
+        myuploadsec = 10;
+      }
+
+      if (mydatabase != "" && myuppath != "") {
+        filebases.push_back(new FileBase(myname, myuppath, mydatabase, mydownloadsec, myuploadsec));
+      }
+    }
+  } catch (toml::parse_error const &p) {
+    log->log(LOG_ERROR, "Error parsing %s/filebases.toml, Line %d, Column %d", data_path.c_str(), p.source().begin.line, p.source().begin.column);
+    log->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
   }
 }
 
@@ -1259,4 +1340,93 @@ void Node::send_file(struct protocol_s *p, std::string filename) {
   }
 
   Door::runExternal(this, parts.at(0), args, true);
+}
+
+bool Node::tag_file(struct file_s file) {
+  for (size_t i = 0; i < tagged_files.size(); i++) {
+    if (tagged_files.at(i).filename == file.filename) {
+      return false;
+    }
+  }
+  tagged_files.push_back(file);
+  return true;
+}
+
+FileBase *Node::get_curr_filebase() {
+  if (curr_filebase != -1) {
+    return accessablefb.at(curr_filebase);
+  }
+
+  return nullptr;
+}
+
+void Node::clear_tagged_files() {
+  bprintf("|10Cleared |15%d |10files from your tagged list.\r\n", tagged_files.size());
+  tagged_files.clear();
+  pause();
+}
+
+void Node::download_tagged_files() {
+  if (tagged_files.size() == 0) {
+    bprintf("|12Tag some files first!|07\r\n");
+    pause();
+    return;
+  }
+  struct protocol_s *p = select_protocol(); 
+
+  if (p == nullptr) {
+    pause();
+    return;
+  }
+
+  for (size_t i = 0; i < tagged_files.size(); i++) {
+    if (tagged_files.at(i).size > 0) {
+      bprintf("|10Sending \"|15%s|10\"\r\nPress (q) to abort or any other key to continue...\r\n", tagged_files.at(i).filename.filename().u8string().c_str());
+      char c = getch();
+      if (tolower(c) == 'q') {
+        tagged_files.erase(tagged_files.begin(), tagged_files.begin() + (i - 1));
+        return;
+      }
+      send_file(p, tagged_files.at(i).filename.u8string());
+      tagged_files.at(i).fb->inc_download(this, tagged_files.at(i).filename.u8string());
+    }
+  }
+  clear_tagged_files();
+}
+
+
+void Node::select_file_base() {
+  cls();
+
+  int lines = 0;
+
+  for (size_t i = 0; i < accessablefb.size(); i++) {
+    bprintf("|08%4d. |07%-44.44s|07\r\n", i + 1, accessablefb.at(i)->name.c_str());
+    lines++;
+    if (lines == term_height - 1 || i == accessablefb.size() - 1) {
+      if (i == accessablefb.size() - 1) {
+        bprintf("|11END  |15- |10Select area: |07");
+      } else {
+        bprintf("|13MORE |15- |10Select area: |07");
+      }
+
+      
+      std::string num = get_str(4);
+
+      if (num.length() > 0) {
+        try {
+          int n = std::stoi(num);
+
+          if (n - 1 >= 0 && n - 1 < accessablefb.size()) {
+            curr_filebase = n - 1;
+            User::set_attrib(this, "curr_fbase", accessablefb.at(curr_filebase)->database);
+            return;
+          }
+        } catch (std::out_of_range const &) {
+        } catch (std::invalid_argument const &) {
+        }
+      }
+      lines = 0;
+    }
+  }
 }

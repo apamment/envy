@@ -488,7 +488,6 @@ void MessageBase::read_messages(Node *n, int startingat) {
     for (size_t i = 0; i < msg.size(); i++) {
       n->bprintf("%s", msg.at(i).c_str());
       lines++;
-      ch = 255;
       if (lines == n->get_term_height() - 1 || i == msg.size() - 1) {
         if (i == msg.size() - 1) {
           n->bprintf("|11END  |15- |10(R)eply, (N)ext, (P)revious, (Q)uit: |07");

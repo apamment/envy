@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "Logger.h"
+#include "FileBase.h"
 
 const unsigned char IAC = 255;
 const unsigned char IAC_WILL = 251;
@@ -40,6 +41,7 @@ struct protocol_s {
 };
 
 class MessageBase;
+class FileBase;
 
 class Node {
 public:
@@ -72,6 +74,8 @@ public:
 
   MessageBase *get_curr_msgbase();
   MessageBase *get_msgbase(std::string file);
+
+  FileBase *get_curr_filebase();
 
   std::string get_script_path() { return script_path; }
 
@@ -109,6 +113,10 @@ public:
   Logger *log;
   bool get_visible();
 
+  bool tag_file(struct file_s file);
+  void clear_tagged_files();
+  void download_tagged_files();
+  void select_file_base();
 private:
   bool time_check();
 
@@ -118,12 +126,17 @@ private:
   void load_doors();
   void load_seclevels();
   void load_protocols();
+  void load_filebases();
 
   int get_timeperday();
   int get_timeout();
 
   std::vector<MessageBase *> msgbases;
   std::vector<MessageBase *> accessablemb;
+
+  std::vector<FileBase *> filebases;
+  std::vector<FileBase *> accessablefb;
+
   std::vector<struct door_cfg_s> doors;
   std::vector<struct seclevel_s> seclevels;
   std::vector<struct protocol_s> protocols;
@@ -149,6 +162,7 @@ private:
   int uid;
 
   int curr_msgbase;
+  int curr_filebase;
 
   int socket;
   int node;
@@ -157,4 +171,6 @@ private:
   int timeleft;
   time_t last_time_check;
   int max_nodes;
+
+  std::vector<struct file_s> tagged_files;
 };

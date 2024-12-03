@@ -286,6 +286,16 @@ static duk_ret_t bgetusernameo(duk_context *ctx) {
   return 1;
 }
 
+static duk_ret_t blistfiles(duk_context *ctx) {
+  Node *n = get_node(ctx);
+
+  FileBase *fb = n->get_curr_filebase();
+  if (fb != nullptr) {
+    fb->list_files(n);
+  }
+  return 0;
+}
+
 static duk_ret_t blistmsgs(duk_context *ctx) {
   Node *n = get_node(ctx);
 
@@ -328,10 +338,34 @@ static duk_ret_t bselectarea(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t bselectfilearea(duk_context *ctx) {
+  Node *n = get_node(ctx);
+
+  n->select_file_base();
+
+  return 0;
+}
+
 static duk_ret_t bgetarea(duk_context *ctx) {
   Node *n = get_node(ctx);
 
-  duk_push_string(ctx, n->get_curr_msgbase()->name.c_str());
+  if (n->get_curr_msgbase() != nullptr) {
+    duk_push_string(ctx, n->get_curr_msgbase()->name.c_str());
+  } else {
+    duk_push_string(ctx, "Nothing");
+  }
+
+  return 1;
+}
+
+static duk_ret_t bgetfilearea(duk_context *ctx) {
+  Node *n = get_node(ctx);
+
+  if (n->get_curr_filebase() != nullptr) {
+    duk_push_string(ctx, n->get_curr_filebase()->name.c_str());
+  } else {
+    duk_push_string(ctx, "Nothing");
+  }
 
   return 1;
 }
@@ -442,6 +476,22 @@ static duk_ret_t bgetusers(duk_context *ctx) {
     duk_put_prop_index(ctx, arr_idx, i);
   }
   return 1;
+}
+
+static duk_ret_t bdownload(duk_context *ctx) {
+  Node *n = get_node(ctx);
+
+  n->download_tagged_files();
+
+  return 0;
+}
+
+static duk_ret_t bcleartagged(duk_context *ctx) {
+  Node *n = get_node(ctx);
+  
+  n->clear_tagged_files();
+
+  return 0;
 }
 
 static duk_ret_t bgetopname(duk_context *ctx) {
@@ -790,6 +840,21 @@ int Script::run(Node *n, std::string script) {
 
   duk_push_c_function(ctx, bsendfile, 1);
   duk_put_global_string(ctx, "sendfile");
+
+  duk_push_c_function(ctx, bgetfilearea, 0);
+  duk_put_global_string(ctx, "getfilearea");
+
+  duk_push_c_function(ctx, bselectfilearea, 0);
+  duk_put_global_string(ctx, "selectfilearea");
+
+  duk_push_c_function(ctx, blistfiles, 0);
+  duk_put_global_string(ctx, "listfiles");
+
+  duk_push_c_function(ctx, bdownload, 0);
+  duk_put_global_string(ctx, "download");
+
+  duk_push_c_function(ctx, bcleartagged, 0);
+  duk_put_global_string(ctx, "cleartagged");
 
   if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
     n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
