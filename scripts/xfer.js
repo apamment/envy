@@ -45,6 +45,9 @@ while (true) {
     } else if (c == 't' || c == 'T') {
         setaction("Listing tagged files")
         listtagged()
+    } else if (c == 'u' || c == 'U') {
+        setaction("Uploading files")
+        upload()
     } else if (c == 'g' || c == 'G') {
         goodbye()
     } else {

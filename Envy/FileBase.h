@@ -25,6 +25,7 @@ public:
 
     void list_files(Node *n);
     void inc_download(Node *n, std::string filename);
+    bool insert_file(Node *n, std::string filename, std::vector<std::string> description);
 private:
     bool open_database(std::string path, sqlite3 **db);
 };

@@ -194,3 +194,40 @@ bool FileBase::open_database(std::string path, sqlite3 **db) {
   }
   return true;
 }
+
+bool FileBase::insert_file(Node *n, std::string filename, std::vector<std::string> description) {
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+
+  std::stringstream ss;
+
+
+  for (size_t i = 0; i < description.size(); i++) {
+    ss << description.at(i) << "\n";
+  }
+
+  std::string d = ss.str();
+  time_t now = time(NULL);
+
+  static const char * sql = "INSERT INTO files (filename, description, uploaddate, uploadedby, downloadcount) VALUES(?, ?, ?, ?, 0)";
+
+  if (!open_database(n->get_data_path() + "/" + database + ".sqlite3", &db)) {
+    return false;
+  }
+
+  if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+    sqlite3_close(db);
+    return false;
+  }
+
+  sqlite3_bind_text(stmt, 1, filename.c_str(), -1, NULL);
+  sqlite3_bind_text(stmt, 2, d.c_str(), -1, NULL);
+  sqlite3_bind_int64(stmt, 3, now);
+  sqlite3_bind_text(stmt, 4, n->get_username().c_str(), -1, NULL);
+
+  sqlite3_step(stmt);
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+
+  return true;
+}

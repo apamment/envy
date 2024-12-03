@@ -502,6 +502,14 @@ static duk_ret_t bcleartagged(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t bupload(duk_context *ctx) {
+  Node *n = get_node(ctx);
+  
+  n->upload();
+
+  return 0;
+}
+
 static duk_ret_t bgetopname(duk_context *ctx) {
   Node *n = get_node(ctx);
 
@@ -866,6 +874,9 @@ int Script::run(Node *n, std::string script) {
 
   duk_push_c_function(ctx, blisttaggedfiles, 0);
   duk_put_global_string(ctx, "listtagged");
+
+  duk_push_c_function(ctx, bupload, 0);
+  duk_put_global_string(ctx, "upload");
 
   if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
     n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));

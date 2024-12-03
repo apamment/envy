@@ -308,11 +308,11 @@ void Node::putfile(std::string filename) {
         send(socket, "\r\n", 2, 0);
       }
     }
-/*
-    if (ch != '\r' && ch != '\n') {
-      send(socket, "\r\n", 2, 0);
-    }
-*/
+    /*
+        if (ch != '\r' && ch != '\n') {
+          send(socket, "\r\n", 2, 0);
+        }
+    */
     t.close();
   }
 }
@@ -332,9 +332,7 @@ bool Node::putgfile(std::string gfile) {
   return false;
 }
 
-char Node::getch() {
-  return getch_real(false);
-}
+char Node::getch() { return getch_real(false); }
 
 char Node::getch_real(bool shouldtimeout) {
   unsigned char c;
@@ -888,7 +886,6 @@ void Node::load_seclevels() {
   }
 }
 
-
 void Node::load_protocols() {
   try {
     auto data = toml::parse_file(data_path + "/protocols.toml");
@@ -1172,7 +1169,6 @@ void Node::select_msg_base() {
         bprintf("|13MORE |15- |10Select area: |07");
       }
 
-      
       std::string num = get_str(4);
 
       if (num.length() > 0) {
@@ -1279,16 +1275,16 @@ MessageBase *Node::get_msgbase(std::string file) {
   return nullptr;
 }
 
-static std::vector<std::string> split (const std::string &s, char delim) {
-    std::vector<std::string> result;
-    std::stringstream ss (s);
-    std::string item;
+static std::vector<std::string> split(const std::string &s, char delim) {
+  std::vector<std::string> result;
+  std::stringstream ss(s);
+  std::string item;
 
-    while (getline (ss, item, delim)) {
-        result.push_back (item);
-    }
+  while (getline(ss, item, delim)) {
+    result.push_back(item);
+  }
 
-    return result;
+  return result;
 }
 
 struct protocol_s *Node::select_protocol() {
@@ -1319,7 +1315,7 @@ struct protocol_s *Node::select_protocol() {
 }
 
 void Node::send_file(std::string filename) {
-  struct protocol_s * p = select_protocol();
+  struct protocol_s *p = select_protocol();
   if (p == nullptr) {
     return;
   } else {
@@ -1372,7 +1368,7 @@ void Node::download_tagged_files() {
     pause();
     return;
   }
-  struct protocol_s *p = select_protocol(); 
+  struct protocol_s *p = select_protocol();
 
   if (p == nullptr) {
     pause();
@@ -1426,7 +1422,6 @@ void Node::select_file_base() {
         bprintf("|13MORE |15- |10Select area: |07");
       }
 
-      
       std::string num = get_str(4);
 
       if (num.length() > 0) {
@@ -1444,5 +1439,94 @@ void Node::select_file_base() {
       }
       lines = 0;
     }
+  }
+}
+
+void Node::upload() {
+  struct protocol_s *p = select_protocol();
+  char *oldwd;
+  std::string filename = "";
+
+  if (p == nullptr) {
+    return;
+  }
+
+  if (p->prompt) {
+    bprintf("|13Please enter the filename: |07");
+    filename = get_str(32);
+
+    if (filename.find('/') != std::string::npos || filename.find('\\') != std::string::npos || filename.find('*') != std::string::npos) {
+      bprintf("|12Invalid filename!|07\r\n");
+      return;
+    }
+  }
+  std::string ulpath = tmp_path + "/" + std::to_string(node) + "/upload";
+
+  if (std::filesystem::exists(ulpath)) {
+    std::filesystem::remove_all(ulpath);
+  }
+
+  std::filesystem::create_directories(ulpath);
+
+  std::vector<std::string> parts = split(p->upcmd, ' ');
+  std::vector<std::string> args;
+
+  for (size_t i = 1; i < parts.size(); i++) {
+    if (parts.at(i) == "*f") {
+      args.push_back(filename);
+    } else {
+      args.push_back(parts.at(i));
+    }
+  }
+
+  oldwd = getcwd(NULL, -1);
+  chdir(ulpath.c_str());
+
+  Door::runExternal(this, parts.at(0), args, true);
+  chdir(oldwd);
+
+  free(oldwd);
+
+  // find files in upload path
+  for (auto &f : std::filesystem::directory_iterator(ulpath)) {
+    std::filesystem::path np(std::filesystem::absolute(get_curr_filebase()->uppath + "/" +f.path().filename().u8string()));
+    if (std::filesystem::exists(np)) {
+      bprintf("\r\n\r\n|12File Exists: |15%s\r\n", f.path().filename().u8string().c_str());
+      continue;
+    }
+    
+    bprintf("\r\n\r\n|10Found File: |15%s\r\n", f.path().filename().u8string().c_str());
+
+
+
+    std::vector<std::string> description;
+
+    bprintf("Please enter a description (5 lines max)");
+
+    for (int i = 0; i < 5; i++) {
+      bprintf("%d: ", i+1);
+      std::string line = get_str(42);
+      if (line.size() == 0) {
+        break;
+      }
+
+      description.push_back(line);
+    }
+
+    if (description.size() == 0) {
+      continue;
+    }
+
+    // copy file into upload
+    if (!std::filesystem::copy_file(f.path(), np)) {
+      bprintf("|12Copy file failed!|07\r\n");
+      continue;
+    }
+    // add to database
+    if (!get_curr_filebase()->insert_file(this, np.u8string(), description)) {
+      bprintf("|12Failed to add file to database|07\r\n");
+      continue;
+    }
+    bprintf("|10Thankyou for your upload!|07\r\n");
   }
 }

@@ -116,6 +116,7 @@ public:
   bool tag_file(struct file_s file);
   void clear_tagged_files();
   void download_tagged_files();
+  void upload();
   void select_file_base();
   void list_tagged_files();
   
