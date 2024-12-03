@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "Logger.h"
+#include "FileBase.h"
 
 const unsigned char IAC = 255;
 const unsigned char IAC_WILL = 251;
@@ -74,6 +75,8 @@ public:
   MessageBase *get_curr_msgbase();
   MessageBase *get_msgbase(std::string file);
 
+  FileBase *get_curr_filebase();
+
   std::string get_script_path() { return script_path; }
 
   std::string get_data_path() { return data_path; }
@@ -110,6 +113,10 @@ public:
   Logger *log;
   bool get_visible();
 
+  bool tag_file(struct file_s file);
+  void clear_tagged_files();
+  void download_tagged_files();
+  void select_file_base();
 private:
   bool time_check();
 
@@ -164,4 +171,6 @@ private:
   int timeleft;
   time_t last_time_check;
   int max_nodes;
+
+  std::vector<struct file_s> tagged_files;
 };

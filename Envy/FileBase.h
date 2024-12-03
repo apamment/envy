@@ -1,6 +1,11 @@
 #pragma once
 
 #include <string>
+#include <filesystem>
+#include <vector>
+#include <sqlite3.h>
+
+
 
 class Node;
 class FileBase {
@@ -19,6 +24,17 @@ public:
     int up_sec_level;
 
     void list_files(Node *n);
+    void inc_download(Node *n, std::string filename);
 private:
+    bool open_database(std::string path, sqlite3 **db);
+};
 
+struct file_s {
+  FileBase *fb;
+  std::filesystem::path filename;
+  std::string uploadedby;
+  time_t uploaddate;
+  int downloadcount;
+  int64_t size;
+  std::vector<std::string> desc;
 };

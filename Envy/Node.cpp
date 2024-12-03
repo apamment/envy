@@ -1341,3 +1341,80 @@ void Node::send_file(struct protocol_s *p, std::string filename) {
 
   Door::runExternal(this, parts.at(0), args, true);
 }
+
+bool Node::tag_file(struct file_s file) {
+  for (size_t i = 0; i < tagged_files.size(); i++) {
+    if (tagged_files.at(i).filename == file.filename) {
+      return false;
+    }
+  }
+  tagged_files.push_back(file);
+  return true;
+}
+
+FileBase *Node::get_curr_filebase() {
+  if (curr_filebase != -1) {
+    return accessablefb.at(curr_filebase);
+  }
+
+  return nullptr;
+}
+
+void Node::clear_tagged_files() {
+  tagged_files.clear();
+}
+
+void Node::download_tagged_files() {
+  struct protocol_s *p = select_protocol(); 
+
+  for (size_t i = 0; i < tagged_files.size(); i++) {
+    if (tagged_files.at(i).size > 0) {
+      bprintf("Sending \"%s\" press (q) to abort or any other key to continue...\r\n", tagged_files.at(i).filename.filename().u8string().c_str());
+      char c = getch();
+      if (tolower(c) == 'q') {
+        tagged_files.erase(tagged_files.begin(), tagged_files.begin() + (i - 1));
+        return;
+      }
+      send_file(p, tagged_files.at(i).filename.u8string());
+      tagged_files.at(i).fb->inc_download(this, tagged_files.at(i).filename.u8string());
+    }
+  }
+  clear_tagged_files();
+}
+
+
+void Node::select_file_base() {
+  cls();
+
+  int lines = 0;
+
+  for (size_t i = 0; i < accessablefb.size(); i++) {
+    bprintf("|08%4d. |07%-44.44s|07\r\n", i + 1, accessablefb.at(i)->name.c_str());
+    lines++;
+    if (lines == term_height - 1 || i == accessablefb.size() - 1) {
+      if (i == accessablefb.size() - 1) {
+        bprintf("|11END  |15- |10Select area: |07");
+      } else {
+        bprintf("|13MORE |15- |10Select area: |07");
+      }
+
+      
+      std::string num = get_str(4);
+
+      if (num.length() > 0) {
+        try {
+          int n = std::stoi(num);
+
+          if (n - 1 >= 0 && n - 1 < accessablefb.size()) {
+            curr_filebase = n - 1;
+            User::set_attrib(this, "curr_fbase", accessablefb.at(curr_filebase)->database);
+            return;
+          }
+        } catch (std::out_of_range const &) {
+        } catch (std::invalid_argument const &) {
+        }
+      }
+      lines = 0;
+    }
+  }
+}
