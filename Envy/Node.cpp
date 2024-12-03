@@ -1484,7 +1484,7 @@ void Node::upload() {
     }
   }
 
-  oldwd = getcwd(NULL, -1);
+  oldwd = getcwd(NULL, 0);
   chdir(ulpath.c_str());
 
   Door::runExternal(this, parts.at(0), args, true);
