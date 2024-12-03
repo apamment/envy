@@ -27,8 +27,11 @@ if (bbsname != "UNDEFINED" && msgbase != "UNDEFINED" && bbsaddr != "UNDEFINED") 
     var username = getusername()
     var dt = new Date()
 
-    var current_date = dt.toDateString()
+    var current_date;
     var current_time;
+
+
+    current_date = pad("00", dt.getDate(), true) + "/" + pad("00", dt.getMonth() + 1, true) + "/" + pad("00", dt.getFullYear() - 2000, true);
 
     if (dt.getHours() < 12) {
         if (dt.getHours() == 0) {
