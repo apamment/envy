@@ -510,15 +510,15 @@ void MessageBase::read_messages(Node *n, int startingat) {
       for (size_t q = 0; q < msg.size(); q++) {
         std::string qbl = strip_ansi(msg.at(q));
         rtrim(qbl);
-        if (qbl.length() >= 72) {
-          while (qbl.length() >= 72) {
-            size_t p = qbl.rfind(' ', 72);
+        if (qbl.length() >= 71) {
+          while (qbl.length() >= 71) {
+            size_t p = qbl.rfind(' ', 71);
             if (p != std::string::npos) {
               leftover = qbl.substr(p + 1);
               qb.push_back(" > " + qbl.substr(0, p));
             } else {
-              leftover = (qbl.substr(71));
-              qb.push_back(" > " + qbl.substr(0, 72));
+              leftover = (qbl.substr(70));
+              qb.push_back(" > " + qbl.substr(0, 71));
             }
 
             q++;
@@ -527,7 +527,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
               std::string nextqbl = strip_ansi(msg.at(q));
               rtrim(nextqbl);
               qbl = leftover + " " + nextqbl;
-              if (qbl.length() < 72) {
+              if (qbl.length() < 71) {
                 qb.push_back(" > " + qbl);                
               }
             } else {
