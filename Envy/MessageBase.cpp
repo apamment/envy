@@ -483,6 +483,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
 
     int lines = 5;
     char ch = ' ';
+    bool next = false;
 
     for (size_t i = 0; i < msg.size(); i++) {
       n->bprintf("%s", msg.at(i).c_str());
@@ -499,9 +500,11 @@ void MessageBase::read_messages(Node *n, int startingat) {
         switch (tolower(ch)) {
         case 'n':
           reading = reading + 1;
+          next = true;
           break;
         case 'p':
           reading = reading - 1;
+          next = true;
           break;
         case 'r': {
           n->bprintf("\r\n");
@@ -546,6 +549,9 @@ void MessageBase::read_messages(Node *n, int startingat) {
           return;
         }      
         lines = 0;
+        if (next == true) {
+          break;
+        }
       }
     }
   }
