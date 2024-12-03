@@ -506,11 +506,32 @@ void MessageBase::read_messages(Node *n, int startingat) {
 
       n->bprintf("\r\n");
       std::vector<std::string> qb;
-
+      std::string leftover;
       for (size_t q = 0; q < msg.size(); q++) {
         std::string qbl = strip_ansi(msg.at(q));
         rtrim(qbl);
-        qb.push_back(" > " + qbl);
+        if (qbl.length() >= 75) {
+          while (qbl.length() >= 75) {
+            size_t p = qbl.rfind(' ', 75);
+            if (p != std::string::npos) {
+              leftover = qbl.substr(p + 1);
+              qb.push_back(" > " + qbl.substr(0, p - 1));
+
+            } else {
+              leftover = (qbl.substr(75));
+              qb.push_back(" > " + qbl.substr(0, 75));
+            }
+            q++;
+
+            if (q < msg.size()) {
+              qbl = leftover + " " + msg.at(++q);
+            } else {
+              qb.push_back(" > " + leftover);
+            }          
+          }
+        } else {
+          qb.push_back(" > " + qbl);
+        }
       }
 
       enter_message(n, hdrs.at(reading).from, hdrs.at(reading).subject, &qb, &hdrs.at(reading));
