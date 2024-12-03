@@ -1361,15 +1361,27 @@ FileBase *Node::get_curr_filebase() {
 }
 
 void Node::clear_tagged_files() {
+  bprintf("|10Cleared |15%d |10files from your tagged list.\r\n", tagged_files.size());
   tagged_files.clear();
+  pause();
 }
 
 void Node::download_tagged_files() {
+  if (tagged_files.size() == 0) {
+    bprintf("|12Tag some files first!|07\r\n");
+    pause();
+    return;
+  }
   struct protocol_s *p = select_protocol(); 
+
+  if (p == nullptr) {
+    pause();
+    return;
+  }
 
   for (size_t i = 0; i < tagged_files.size(); i++) {
     if (tagged_files.at(i).size > 0) {
-      bprintf("Sending \"%s\" press (q) to abort or any other key to continue...\r\n", tagged_files.at(i).filename.filename().u8string().c_str());
+      bprintf("|10Sending \"|15%s|10\"\r\nPress (q) to abort or any other key to continue...\r\n", tagged_files.at(i).filename.filename().u8string().c_str());
       char c = getch();
       if (tolower(c) == 'q') {
         tagged_files.erase(tagged_files.begin(), tagged_files.begin() + (i - 1));

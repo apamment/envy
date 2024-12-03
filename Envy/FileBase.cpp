@@ -37,13 +37,22 @@ void FileBase::list_files(Node *n) {
 
     std::stringstream ss;
   
-    for (size_t i = 0; i < tmp.size(); i++) {
-      if (tmp.at(i) == '\n') {
-        f.desc.push_back(ss.str());
-        ss.str("");
-      } else if (tmp.at(i) != '\r') {
-        ss << tmp.at(i);
-      }
+    if (tmp.size() == 0) {
+        f.desc.push_back("No Description.");
+    } else {
+
+        for (size_t i = 0; i < tmp.size(); i++) {
+        if (tmp.at(i) == '\n') {
+            f.desc.push_back(ss.str());
+            ss.str("");
+        } else if (tmp.at(i) != '\r') {
+            ss << tmp.at(i);
+        }
+        }
+
+        if (ss.str() != "") {
+            f.desc.push_back(ss.str());
+        }
     }
     files.push_back(f);
   }
@@ -76,9 +85,9 @@ void FileBase::list_files(Node *n) {
         sz = files.at(i).size / 1024 / 1024 / 1024;
         unit = 'G';
       }
-      n->bprintf("|15%3d|07. |14%-20.20s |10%4d%c |07%-47.47s\r\n", i + 2, files.at(i).filename.filename().u8string().c_str(), sz, unit, files.at(i).desc.at(0).c_str()); 
+      n->bprintf("|15%3d|07. |14%-20.20s |10%4d%c |07%-47.47s\r\n", i + 1, files.at(i).filename.filename().u8string().c_str(), sz, unit, files.at(i).desc.at(0).c_str()); 
     } else {
-      n->bprintf("|15%3d|07. |14%-20.20s  |12MSNG |07%-47.47s\r\n", i + 2, files.at(i).filename.filename().u8string().c_str(), files.at(i).desc.at(0).c_str()); 
+      n->bprintf("|15%3d|07. |14%-20.20s  |12MSNG |07%-47.47s\r\n", i + 1, files.at(i).filename.filename().u8string().c_str(), files.at(i).desc.at(0).c_str()); 
     }
     lines++;
     if (lines == n->get_term_height() - 1) {
