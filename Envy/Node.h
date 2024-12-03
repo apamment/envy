@@ -117,6 +117,8 @@ public:
   void clear_tagged_files();
   void download_tagged_files();
   void select_file_base();
+  void list_tagged_files();
+  
 private:
   bool time_check();
 

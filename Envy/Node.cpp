@@ -1361,7 +1361,7 @@ FileBase *Node::get_curr_filebase() {
 }
 
 void Node::clear_tagged_files() {
-  bprintf("|10Cleared |15%d |10files from your tagged list.\r\n", tagged_files.size());
+  bprintf("\r\n\r\n|10Cleared |15%d |10files from your tagged list.\r\n", tagged_files.size());
   tagged_files.clear();
   pause();
 }
@@ -1391,9 +1391,25 @@ void Node::download_tagged_files() {
       tagged_files.at(i).fb->inc_download(this, tagged_files.at(i).filename.u8string());
     }
   }
-  clear_tagged_files();
+  tagged_files.clear();
 }
 
+void Node::list_tagged_files() {
+  cls();
+
+  int lines = 0;
+
+  for (size_t i = 0; i < tagged_files.size(); i++) {
+    bprintf("|07%3d. |15%s|07\r\n", i + 1, tagged_files.at(i).filename.filename().u8string().c_str());
+    lines++;
+    if (lines == term_height - 1) {
+      pause();
+      lines = 0;
+    }
+  }
+
+  pause();
+}
 
 void Node::select_file_base() {
   cls();

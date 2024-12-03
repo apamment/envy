@@ -420,6 +420,14 @@ static duk_ret_t blistemail(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t blisttaggedfiles(duk_context *ctx) {
+  Node *n = get_node(ctx);
+
+  n->list_tagged_files();
+
+  return 0;
+}
+
 static duk_ret_t benteremail(duk_context *ctx) {
   Node *n = get_node(ctx);
 
@@ -855,6 +863,9 @@ int Script::run(Node *n, std::string script) {
 
   duk_push_c_function(ctx, bcleartagged, 0);
   duk_put_global_string(ctx, "cleartagged");
+
+  duk_push_c_function(ctx, blisttaggedfiles, 0);
+  duk_put_global_string(ctx, "listtagged");
 
   if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
     n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
