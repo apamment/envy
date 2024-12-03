@@ -1084,9 +1084,9 @@ void Node::select_msg_base() {
     lines++;
     if (lines == term_height - 1 || i == accessablemb.size() - 1) {
       if (i == accessablemb.size() - 1) {
-        bprintf("\r\n|11END  |15- |10Select area: |07");
+        bprintf("|11END  |15- |10Select area: |07");
       } else {
-        bprintf("\r\n|13MORE |15- |10Select area: |07");
+        bprintf("|13MORE |15- |10Select area: |07");
       }
 
       
