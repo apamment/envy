@@ -510,16 +510,16 @@ void MessageBase::read_messages(Node *n, int startingat) {
       for (size_t q = 0; q < msg.size(); q++) {
         std::string qbl = strip_ansi(msg.at(q));
         rtrim(qbl);
-        if (qbl.length() >= 74) {
-          while (qbl.length() >= 74) {
-            size_t p = qbl.rfind(' ', 74);
+        if (qbl.length() >= 73) {
+          while (qbl.length() >= 73) {
+            size_t p = qbl.rfind(' ', 73);
             if (p != std::string::npos) {
               leftover = qbl.substr(p + 1);
               qb.push_back(" > " + qbl.substr(0, p));
 
             } else {
-              leftover = (qbl.substr(73));
-              qb.push_back(" > " + qbl.substr(0, 74));
+              leftover = (qbl.substr(72));
+              qb.push_back(" > " + qbl.substr(0, 73));
             }
             q++;
 
