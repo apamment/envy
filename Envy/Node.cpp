@@ -1529,4 +1529,5 @@ void Node::upload() {
     }
     bprintf("|10Thankyou for your upload!|07\r\n");
   }
+  std::filesystem::remove_all(ulpath);
 }
