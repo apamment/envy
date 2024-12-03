@@ -447,7 +447,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
 
             if (pos != std::string::npos) {
               leftover = line.substr(pos + 1);
-              line = line.substr(0, pos - 1);
+              line = line.substr(0, pos);
             } else {
               leftover = line.substr(79);
               line = line.substr(0, 79);
@@ -521,12 +521,16 @@ void MessageBase::read_messages(Node *n, int startingat) {
               leftover = (qbl.substr(72));
               qb.push_back(" > " + qbl.substr(0, 73));
             }
+
             q++;
 
             if (q < msg.size()) {
               std::string nextqbl = strip_ansi(msg.at(q));
               rtrim(nextqbl);
               qbl = leftover + " " + nextqbl;
+              if (qbl.length() < 73) {
+                qb.push_back(" > " + qbl);                
+              }
             } else {
               qb.push_back(" > " + leftover);
               break;
