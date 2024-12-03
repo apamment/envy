@@ -1082,25 +1082,29 @@ void Node::select_msg_base() {
       bprintf("|08%4d. |07%-44.44s |02%6d |02UNREAD |05%6d |05TOTAL|07\r\n", i + 1, accessablemb.at(i)->name.c_str(), ur, tot);
     }
     lines++;
-    if (lines == 22) {
-      pause();
-      lines = 0;
-    }
-  }
-
-  bprintf("\r\nSelect area: ");
-  std::string num = get_str(4);
-
-  if (num.length() > 0) {
-    try {
-      int n = std::stoi(num);
-
-      if (n - 1 >= 0 && n - 1 < accessablemb.size()) {
-        curr_msgbase = n - 1;
-        User::set_attrib(this, "curr_mbase", accessablemb.at(curr_msgbase)->file);
+    if (lines == term_height - 1 || i == accessablemb.size() - 1) {
+      if (i == accessablemb.size() - 1) {
+        bprintf("\r\n|11END  |15- |10Select area: |07");
+      } else {
+        bprintf("\r\n|13MORE |15- |10Select area: |07");
       }
-    } catch (std::out_of_range const &) {
-    } catch (std::invalid_argument const &) {
+
+      
+      std::string num = get_str(4);
+
+      if (num.length() > 0) {
+        try {
+          int n = std::stoi(num);
+
+          if (n - 1 >= 0 && n - 1 < accessablemb.size()) {
+            curr_msgbase = n - 1;
+            User::set_attrib(this, "curr_mbase", accessablemb.at(curr_msgbase)->file);
+          }
+        } catch (std::out_of_range const &) {
+        } catch (std::invalid_argument const &) {
+        }
+      }
+      lines = 0;
     }
   }
 }
