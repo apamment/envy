@@ -526,7 +526,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
             if (q < msg.size()) {
               std::string nextqbl = strip_ansi(msg.at(q));
               rtrim(nextqbl);
-              qbl = leftover + " " + qbl;
+              qbl = leftover + " " + nextqbl;
             } else {
               qb.push_back(" > " + leftover);
               break;
