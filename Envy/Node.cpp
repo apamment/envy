@@ -1506,10 +1506,10 @@ void Node::upload() {
 
     std::vector<std::string> description;
 
-    bprintf("Please enter a description (5 lines max)");
+    bprintf("|15Please enter a description (5 lines max)|07\r\n\r\n");
 
     for (int i = 0; i < 5; i++) {
-      bprintf("%d: ", i+1);
+      bprintf("|14%d|07: ", i+1);
       std::string line = get_str(42);
       if (line.size() == 0) {
         break;
