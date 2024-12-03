@@ -1099,6 +1099,7 @@ void Node::select_msg_base() {
           if (n - 1 >= 0 && n - 1 < accessablemb.size()) {
             curr_msgbase = n - 1;
             User::set_attrib(this, "curr_mbase", accessablemb.at(curr_msgbase)->file);
+            return;
           }
         } catch (std::out_of_range const &) {
         } catch (std::invalid_argument const &) {
