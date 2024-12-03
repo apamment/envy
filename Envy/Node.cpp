@@ -44,6 +44,8 @@ void Node::action(std::string s) {
     of << s << std::endl;
     of.close();
   }
+
+  log->log(LOG_INFO, "%s -> %s", username.c_str(), s.c_str());
 }
 
 std::vector<struct nodeuse_s> Node::get_actions() {
