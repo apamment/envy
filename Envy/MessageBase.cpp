@@ -524,9 +524,10 @@ void MessageBase::read_messages(Node *n, int startingat) {
             q++;
 
             if (q < msg.size()) {
-              qbl = leftover + " " + msg.at(++q);
+              qbl = leftover + " " + msg.at(q);
             } else {
               qb.push_back(" > " + leftover);
+              break;
             }          
           }
         } else {
