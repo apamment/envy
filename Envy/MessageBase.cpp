@@ -482,68 +482,70 @@ void MessageBase::read_messages(Node *n, int startingat) {
     n->bprintf("|08-------------------------------------------------------------------------------|07\r\n");
 
     int lines = 5;
+    char ch = ' ';
 
     for (size_t i = 0; i < msg.size(); i++) {
       n->bprintf("%s", msg.at(i).c_str());
       lines++;
-      if (lines == 23) {
-        n->pause();
-        lines = 0;
-      }
-    }
+      ch = 255;
+      if (lines == 23 || i == msg.size() - 1) {
+        if (i == msg.size() - 1) {
+          n->bprintf("|11END  |15- |10(R)eply, (N)ext, (P)revious, (Q)uit: |07");
+        } else {
+          n->bprintf("|13MORE |15- |10(R)eply, (N)ext, (P)revious, (Q)uit: |07");
+        }
+        ch = n->getch();
+        switch (tolower(ch)) {
+        case 'n':
+          reading = reading + 1;
+          break;
+        case 'p':
+          reading = reading - 1;
+          break;
+        case 'r': {
+          n->bprintf("\r\n");
+          std::vector<std::string> qb;
+          std::string leftover;
+          for (size_t q = 0; q < msg.size(); q++) {
+            std::string qbl = strip_ansi(msg.at(q));
+            rtrim(qbl);
+            if (qbl.length() >= 71) {
+              while (qbl.length() >= 71) {
+                size_t p = qbl.rfind(' ', 71);
+                if (p != std::string::npos) {
+                  leftover = qbl.substr(p + 1);
+                  qb.push_back(" > " + qbl.substr(0, p));
+                } else {
+                  leftover = (qbl.substr(70));
+                  qb.push_back(" > " + qbl.substr(0, 71));
+                }
 
-    n->bprintf("|10(R)eply, (N)ext, (P)revious, (Q)uit: |07");
-    char ch = n->getch();
+                q++;
 
-    switch (tolower(ch)) {
-    case 'n':
-      reading = reading + 1;
-      break;
-    case 'p':
-      reading = reading - 1;
-      break;
-    case 'r': {
-
-      n->bprintf("\r\n");
-      std::vector<std::string> qb;
-      std::string leftover;
-      for (size_t q = 0; q < msg.size(); q++) {
-        std::string qbl = strip_ansi(msg.at(q));
-        rtrim(qbl);
-        if (qbl.length() >= 71) {
-          while (qbl.length() >= 71) {
-            size_t p = qbl.rfind(' ', 71);
-            if (p != std::string::npos) {
-              leftover = qbl.substr(p + 1);
-              qb.push_back(" > " + qbl.substr(0, p));
-            } else {
-              leftover = (qbl.substr(70));
-              qb.push_back(" > " + qbl.substr(0, 71));
-            }
-
-            q++;
-
-            if (q < msg.size()) {
-              std::string nextqbl = strip_ansi(msg.at(q));
-              rtrim(nextqbl);
-              qbl = leftover + " " + nextqbl;
-              if (qbl.length() < 71) {
-                qb.push_back(" > " + qbl);                
+                if (q < msg.size()) {
+                  std::string nextqbl = strip_ansi(msg.at(q));
+                  rtrim(nextqbl);
+                  qbl = leftover + " " + nextqbl;
+                  if (qbl.length() < 71) {
+                    qb.push_back(" > " + qbl);                
+                  }
+                } else {
+                  qb.push_back(" > " + leftover);
+                  break;
+                }          
               }
             } else {
-              qb.push_back(" > " + leftover);
-              break;
-            }          
+              qb.push_back(" > " + qbl);
+            }
           }
-        } else {
-          qb.push_back(" > " + qbl);
-        }
-      }
 
-      enter_message(n, hdrs.at(reading).from, hdrs.at(reading).subject, &qb, &hdrs.at(reading));
-    } break;
-    case 'q':
-      return;
+          enter_message(n, hdrs.at(reading).from, hdrs.at(reading).subject, &qb, &hdrs.at(reading));
+        } break;
+        case 'q':
+          return;
+        }      
+        lines = 0;
+      }
     }
   }
 }
