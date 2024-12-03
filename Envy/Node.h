@@ -40,6 +40,7 @@ struct protocol_s {
 };
 
 class MessageBase;
+class FileBase;
 
 class Node {
 public:
@@ -118,12 +119,17 @@ private:
   void load_doors();
   void load_seclevels();
   void load_protocols();
+  void load_filebases();
 
   int get_timeperday();
   int get_timeout();
 
   std::vector<MessageBase *> msgbases;
   std::vector<MessageBase *> accessablemb;
+
+  std::vector<FileBase *> filebases;
+  std::vector<FileBase *> accessablefb;
+
   std::vector<struct door_cfg_s> doors;
   std::vector<struct seclevel_s> seclevels;
   std::vector<struct protocol_s> protocols;
@@ -149,6 +155,7 @@ private:
   int uid;
 
   int curr_msgbase;
+  int curr_filebase;
 
   int socket;
   int node;

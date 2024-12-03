@@ -10,6 +10,7 @@
 #include "../Common/toml.hpp"
 #include "Node.h"
 #include "MessageBase.h"
+#include "FileBase.h"
 #include "Disconnect.h"
 #include "Script.h"
 #include "User.h"
@@ -521,6 +522,7 @@ int Node::run() {
   load_doors();
   load_seclevels();
   load_protocols();
+  load_filebases();
 
   log->log(LOG_INFO, "Connected!");
 
@@ -725,6 +727,28 @@ int Node::run() {
   for (size_t i = 0; i < msgbases.size(); i++) {
     if (msgbases.at(i)->read_sec_level <= seclevel) {
       accessablemb.push_back(msgbases.at(i));
+    }
+  }
+
+  for (size_t i = 0; i < filebases.size(); i++) {
+    if (filebases.at(i)->down_sec_level <= seclevel) {
+      accessablefb.push_back(filebases.at(i));
+    }
+  }
+
+  curr_filebase = -1;
+  std::string cfb = User::get_attrib(this, "curr_fbase", "");
+  if (cfb != "") {
+    for (size_t i = 0; i < accessablefb.size(); i++) {
+      if (accessablefb.at(i)->database == cfb) {
+        curr_filebase = i;
+        break;
+      }
+    }
+  }
+  if (curr_filebase == -1) {
+    if (accessablefb.size() > 0) {
+      curr_filebase = 0;
     }
   }
 
@@ -975,6 +999,63 @@ void Node::launch_door(std::string key) {
       Door::runExternal(this, doors.at(i).script, args, false);
       return;
     }
+  }
+}
+
+void Node::load_filebases() {
+  try {
+    auto data = toml::parse_file(data_path + "/filebases.toml");
+    auto baseitems = data.get_as<toml::array>("filebase");
+
+    for (size_t i = 0; i < baseitems->size(); i++) {
+      auto itemtable = baseitems->get(i)->as_table();
+      std::string myname;
+      std::string mydatabase;
+      std::string myuppath;
+      int mydownloadsec;
+      int myuploadsec;
+
+      auto name = itemtable->get("name");
+      if (name != nullptr) {
+        myname = name->as_string()->value_or("Invalid Name");
+      } else {
+        myname = "Unknown Name";
+      }
+
+      auto database = itemtable->get("database");
+      if (database != nullptr) {
+        mydatabase = database->as_string()->value_or("");
+      } else {
+        mydatabase = "";
+      }
+      auto uppath = itemtable->get("upload-path");
+      if (uppath != nullptr) {
+        myuppath = uppath->as_string()->value_or("");
+      } else {
+        myuppath = "";
+      }
+
+      auto downloads = itemtable->get("download-sec");
+      if (downloads != nullptr) {
+        mydownloadsec = downloads->as_integer()->value_or(10);
+      } else {
+        mydownloadsec = 10;
+      }
+
+      auto uploads = itemtable->get("upload-sec");
+      if (uploads != nullptr) {
+        myuploadsec = uploads->as_integer()->value_or(10);
+      } else {
+        myuploadsec = 10;
+      }
+
+      if (mydatabase != "" && myuppath != "") {
+        filebases.push_back(new FileBase(myname, myuppath, mydatabase, mydownloadsec, myuploadsec));
+      }
+    }
+  } catch (toml::parse_error const &p) {
+    log->log(LOG_ERROR, "Error parsing %s/filebases.toml, Line %d, Column %d", data_path.c_str(), p.source().begin.line, p.source().begin.column);
+    log->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
   }
 }
 
