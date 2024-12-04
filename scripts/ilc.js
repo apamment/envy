@@ -79,7 +79,7 @@ if (msgbase == "UNDEFINED") {
         print("I N T E R B B S   L A S T C A L L E R S\r\n\r\n");
     }
     for (var i = 0; i < 15; i++) {
-        print("|15" + pad("                  ", entries[i]['username'], false) + " |13" + pad("                      ", entries[i]['location'], false) + " |10" + pad("                      ", entries[i]['bbsname'], false) + " |11" + entries[i]['udate'] + "|07\r\n")
+        print("|15" + pad("                  ", entries[i]['username'], false) + " |13" + pad("                         ", entries[i]['location'], false) + " |10" + pad("                         ", entries[i]['bbsname'], false) + " |11" + entries[i]['udate'] + "|07\r\n")
     }
 }
 pause()
