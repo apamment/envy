@@ -120,7 +120,7 @@ void Door::createDropfiles(Node *n) {
   f3 << "01/01/71" << LINE_END;
   f3 << "80" << LINE_END;
   f3 << "25" << LINE_END;
-  f3 << "0" << LINE_END;
+  f3 << n->get_seclevel() << LINE_END;
   f3 << "0" << LINE_END;
   f3 << "0" << LINE_END;
   f3 << "1" << LINE_END;
@@ -129,7 +129,7 @@ void Door::createDropfiles(Node *n) {
   f3 << n->get_gfile_path() << LINE_END;
   f3 << n->get_tmp_path() << LINE_END;
   f3 << "NOLOG" << LINE_END;
-  f3 << "115200" << LINE_END;
+  f3 << "9600" << LINE_END;
   f3 << "1" << LINE_END;
   f3 << n->get_bbsname() << LINE_END;
   f3 << n->get_opname() << LINE_END;
@@ -140,8 +140,6 @@ void Door::createDropfiles(Node *n) {
   f3 << "0" << LINE_END;
   f3 << "0" << LINE_END;
   f3 << "8N1" << LINE_END;
-  f3 << "115200" << LINE_END;
-  f3 << "0" << LINE_END;
   f3.close();
 
   std::filesystem::path d32path(fpath);
