@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 
 use strict;
+use File::Path;
 
 # Change this to the full path of yout tmp path in envy.ini
 my $tmp_path = "UNDEFINED";
@@ -22,8 +23,8 @@ if ($tmp_path eq "UNDEFINED") {
 
 print "Checking for FILE_ID.DIZ...";
 
-if (uc(substr($file, -3)) eq "ZIP") {
-    mkdir("/tmp/uploadproc/$node");
+if (uc(substr($file, -3)) == "ZIP") {
+    File::Path::make_path("/tmp/uploadproc/$node");
     system("unzip -jCLL $file file_id.diz -d /tmp/uploadproc/$node > /dev/null 2>&1");
     if ( -f "/tmp/uploadproc/$node/file_id.diz") {
         print(" found description.\r\n");
@@ -36,13 +37,13 @@ if (uc(substr($file, -3)) eq "ZIP") {
         $string =~ s/\r//g;
         unlink("/tmp/uploadproc/$node/file_id.diz");
 
-        open(FH, '>', "$tmp_path/%node/file.desc") or die $!;
+        open(FH, '>', "$tmp_path/$node/file.desc") or die $!;
         print FH $string;
         close FH;
     } else {
         print(" no description.\r\n");
     }
-    rmdir("/tmp/uploadproc/$node");
+    File::Path::remove_tree("/tmp/uploadproc/$node");
 } else {
     print(" no description.\r\n");
 }
