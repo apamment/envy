@@ -46,7 +46,8 @@ if (bbsname != "UNDEFINED" && msgbase != "UNDEFINED" && bbsaddr != "UNDEFINED") 
             current_time = pad("00", dt.getHours() - 12, true) + ":" + pad("00", dt.getMinutes(), true) + "p"
         }
     }
-        var userlocation = getattr("location", "Somewhere, The World")
+    
+    var userlocation = getattr("location", "Somewhere, The World")
     var v = getversion()
 
     if (isvisible()) {
