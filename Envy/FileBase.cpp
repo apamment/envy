@@ -232,3 +232,29 @@ bool FileBase::insert_file(Node *n, std::string filename, std::vector<std::strin
 
   return true;
 }
+
+int FileBase::count(Node *n) {
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+
+  static const char * sql = "SELECT COUNT(*) FROM files";
+
+  if (!open_database(n->get_data_path() + "/" + database + ".sqlite3", &db)) {
+    return 0;
+  }
+
+  if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+    sqlite3_close(db);
+    return 0;
+  }
+
+  int ret = 0;
+
+  if (sqlite3_step(stmt) == SQLITE_ROW) {
+    ret = sqlite3_column_int(stmt, 0);
+  }
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+
+  return ret;
+}

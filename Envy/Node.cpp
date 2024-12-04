@@ -1414,7 +1414,7 @@ void Node::select_file_base() {
   int lines = 0;
 
   for (size_t i = 0; i < accessablefb.size(); i++) {
-    bprintf("|07%4d. |15%-44.44s|07\r\n", i + 1, accessablefb.at(i)->name.c_str());
+    bprintf("|07%4d. |15%-44.44s |13%5d FILES|07\r\n", i + 1, accessablefb.at(i)->name.c_str(), accessablefb.at(i)->count(this));
     lines++;
     if (lines == term_height - 1 || i == accessablefb.size() - 1) {
       if (i == accessablefb.size() - 1) {
