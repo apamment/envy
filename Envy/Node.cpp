@@ -1553,7 +1553,7 @@ void Node::upload() {
         description.push_back(line);
       }
     }
-    
+
     if (description.size() == 0) {
       continue;
     }
@@ -1571,4 +1571,5 @@ void Node::upload() {
     bprintf("|10Thankyou for your upload!|07\r\n");
   }
   std::filesystem::remove_all(ulpath);
+  pause();
 }
