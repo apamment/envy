@@ -992,6 +992,7 @@ void Node::load_doors() {
 void Node::launch_door(std::string key) {
   for (size_t i = 0; i < doors.size(); i++) {
     if (key == doors.at(i).key) {
+      cls();
       std::vector<std::string> args;
       args.push_back(std::to_string(node));
 
