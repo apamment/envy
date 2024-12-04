@@ -146,6 +146,7 @@ private:
 
   std::string username;
 
+  std::string upload_processor;
   std::string gfile_path;
   std::string data_path;
   std::string script_path;

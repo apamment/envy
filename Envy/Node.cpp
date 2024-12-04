@@ -513,6 +513,7 @@ int Node::run() {
   max_nodes = inir.GetInteger("main", "max nodes", 4);
   cmdscript = inir.Get("main", "command script", "menu");
   newuserseclevel = inir.GetInteger("main", "new user seclevel", 10);
+  upload_processor = inir.Get("main", "upload processor", "");
   log = new Logger();
   log->load(log_path + "/envy." + std::to_string(node) + ".log");
 
@@ -1502,22 +1503,57 @@ void Node::upload() {
     
     bprintf("\r\n\r\n|10Found File: |15%s\r\n", f.path().filename().u8string().c_str());
 
+    if (std::filesystem::exists(tmp_path + "/" + std::to_string(node) + "/file.desc")) {
+      std::filesystem::remove(tmp_path + "/" + std::to_string(node) + "/file.desc");
+    }
 
+    if (std::filesystem::exists(tmp_path + "/" + std::to_string(node) + "/file.bad")) {
+      std::filesystem::remove(tmp_path + "/" + std::to_string(node) + "/file.bad");
+    }
 
     std::vector<std::string> description;
 
-    bprintf("|15Please enter a description (5 lines max)|07\r\n\r\n");
+    if (upload_processor != "") {
+      std::vector<std::string> ulargs;
+      ulargs.push_back(std::to_string(node));
+      ulargs.push_back(std::filesystem::absolute(f).u8string());
+      Door::runExternal(this, upload_processor, ulargs, false);
 
-    for (int i = 0; i < 5; i++) {
-      bprintf("|14%d|07: ", i+1);
-      std::string line = get_str(42);
-      if (line.size() == 0) {
-        break;
+      if (std::filesystem::exists(tmp_path + "/" + std::to_string(node) + "/file.desc")) {
+        std::ifstream infile(tmp_path + "/" + std::to_string(node) + "/file.desc");
+        if (infile.is_open()) {
+          std::string line;
+          while(getline(infile, line)) {
+            description.push_back(line);
+          }
+          infile.close();
+        }
+        std::filesystem::remove(tmp_path + "/" + std::to_string(node) + "/file.desc");
       }
 
-      description.push_back(line);
+
+      if (std::filesystem::exists(tmp_path + "/" + std::to_string(node) + "/file.bad")) {
+        bprintf("|12File did not pass upload processor!|07\r\n\r\n");
+        std::filesystem::remove(tmp_path + "/" + std::to_string(node) + "/file.bad");
+        continue;
+      }
     }
 
+    if (description.size() == 0) {
+
+      bprintf("|15Please enter a description (5 lines max)|07\r\n\r\n");
+
+      for (int i = 0; i < 5; i++) {
+        bprintf("|14%d|07: ", i+1);
+        std::string line = get_str(42);
+        if (line.size() == 0) {
+          break;
+        }
+
+        description.push_back(line);
+      }
+    }
+    
     if (description.size() == 0) {
       continue;
     }
