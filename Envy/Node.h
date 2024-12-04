@@ -105,6 +105,8 @@ public:
 
   std::vector<struct door_cfg_s> get_doors() { return doors; }
   std::string get_username() { return username; }
+  std::string get_echosem() { return echo_sem; }
+  std::string get_netsem() { return net_sem; }
 
   int get_timeleft() { return timeleft / 60; }
 
@@ -153,6 +155,8 @@ private:
   std::string log_path;
   std::string msg_path;
   std::string tmp_path;
+  std::string echo_sem;
+  std::string net_sem;
 
   std::string bbsname;
   std::string opname;

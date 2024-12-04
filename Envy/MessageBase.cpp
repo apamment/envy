@@ -5,6 +5,7 @@ extern "C" {
 #include <cctype>
 #include <ctime>
 #include <sstream>
+#include <fstream>
 #include <iomanip>
 #include <algorithm>
 #include <cstring>
@@ -223,6 +224,19 @@ bool MessageBase::save_message(Node *n, std::string recipient, std::string sende
   JAM_CloseMB(jb);
   free(jb);
   JAM_DelSubPacket(jsp);
+  if (mbtype == ECHO && n->get_echosem() != "") {
+    std::ofstream sem(n->get_echosem(), std::ios_base::out | std::ios_base::trunc);
+    if (sem.is_open()) {
+      sem << time(NULL) << std::endl;
+      sem.close();
+    }
+  } else if (mbtype == NETMAIL && n->get_netsem() != "") {
+    std::ofstream sem(n->get_netsem(), std::ios_base::out | std::ios_base::trunc);
+    if (sem.is_open()) {
+      sem << time(NULL) << std::endl;
+      sem.close();
+    }
+  }
   return true;
 }
 

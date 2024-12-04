@@ -514,6 +514,8 @@ int Node::run() {
   cmdscript = inir.Get("main", "command script", "menu");
   newuserseclevel = inir.GetInteger("main", "new user seclevel", 10);
   upload_processor = inir.Get("main", "upload processor", "");
+  echo_sem = inir.Get("paths", "echomail semaphore", "");
+  net_sem = inir.Get("paths", "netmail semaphore", "");
   log = new Logger();
   log->load(log_path + "/envy." + std::to_string(node) + ".log");
 
