@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 
-my $tmp_path = "UNDEFINED";
-
 use strict;
 
+# Change this to the full path of yout tmp path in envy.ini
+my $tmp_path = "UNDEFINED";
 
 if ($#ARGV < 1) {
     print "Usage ./uploadproc.pl node file\n";
@@ -15,14 +15,14 @@ my $file = $ARGV[1];
 
 my $string;
 
-if ($tmp_path == "UNDEFINED") {
-    print("Sysop please configure this script with your tmp_path!\r\n");
+if ($tmp_path eq "UNDEFINED") {
+    print("Sysop please configure this uploadproc.pl with your tmp_path!\r\n");
     exit(0);
 }
 
 print "Checking for FILE_ID.DIZ...";
 
-if (uc(substr($file, -3)) == "ZIP") {
+if (uc(substr($file, -3)) eq "ZIP") {
     mkdir("/tmp/uploadproc/$node");
     system("unzip -jCLL $file file_id.diz -d /tmp/uploadproc/$node > /dev/null 2>&1");
     if ( -f "/tmp/uploadproc/$node/file_id.diz") {
@@ -40,7 +40,9 @@ if (uc(substr($file, -3)) == "ZIP") {
         print FH $string;
         close FH;
     } else {
-        print(" no description.\n");
+        print(" no description.\r\n");
     }
     rmdir("/tmp/uploadproc/$node");
-} 
+} else {
+    print(" no description.\r\n");
+}
