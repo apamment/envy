@@ -22,7 +22,7 @@ if (doors.length == 0) {
 
         var lines = 0
 
-        print("|18|15 ##  |12Door                        |13PLAYS  |15 ##  |12Door                        |13PLAYS|16|07\r\n")
+        print("|18|15 ##  |14Door                        |13PLAYS  |15 ##  |14Door                        |13PLAYS|16|07\r\n")
 
         for (var index = 0; index < doors.length; index += 2) {
             var element = doors[index];
