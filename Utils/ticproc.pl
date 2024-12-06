@@ -78,7 +78,7 @@ foreach my $fp (@files) {
             $area = substr($line, 5);
         } elsif (uc(substr($line, 0, 4)) eq "FILE") {
             $file = substr($line, 5);
-        } elsif (uc(substr($line, 0, 6)) eq "LFILE") {
+        } elsif (uc(substr($line, 0, 5)) eq "LFILE") {
             $lfile = substr($line, 6);
         } elsif (uc(substr($line, 0, 4)) eq "DESC") {
             $desc = substr($line, 5);
@@ -104,14 +104,10 @@ foreach my $fp (@files) {
                 my $ctx = Digest::CRC->new( type => 'crc32' );
                 my $filename;
 
-                if ($lfile != "") {
+                if ($lfile ne "") {
                     $filename = $lfile;
                 } else { 
                     $filename = $file;
-                }
-
-                if ( ! -e $filename) {
-                    $filename = lc($filename);
                 }
 
                 open my $fh, '<:raw', $config->val('main', 'inbound') . "/" . $filename or die $!;
@@ -130,7 +126,7 @@ foreach my $fp (@files) {
                     # add file to database
                     my $description;
 
-                    if ($ldesc ne "") {
+                    if ($ldesc != "") {
                         $description = $ldesc;
                     } else {
                         $description = $desc;
