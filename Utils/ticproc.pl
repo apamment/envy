@@ -73,27 +73,27 @@ foreach my $fp (@files) {
     open (my $fptr, "<", $fp) or die $!;
 
     while (my $line = <$fptr>) {
-        
+        chomp($line);
         if (uc(substr($line, 0, 5)) eq "AREA ") {
-            $area = chomp(substr($line, 5));
+            $area = substr($line, 5);
         } elsif (uc(substr($line, 0, 4)) eq "FILE") {
-            $file = chomp(substr($line, 5));
+            $file = substr($line, 5);
         } elsif (uc(substr($line, 0, 6)) eq "LFILE") {
-            $lfile = chomp(substr($line, 6));
+            $lfile = substr($line, 6);
         } elsif (uc(substr($line, 0, 4)) eq "DESC") {
-            $desc = chomp(substr($line, 5));
+            $desc = substr($line, 5);
         } elsif (uc(substr($line, 0, 5)) eq "LDESC") {
             if ($ldesc eq "") {
-                $ldesc = chomp(substr($line, 6));
+                $ldesc = substr($line, 6);
             } else {
-                $ldesc = $ldesc . "\n" . chomp(substr($line, 6));
+                $ldesc = $ldesc . "\n" . substr($line, 6);
             }
         } elsif (uc(substr($line, 0, 8)) eq "REPLACES") {
-            $replaces = chomp(substr($line, 9));
+            $replaces = substr($line, 9);
         } elsif (uc(substr($line, 0, 3)) eq "CRC") {
-            $crc = chomp(substr($line, 4));
+            $crc = substr($line, 4);
         } elsif (uc(substr($line, 0, 2)) eq "PW") {
-            $password = chomp(substr($line, 3));
+            $password = substr($line, 3);
         }
     }
     close $fptr;
