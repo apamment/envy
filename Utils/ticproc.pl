@@ -110,6 +110,10 @@ foreach my $fp (@files) {
                     $filename = $file;
                 }
 
+                if ( ! -e $filename) {
+                    $filename = lc($filename);
+                }
+
                 open my $fh, '<:raw', $config->val('main', 'inbound') . "/" . $filename or die $!;
                 $ctx->addfile(*$fh);
                 close $fh;
