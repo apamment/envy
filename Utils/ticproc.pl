@@ -130,8 +130,10 @@ foreach my $fp (@files) {
 
                     if ($ldesc ne "") {
                         $description = $ldesc;
-                    } else {
+                    } elsif ($desc ne "") {
                         $description = $desc;
+                    } else {
+                        $description = "No description.";
                     }
 
                     add_to_database($config->val(uc($area), "database"), $config->val(uc($area), "path") . "/" . $filename, $description);
