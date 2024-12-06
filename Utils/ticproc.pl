@@ -128,7 +128,7 @@ foreach my $fp (@files) {
                     # add file to database
                     my $description;
 
-                    if ($ldesc != "") {
+                    if ($ldesc ne "") {
                         $description = $ldesc;
                     } else {
                         $description = $desc;
