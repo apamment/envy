@@ -124,7 +124,7 @@ foreach my $fp (@files) {
                     }
 
                     # Copy file
-                    copy($config->val('main', 'inbound') . "/" . $filename, $config->val(uc($area), "path") . $filename);
+                    copy($config->val('main', 'inbound') . "/" . $filename, $config->val(uc($area), "path") . "/" . $filename);
                     # add file to database
                     my $description;
 
