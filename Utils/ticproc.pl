@@ -75,25 +75,25 @@ foreach my $fp (@files) {
     while (my $line = <$fptr>) {
         
         if (uc(substr($line, 0, 5)) eq "AREA ") {
-            $area = substr($line, 5);
+            $area = chomp(substr($line, 5));
         } elsif (uc(substr($line, 0, 4)) eq "FILE") {
-            $file = substr($line, 5);
+            $file = chomp(substr($line, 5));
         } elsif (uc(substr($line, 0, 6)) eq "LFILE") {
-            $lfile = substr($line, 6);
+            $lfile = chomp(substr($line, 6));
         } elsif (uc(substr($line, 0, 4)) eq "DESC") {
-            $desc = substr($line, 5);
+            $desc = chomp(substr($line, 5));
         } elsif (uc(substr($line, 0, 5)) eq "LDESC") {
             if ($ldesc eq "") {
-                $ldesc = substr($line, 6);
+                $ldesc = chomp(substr($line, 6));
             } else {
-                $ldesc = $ldesc . "\n" . substr($line, 6);
+                $ldesc = $ldesc . "\n" . chomp(substr($line, 6));
             }
         } elsif (uc(substr($line, 0, 8)) eq "REPLACES") {
-            $replaces = substr($line, 9);
+            $replaces = chomp(substr($line, 9));
         } elsif (uc(substr($line, 0, 3)) eq "CRC") {
-            $crc = substr($line, 4);
+            $crc = chomp(substr($line, 4));
         } elsif (uc(substr($line, 0, 2)) eq "PW") {
-            $password = substr($line, 3);
+            $password = chomp(substr($line, 3));
         }
     }
     close $fptr;
