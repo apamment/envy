@@ -98,14 +98,15 @@ foreach my $fp (@files) {
     }
     close $fptr;
     if ($area ne "") {
-        if (uc($config->val(uc($area), "password")) eq uc($password)) {
+
+        if (uc($config->val(uc($area), "password")) == uc($password)) {
             if ($crc ne "") {
                 my $ctx = Digest::CRC->new( type => 'crc32' );
                 my $filename;
 
-                if ( -e $config->val('main', 'inbound') . "/" . $lfile) {
+                if ($lfile != "") {
                     $filename = $lfile;
-                } else {
+                } else { 
                     $filename = $file;
                 }
 
