@@ -23,7 +23,7 @@ sub remove_from_database {
     my $sth = $dbh->prepare('SELECT id, filename FROM files');
     $sth->execute();
     while(my @row = $sth->fetchrow_array()) {
-        if (fnmatch($_[1], basename($row[1]), FNM_CASEFOLD)) {
+        if (fnmatch($_[1], basename($row[2]), FNM_CASEFOLD)) {
             # it matches!
             my $id = $row[0];
 
@@ -73,7 +73,9 @@ foreach my $fp (@files) {
     open (my $fptr, "<", $fp) or die $!;
 
     while (my $line = <$fptr>) {
-        chomp($line);
+        if ($line =~ s/\r$//) {
+            chop($line);
+        }
         if (uc(substr($line, 0, 5)) eq "AREA ") {
             $area = substr($line, 5);
         } elsif (uc(substr($line, 0, 4)) eq "FILE") {
@@ -118,7 +120,7 @@ foreach my $fp (@files) {
                     # CRC32 matches.
 
                     if ($replaces ne "") {
-                        remove_from_database($replaces);
+                        remove_from_database($config->val(uc($area), "database"), $replaces);
                     }
 
                     # Copy file
