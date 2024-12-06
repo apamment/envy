@@ -97,51 +97,52 @@ foreach my $fp (@files) {
         }
     }
     close $fptr;
+    if ($area ne "") {
+        if (uc($config->val(uc($area), "password")) eq uc($password)) {
+            if ($crc ne "") {
+                my $ctx = Digest::CRC->new( type => 'crc32' );
+                my $filename;
 
-    if ($area ne "" && uc($config->val(uc($area), "password")) eq uc($password)) {
-        if ($crc ne "") {
-            my $ctx = Digest::CRC->new( type => 'crc32' );
-            my $filename;
-
-            if ( -e $config->val('main', 'inbound') . "/" . $lfile) {
-                $filename = $lfile;
-            } else {
-                $filename = $file;
-            }
-
-            open my $fh, '<:raw', $config->val('main', 'inbound') . "/" . $filename or die $!;
-            $ctx->addfile(*$fh);
-            close $fh;
-
-            if (uc($crc) eq uc($ctx->hexdigest)) {
-                # CRC32 matches.
-
-                if ($replaces ne "") {
-                    remove_from_database($replaces);
-                }
-
-                # Copy file
-                copy($config->val('main', 'inbound') . "/" . $filename, $config->val(uc($area), "path") . $filename);
-                # add file to database
-                my $description;
-
-                if ($ldesc ne "") {
-                    $description = $ldesc;
+                if ( -e $config->val('main', 'inbound') . "/" . $lfile) {
+                    $filename = $lfile;
                 } else {
-                    $description = $desc;
+                    $filename = $file;
                 }
 
-                add_to_database($config->val(uc($area), "database"), $config->val(uc($area), "path") . $filename, $description);
+                open my $fh, '<:raw', $config->val('main', 'inbound') . "/" . $filename or die $!;
+                $ctx->addfile(*$fh);
+                close $fh;
 
-                # delete tic file & source file
-                unlink($config->val('main', 'inbound') . "/" . $filename);
-                unlink($fp)
-            } else {
-                print "CRC-32 MISMATCH\n";
+                if (uc($crc) eq uc($ctx->hexdigest)) {
+                    # CRC32 matches.
+
+                    if ($replaces ne "") {
+                        remove_from_database($replaces);
+                    }
+
+                    # Copy file
+                    copy($config->val('main', 'inbound') . "/" . $filename, $config->val(uc($area), "path") . $filename);
+                    # add file to database
+                    my $description;
+
+                    if ($ldesc ne "") {
+                        $description = $ldesc;
+                    } else {
+                        $description = $desc;
+                    }
+
+                    add_to_database($config->val(uc($area), "database"), $config->val(uc($area), "path") . $filename, $description);
+
+                    # delete tic file & source file
+                    unlink($config->val('main', 'inbound') . "/" . $filename);
+                    unlink($fp)
+                } else {
+                    print "CRC-32 MISMATCH\n";
+                }
+
             }
-
-        }
-    } else {
-        print "Missing area config - or password mismatch!\n";
-    }
+        } else {
+            print "Missing area config - or password mismatch!\n";
+        } 
+    } 
 }
