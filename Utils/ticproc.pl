@@ -10,7 +10,7 @@ use DBI;
 
 sub remove_from_database {
     my $driver   = "SQLite"; 
-    my $dsn = "DBI:$driver:dbname=" . $_[1];
+    my $dsn = "DBI:$driver:dbname=" . $_[0];
     my $userid = "";
     my $password = "";
     my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
@@ -40,7 +40,7 @@ sub remove_from_database {
 
 sub add_to_database {
     my $driver   = "SQLite"; 
-    my $dsn = "DBI:$driver:dbname=" . $_[1];
+    my $dsn = "DBI:$driver:dbname=" . $_[0];
     my $userid = "";
     my $password = "";
     my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 }) 
@@ -51,7 +51,7 @@ sub add_to_database {
     my $curtime = time();
 
     my $sth = $dbh->prepare('INSERT INTO files (filename, description, downloadcount, uploadedby, uploaddate) VALUES($1, $2, 0, "Tic Processor", $3)');
-    $sth->execute($_[2], $_[3], $curtime);
+    $sth->execute($_[1], $_[2], $curtime);
 
     $dbh->disconnect();
 }
@@ -134,7 +134,7 @@ foreach my $fp (@files) {
                         $description = $desc;
                     }
 
-                    add_to_database($config->val(uc($area), "database"), $config->val(uc($area), "path") . $filename, $description);
+                    add_to_database($config->val(uc($area), "database"), $config->val(uc($area), "path") . "/" . $filename, $description);
 
                     # delete tic file & source file
                     unlink($config->val('main', 'inbound') . "/" . $filename);
