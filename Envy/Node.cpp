@@ -1201,10 +1201,9 @@ void Node::scan_msg_bases() {
     uint32_t tot = accessablemb.at(i)->get_total(this);
     if (ur > 0) {
       bprintf("|07%4d. |15%-44.44s |10%6d |02UNREAD |13%6d |05TOTAL|07\r\n", i + 1, accessablemb.at(i)->name.c_str(), ur, tot);
-    } else {
-      bprintf("|08%4d. |07%-44.44s |02%6d |02UNREAD |05%6d |05TOTAL|07\r\n", i + 1, accessablemb.at(i)->name.c_str(), ur, tot);
+      lines++;
     }
-    lines++;
+    
     if (lines == 22) {
       pause();
       lines = 0;
