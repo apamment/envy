@@ -68,8 +68,6 @@ cls()
 print("|10Scanning message bases...|07\r\n")
 scanbases()
 
-var seclevel = Number(getattr("seclevel", "10"))
-
 while (true) {
     cls()
     setaction("Browsing main menu")
@@ -180,11 +178,7 @@ while (true) {
         }
         pause()
     } else if (c == '$') {
-        if (opname() == getusername() || seclevel >= 99) {
-            exec("sysopeditor")
-        } else {
-            exec("usereditor")
-        }
+        exec("usereditor")
     } else {
         print("|12Huh?|07\r\n\r\n")
         pause()

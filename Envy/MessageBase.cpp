@@ -288,6 +288,15 @@ void MessageBase::enter_message(Node *n, std::string recipient, std::string subj
       n->bprintf("|12Aborted!|07\r\n");
       return;
     } else {
+      if (User::get_attrib(n, "signature-toggle", "off") == "on") {
+        std::stringstream sigss(User::get_attrib(n, "signature", ""));
+        std::string line;
+
+        while(getline(sigss, line, '\r')) {
+          msg.push_back(line);
+        }
+      }
+
       if (!save_message(n, recipient, subject, msg, (reply == nullptr ? "" : reply->msgid), daddress)) {
         n->bprintf("|12Saving message failed.|07\r\n");
       } else {

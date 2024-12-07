@@ -1,6 +1,8 @@
 var users = getusers()
 var index = 0
 
+var seclevel = Number(getattr("seclevel", "10"))
+
 while (true) {
 
     cls()
@@ -8,6 +10,11 @@ while (true) {
     print("|15(|10L|15)ocation: |07" + getattr("location", "Somewhere, The World") + "\r\n")
     print("|15(|10E|15)mail: |07" + getattr("email", "UNKNOWN") + "\r\n")
     print("|15Pass(|10W|15)ord:|07 ****\r\n")
+    print("|15Edit (|10S|15)ignature\r\n")
+    print("|15(|10T)|15oggle Signature: |07" + getattr("signature-toggle", "off") + "\r\n")
+    if (opname() == getusername() || seclevel >= 99) {
+        print("|15(|10!|15) Edit other users\r\n")
+    }
     print("\r\n|15(|10Q|15)uit|07\r\n")
     var ch = getch()
 
@@ -56,6 +63,16 @@ while (true) {
             print("|10Location updated!|07\r\n")
         }
         pause()
+    } else if (ch == 's' || ch == 'S') {
+        editsig()
+    } else if (ch == 't' || ch == 'T') {
+        if (getattr("signature-toggle", "off") == "off") {
+            putattr("signature-toggle", "on");
+        } else {
+            putattr("signature-toggle", "off");
+        }
+    } else if (ch == '!' && (opname() == getusername() || seclevel >= 99)) {
+        exec(sysopeditor)
     } else if (ch == 'q' || ch == 'Q') {
         break;
     }

@@ -9,6 +9,7 @@
 #include "MessageBase.h"
 #include "Email.h"
 #include "Version.h"
+#include "FullScreenEditor.h"
 
 struct script_data {
   Node *n;
@@ -634,6 +635,37 @@ static duk_ret_t bsendfile(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t beditsig(duk_context *ctx) {
+  Node *n = get_node(ctx);
+
+  std::vector<std::string> oldsig;
+  std::vector<std::string> newsig;
+
+  std::string sig = User::get_attrib(n, "signature", "");
+
+  std::stringstream ss(sig);
+  std::string line;
+
+  while(getline(ss, line, '\r')) {
+    oldsig.push_back(line);
+  }
+
+  FullScreenEditor fse(n, "Signature Editor", "Signature Editor", nullptr, &oldsig);
+
+  newsig = fse.edit();
+
+  std::stringstream ss2;
+
+  if (newsig.size() > 0) {
+    for (size_t i = 0; i < newsig.size(); i++) {
+      ss2 << newsig.at(i) << '\r';
+    }
+
+    User::set_attrib(n, "signature", ss2.str());
+  }
+  return 0;
+}
+
 static duk_ret_t breadmsg(duk_context *ctx) {
   Node *n = get_node(ctx);
   MessageBase *mb = n->get_msgbase(std::string(duk_get_string(ctx, 0)));
@@ -877,6 +909,9 @@ int Script::run(Node *n, std::string script) {
 
   duk_push_c_function(ctx, bupload, 0);
   duk_put_global_string(ctx, "upload");
+
+  duk_push_c_function(ctx, beditsig, 0);
+  duk_put_global_string(ctx, "editsig");
 
   if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
     n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
