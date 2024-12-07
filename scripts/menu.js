@@ -170,8 +170,15 @@ while (true) {
     } else if (c == 't' || c == 'T') {
         exec("xfer")
     } else if (c == '1') {
-        setaction("Viewing IBBS Lastcallers")
+        setaction("Viewing IBBS last callers")
         exec("ilc")
+    } else if (c == '2') {
+        setaction("Viewing system news")
+        cls()
+        if (!gfile("sysnews")) {
+            print("|12No news!\r\n");
+        }
+        pause()
     } else if (c == '$') {
         if (opname() == getusername() || seclevel >= 99) {
             exec("sysopeditor")
