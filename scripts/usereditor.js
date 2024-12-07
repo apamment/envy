@@ -72,7 +72,7 @@ while (true) {
             putattr("signature-toggle", "off");
         }
     } else if (ch == '!' && (opname() == getusername() || seclevel >= 99)) {
-        exec(sysopeditor)
+        exec("sysopeditor")
     } else if (ch == 'q' || ch == 'Q') {
         break;
     }
