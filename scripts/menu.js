@@ -57,10 +57,13 @@ cls()
 if (gfile("system")) {
     pause()
 }
+cls()
+if (gfile("sysnews")) {
+    pause()
+}
 check_email()
 exec("last10")
 exec("automsg")
-
 cls()
 print("|10Scanning message bases...|07\r\n")
 scanbases()
