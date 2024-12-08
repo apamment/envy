@@ -18,7 +18,6 @@ sub remove_from_database {
 
     my $stmt = qq(CREATE TABLE IF NOT EXISTS files(id INTEGER PRIMARY KEY, filename TEXT, description TEXT, uploaddate INTEGER, uploadedby TEXT, downloadcount INTEGER));
     my $rv = $dbh->do($stmt);
-    my $curtime = time();
 
     my $sth = $dbh->prepare('SELECT id, filename FROM files');
     $sth->execute();
