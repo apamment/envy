@@ -85,7 +85,7 @@ foreach my $fp (@files) {
         } elsif (uc(substr($line, 0, 4)) eq "DESC") {
             $desc = substr($line, 5);
         } elsif (uc(substr($line, 0, 5)) eq "LDESC") {
-            if ($ldesc eq "") {
+            if (length($ldesc) == 0) {
                 $ldesc = substr($line, 6);
             } else {
                 $ldesc = $ldesc . "\n" . substr($line, 6);
@@ -99,14 +99,14 @@ foreach my $fp (@files) {
         }
     }
     close $fptr;
-    if ($area ne "") {
+    if (length($area) > 0) {
 
         if (uc($config->val(uc($area), "password")) == uc($password)) {
-            if ($crc ne "") {
+            if (length($crc) > 0) {
                 my $ctx = Digest::CRC->new( type => 'crc32' );
                 my $filename;
 
-                if ($lfile ne "") {
+                if (length($lfile) > 0) {
                     $filename = $lfile;
                 } else { 
                     $filename = $file;
@@ -119,7 +119,7 @@ foreach my $fp (@files) {
                 if (uc($crc) eq uc($ctx->hexdigest)) {
                     # CRC32 matches.
 
-                    if ($replaces ne "") {
+                    if (length($replaces) > 0) {
                         remove_from_database($config->val(uc($area), "database"), $replaces);
                     }
 
@@ -128,12 +128,30 @@ foreach my $fp (@files) {
                     # add file to database
                     my $description;
 
-                    if ($ldesc ne "") {
+                    if (length($ldesc) > 0) {
                         $description = $ldesc;
-                    } elsif ($desc ne "") {
+                    } elsif (length($desc) > 0) {
                         $description = $desc;
                     } else {
-                        $description = "No description.";
+                        if (uc(substr($config->val('main', 'inbound') . "/" . $filename, -3)) == "ZIP") {
+                            File::Path::make_path("/tmp/ticproc/$$");
+                            system("unzip -jCLL $file file_id.diz -d /tmp/ticproc/$$ > /dev/null 2>&1");
+                            if ( -f "/tmp/ticproc/$$/file_id.diz") {
+                                local $/=undef;
+                                open FILE, "/tmp/ticproc/$$/file_id.diz" or die "Couldn't open file: $!";
+                                binmode FILE;
+                                $description = <FILE>;
+                                close FILE;
+
+                                $description =~ s/\r//g;
+                                unlink("/tmp/ticproc/$$/file_id.diz");
+                            } else {
+                                $description = "No description.";    
+                            }
+                            File::Path::remove_tree("/tmp/ticproc/$$");
+                        } else {
+                            $description = "No description.";
+                        }
                     }
 
                     add_to_database($config->val(uc($area), "database"), $config->val(uc($area), "path") . "/" . $filename, $description);
