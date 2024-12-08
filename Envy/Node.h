@@ -63,6 +63,7 @@ public:
   void disconnect();
   void pause();
   void select_msg_group();
+  void select_file_group();
   void select_msg_base();
   void scan_msg_bases();
   void action(std::string str);
@@ -182,6 +183,7 @@ private:
   int max_nodes;
 
   std::vector<std::string> msg_groups;
+  std::vector<std::string> file_groups;
 
   std::vector<struct file_s> tagged_files;
 };

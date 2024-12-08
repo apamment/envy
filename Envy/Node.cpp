@@ -1013,6 +1013,7 @@ void Node::load_filebases() {
       std::string myname;
       std::string mydatabase;
       std::string myuppath;
+      std::string mygroup;
       int mydownloadsec;
       int myuploadsec;
 
@@ -1050,8 +1051,28 @@ void Node::load_filebases() {
         myuploadsec = 10;
       }
 
+      auto group = itemtable->get("group");
+      if (group != nullptr) {
+        mygroup = group->as_string()->value_or("");
+      } else {
+        mygroup = "";
+      }
+
       if (mydatabase != "" && myuppath != "") {
-        filebases.push_back(new FileBase(myname, myuppath, mydatabase, mydownloadsec, myuploadsec));
+        if (mygroup != "") {
+          bool found = false;
+          for (size_t g = 0; g < file_groups.size(); g++) {
+            if (file_groups.at(g) == mygroup) {
+              found = true;
+              break;
+            }
+          }
+
+          if (!found) {
+            file_groups.push_back(mygroup);
+          }
+        }
+        filebases.push_back(new FileBase(myname, myuppath, mydatabase, mydownloadsec, myuploadsec, mygroup));
       }
     }
   } catch (toml::parse_error const &p) {
@@ -1232,6 +1253,66 @@ void Node::select_msg_group() {
     }
   }
 }
+
+void Node::select_file_group() {
+  cls();
+
+  std::vector<std::string> available_groups;
+
+  for (size_t i = 0; i < file_groups.size(); i++) {
+    for (size_t j = 0; j < accessablefb.size(); j++) {
+      if (accessablefb.at(j)->group == file_groups.at(i)) {
+        available_groups.push_back(file_groups.at(i));
+        break;
+      }
+    }
+  }
+
+  if (available_groups.size() == 0) {
+    bprintf("|14No file groups available!|07\r\n");
+    pause();
+    return;
+  }
+
+  int lines = 2;
+  bprintf("|11Select File Group|07|\r\n");
+
+  bprintf("|07   A. |15All Groups\r\n");
+
+  for (size_t i = 0; i < available_groups.size(); i++) {
+    bprintf("|07%4d. |15%-44.44s|07\r\n", i + 1, available_groups.at(i).c_str());
+    lines++;
+    if (lines == term_height - 1 || i == available_groups.size() - 1) {
+      if (i == available_groups.size() - 1) {
+        bprintf("|11END  |15- |10Select group: |07");
+      } else {
+        bprintf("|13MORE |15- |10Select group: |07");
+      }
+      std::string num = get_str(4);
+
+      if (num.length() > 0) {
+        if (tolower(num.at(0) == 'a')) {
+          User::set_attrib(this, "curr-file-group", "");
+          return;
+        }
+        try {
+          int n = std::stoi(num);
+          if (n - 1 >= 0 && n - 1 < available_groups.size()) {
+            User::set_attrib(this, "curr-file-group", available_groups.at(n - 1));
+            cls();
+            if (putgfile("fg_" + available_groups.at(n - 1))) {
+              pause();
+            }
+            return;
+          }
+        } catch (std::out_of_range const &) {
+        } catch (std::invalid_argument const &) {
+        }
+      }
+    }
+  }
+}
+
 
 void Node::select_msg_base() {
   std::string cur_group = User::get_attrib(this, "curr-msg-group", "");
@@ -1520,19 +1601,29 @@ void Node::list_tagged_files() {
 }
 
 void Node::select_file_base() {
+  std::string cur_group = User::get_attrib(this, "curr-file-group", "");
   cls();
 
-  int lines = 0;
+  int lines = 1;
+
+  if (cur_group == "") {
+    bprintf("|11Select File Base|07\r\n");
+  } else {
+    bprintf("|11Select File Base (Group: |13%s|11)|07\r\n", cur_group.c_str());
+  }
 
   for (size_t i = 0; i < accessablefb.size(); i++) {
+
+    if (cur_group != "") {
+      if (accessablefb.at(i)->group != "" && accessablefb.at(i)->group != cur_group) {
+        continue;
+      }
+    }
+
     bprintf("|07%4d. |15%-44.44s |13%5d FILES|07\r\n", i + 1, accessablefb.at(i)->name.c_str(), accessablefb.at(i)->count(this));
     lines++;
-    if (lines == term_height - 1 || i == accessablefb.size() - 1) {
-      if (i == accessablefb.size() - 1) {
-        bprintf("|11END  |15- |10Select area: |07");
-      } else {
-        bprintf("|13MORE |15- |10Select area: |07");
-      }
+    if (lines == term_height - 1) {
+      bprintf("|13MORE |15- |10Select area: |07");
 
       std::string num = get_str(4);
 
@@ -1552,6 +1643,23 @@ void Node::select_file_base() {
       lines = 0;
     }
   }
+  bprintf("|11END  |15- |10Select area: |07");
+
+  std::string num = get_str(4);
+
+  if (num.length() > 0) {
+    try {
+      int n = std::stoi(num);
+
+      if (n - 1 >= 0 && n - 1 < accessablefb.size()) {
+        curr_filebase = n - 1;
+        User::set_attrib(this, "curr_fbase", accessablefb.at(curr_filebase)->database);
+        return;
+      }
+    } catch (std::out_of_range const &) {
+    } catch (std::invalid_argument const &) {
+    }
+  } 
 }
 
 void Node::upload() {

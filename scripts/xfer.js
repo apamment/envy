@@ -18,9 +18,10 @@ while (true) {
     setaction("Browsing xfer menu")
     if (!gfile("xfermenu")) {
         print("|10                         >>>> Transfer Menu <<<<\r\n")
-        print("|15S|07 - Select File Area    |15C|07 - Clear Tagged Files |15Q|07 - Quit to Main Menu\r\n")
-        print("|15L|07 - List Files          |15T|07 - List Tagged Files  |15G|07 - Goodbye\r\n")
-        print("|15D|07 - Download Files      |15U|07 - Upload Files\r\n")
+        print("|15J|07 - Select File Group   |15C|07 - Clear Tagged Files |15Q|07 - Quit to Main Menu\r\n")
+        print("|15S|07 - Select File Area    |15T|07 - List Tagged Files  |15G|07 - Goodbye\r\n")
+        print("|15L|07 - List Files          |15U|07 - Upload Files\r\n")
+        print("|15D|07 - Download Files\r\n")
 
     }
     print("|08(|10" + getfilearea() + "|08) (|11Time: |15" + timeleft() + "m|08)" + " :> |07")
@@ -48,6 +49,9 @@ while (true) {
     } else if (c == 'u' || c == 'U') {
         setaction("Uploading files")
         upload()
+    } else if (c == 'j' || c == 'J') {
+        setaction("Selecting file group")
+        selectfilegroup()
     } else if (c == 'g' || c == 'G') {
         goodbye()
     } else {

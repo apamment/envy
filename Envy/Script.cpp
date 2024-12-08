@@ -339,6 +339,14 @@ static duk_ret_t bselectgroup(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t bselectfilegroup(duk_context *ctx) {
+  Node *n = get_node(ctx);
+
+  n->select_file_group();
+
+  return 0;
+}
+
 static duk_ret_t bselectarea(duk_context *ctx) {
   Node *n = get_node(ctx);
 
@@ -816,9 +824,6 @@ int Script::run(Node *n, std::string script) {
   duk_push_c_function(ctx, bwritemsg, 0);
   duk_put_global_string(ctx, "writemsg");
 
-  duk_push_c_function(ctx, bselectgroup, 0);
-  duk_put_global_string(ctx, "selectgroup");
-
   duk_push_c_function(ctx, bselectarea, 0);
   duk_put_global_string(ctx, "selectarea");
 
@@ -923,6 +928,12 @@ int Script::run(Node *n, std::string script) {
 
   duk_push_c_function(ctx, beditsig, 0);
   duk_put_global_string(ctx, "editsig");
+
+  duk_push_c_function(ctx, bselectgroup, 0);
+  duk_put_global_string(ctx, "selectgroup");
+
+    duk_push_c_function(ctx, bselectfilegroup, 0);
+  duk_put_global_string(ctx, "selectfilegroup");
 
   if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
     n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));
