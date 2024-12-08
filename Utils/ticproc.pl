@@ -106,7 +106,7 @@ foreach my $fp (@files) {
                 my $ctx = Digest::CRC->new( type => 'crc32' );
                 my $filename;
 
-                if (length($lfile) > 0) {
+                if (length($lfile) > 0 && -f $config->val('main', 'inbound') . "/" . $lfile) {
                     $filename = $lfile;
                 } else { 
                     $filename = $file;
