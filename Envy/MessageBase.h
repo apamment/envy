@@ -29,7 +29,7 @@ class MessageBase {
 public:
   enum MsgBaseType { LOCAL, ECHO, NETMAIL };
 
-  MessageBase(std::string name, std::string file, std::string addr, std::string tagline, MsgBaseType t, int r, int w) {
+  MessageBase(std::string name, std::string file, std::string addr, std::string tagline, MsgBaseType t, int r, int w, std::string group) {
     this->name = name;
     this->file = file;
     this->address = addr;
@@ -37,12 +37,15 @@ public:
     this->mbtype = t;
     this->read_sec_level = r;
     this->write_sec_level = w;
+    this->group = group;
   }
 
   std::string name;
   std::string file;
   std::string address;
   std::string tagline;
+
+  std::string group;
 
   int read_sec_level;
   int write_sec_level;

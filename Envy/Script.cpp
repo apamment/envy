@@ -331,6 +331,14 @@ static duk_ret_t bwritemsg(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t bselectgroup(duk_context *ctx) {
+  Node *n = get_node(ctx);
+
+  n->select_msg_group();
+
+  return 0;
+}
+
 static duk_ret_t bselectarea(duk_context *ctx) {
   Node *n = get_node(ctx);
 
@@ -807,6 +815,9 @@ int Script::run(Node *n, std::string script) {
 
   duk_push_c_function(ctx, bwritemsg, 0);
   duk_put_global_string(ctx, "writemsg");
+
+  duk_push_c_function(ctx, bselectgroup, 0);
+  duk_put_global_string(ctx, "selectgroup");
 
   duk_push_c_function(ctx, bselectarea, 0);
   duk_put_global_string(ctx, "selectarea");

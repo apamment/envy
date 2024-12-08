@@ -73,6 +73,7 @@ while (true) {
     setaction("Browsing main menu")
     if (!gfile("mainmenu")) {
         print("|10                          >>>> Main Menu <<<<\r\n")
+        print("|15J|07 - Select Msg Group    |152|07 - System News        |15$|07 - User Settings\r\n")
         print("|15S|07 - Select Msg Area     |15U|07 - User List          |15I|07 - System Info\r\n")
         print("|15W|07 - Write Message       |15A|07 - Automessage        |15N|07 - Who's online\r\n")
         print("|15L|07 - List Messages       |15O|07 - Oneliners          |151|07 - IBBS Last Callers\r\n")
@@ -131,6 +132,9 @@ while (true) {
                 readmsgs(Number(sel) - 1)
             }
         }
+    } else if (c == 'j' || c == 'J') {
+        setaction("Selecting message group")
+        selectgroup()
     } else if (c == 's' || c == 'S') {
         setaction("Selecting message area")
         selectarea()

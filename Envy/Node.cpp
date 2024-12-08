@@ -1072,6 +1072,7 @@ void Node::load_msgbases() {
       std::string myfile;
       std::string myoaddr;
       std::string mytagline;
+      std::string mygroup;
       int myreads;
       int mywrites;
       MessageBase::MsgBaseType mytype;
@@ -1118,6 +1119,13 @@ void Node::load_msgbases() {
         mywrites = 10;
       }
 
+      auto group = itemtable->get("group");
+      if (group != nullptr) {
+        mygroup = group->as_string()->value_or("");
+      } else {
+        mygroup = "";
+      }
+
       auto mbtype = itemtable->get("type");
       if (mbtype != nullptr) {
         std::string mbtypes = mbtype->as_string()->value_or("local");
@@ -1134,7 +1142,21 @@ void Node::load_msgbases() {
       }
 
       if (myfile != "") {
-        msgbases.push_back(new MessageBase(myname, myfile, myoaddr, mytagline, mytype, myreads, mywrites));
+        if (mygroup != "") {
+          bool found = false;
+          for (size_t g = 0; g < msg_groups.size(); g++) {
+            if (msg_groups.at(g) == mygroup) {
+              found = true;
+              break;
+            }
+          }
+
+          if (!found) {
+            msg_groups.push_back(mygroup);
+          }
+        }
+
+        msgbases.push_back(new MessageBase(myname, myfile, myoaddr, mytagline, mytype, myreads, mywrites, mygroup));
       }
     }
 
@@ -1152,12 +1174,79 @@ MessageBase *Node::get_curr_msgbase() {
   return nullptr;
 }
 
-void Node::select_msg_base() {
+void Node::select_msg_group() {
   cls();
 
-  int lines = 0;
+  std::vector<std::string> available_groups;
+
+  for (size_t i = 0; i < msg_groups.size(); i++) {
+    for (size_t j = 0; j < accessablemb.size(); j++) {
+      if (accessablemb.at(j)->group == msg_groups.at(i)) {
+        available_groups.push_back(msg_groups.at(i));
+        break;
+      }
+    }
+  }
+
+  if (available_groups.size() == 0) {
+    bprintf("|14No message groups available!|07\r\n");
+    pause();
+    return;
+  }
+
+  int lines = 1;
+  bprintf("|11Select Message Group|07|\r\n");
+
+  for (size_t i = 0; i < available_groups.size(); i++) {
+    bprintf("|07%4d. |15%-44.44s|07\r\n", i + 1, available_groups.at(i).c_str());
+    lines++;
+    if (lines == term_height - 1 || i == available_groups.size() - 1) {
+      if (i == available_groups.size() - 1) {
+        bprintf("|11END  |15- |10Select group: |07");
+      } else {
+        bprintf("|13MORE |15- |10Select group: |07");
+      }
+      std::string num = get_str(4);
+
+      if (num.length() > 0) {
+        try {
+          int n = std::stoi(num);
+          if (n - 1 >= 0 && n - 1 < available_groups.size()) {
+            User::set_attrib(this, "curr-msg-group", available_groups.at(n - 1));
+            cls();
+            if (putgfile("mg_" + available_groups.at(n - 1))) {
+              pause();
+            }
+            return;
+          }
+        } catch (std::out_of_range const &) {
+        } catch (std::invalid_argument const &) {
+        }
+      }
+    }
+  }
+}
+
+void Node::select_msg_base() {
+  std::string cur_group = User::get_attrib(this, "curr-msg-group", "");
+  cls();
+
+  int lines = 1;
+
+  if (cur_group == "") {
+    bprintf("|11Select Message Base|07\r\n");
+  } else {
+    bprintf("|11Select Message Base (Group: |13%s|11)|07\r\n", cur_group.c_str());
+  }
 
   for (size_t i = 0; i < accessablemb.size(); i++) {
+    
+    if (cur_group != "") {
+      if (accessablemb.at(i)->group != "" && accessablemb.at(i)->group != cur_group) {
+        continue;
+      }
+    }
+
     uint32_t ur = accessablemb.at(i)->get_unread(this);
     uint32_t tot = accessablemb.at(i)->get_total(this);
     if (ur > 0) {
@@ -1166,12 +1255,8 @@ void Node::select_msg_base() {
       bprintf("|08%4d. |07%-44.44s |02%6d |02UNREAD |05%6d |05TOTAL|07\r\n", i + 1, accessablemb.at(i)->name.c_str(), ur, tot);
     }
     lines++;
-    if (lines == term_height - 1 || i == accessablemb.size() - 1) {
-      if (i == accessablemb.size() - 1) {
-        bprintf("|11END  |15- |10Select area: |07");
-      } else {
-        bprintf("|13MORE |15- |10Select area: |07");
-      }
+    if (lines == term_height - 1) {
+      bprintf("|13MORE |15- |10Select area: |07");
 
       std::string num = get_str(4);
 
@@ -1191,6 +1276,24 @@ void Node::select_msg_base() {
       lines = 0;
     }
   }
+
+  bprintf("|11END  |15- |10Select area: |07");
+
+  std::string num = get_str(4);
+
+  if (num.length() > 0) {
+    try {
+      int n = std::stoi(num);
+
+      if (n - 1 >= 0 && n - 1 < accessablemb.size()) {
+        curr_msgbase = n - 1;
+        User::set_attrib(this, "curr_mbase", accessablemb.at(curr_msgbase)->file);
+        return;
+      }
+    } catch (std::out_of_range const &) {
+    } catch (std::invalid_argument const &) {
+    }
+  }
 }
 
 void Node::scan_msg_bases() {
@@ -1203,7 +1306,7 @@ void Node::scan_msg_bases() {
       bprintf("|07%4d. |15%-44.44s |10%6d |02UNREAD |13%6d |05TOTAL|07\r\n", i + 1, accessablemb.at(i)->name.c_str(), ur, tot);
       lines++;
     }
-    
+
     if (lines == 22) {
       pause();
       lines = 0;
@@ -1497,12 +1600,12 @@ void Node::upload() {
 
   // find files in upload path
   for (auto &f : std::filesystem::directory_iterator(std::filesystem::path(ulpath))) {
-    std::filesystem::path np(std::filesystem::absolute(get_curr_filebase()->uppath + "/" +f.path().filename().u8string()));
+    std::filesystem::path np(std::filesystem::absolute(get_curr_filebase()->uppath + "/" + f.path().filename().u8string()));
     if (std::filesystem::exists(np)) {
       bprintf("\r\n\r\n|12File Exists: |15%s\r\n", f.path().filename().u8string().c_str());
       continue;
     }
-    
+
     bprintf("\r\n\r\n|10Found File: |15%s\r\n", f.path().filename().u8string().c_str());
 
     if (std::filesystem::exists(tmp_path + "/" + std::to_string(node) + "/file.desc")) {
@@ -1525,14 +1628,13 @@ void Node::upload() {
         std::ifstream infile(tmp_path + "/" + std::to_string(node) + "/file.desc");
         if (infile.is_open()) {
           std::string line;
-          while(getline(infile, line)) {
+          while (getline(infile, line)) {
             description.push_back(line);
           }
           infile.close();
         }
         std::filesystem::remove(tmp_path + "/" + std::to_string(node) + "/file.desc");
       }
-
 
       if (std::filesystem::exists(tmp_path + "/" + std::to_string(node) + "/file.bad")) {
         bprintf("|12File did not pass upload processor!|07\r\n\r\n");
@@ -1546,7 +1648,7 @@ void Node::upload() {
       bprintf("|15Please enter a description (5 lines max)|07\r\n\r\n");
 
       for (int i = 0; i < 5; i++) {
-        bprintf("|14%d|07: ", i+1);
+        bprintf("|14%d|07: ", i + 1);
         std::string line = get_str(42);
         if (line.size() == 0) {
           break;
