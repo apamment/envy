@@ -1194,8 +1194,10 @@ void Node::select_msg_group() {
     return;
   }
 
-  int lines = 1;
+  int lines = 2;
   bprintf("|11Select Message Group|07|\r\n");
+
+  bprintf("|07   A. |15All Groups\r\n");
 
   for (size_t i = 0; i < available_groups.size(); i++) {
     bprintf("|07%4d. |15%-44.44s|07\r\n", i + 1, available_groups.at(i).c_str());
@@ -1209,6 +1211,10 @@ void Node::select_msg_group() {
       std::string num = get_str(4);
 
       if (num.length() > 0) {
+        if (tolower(num.at(0) == 'a')) {
+          User::set_attrib(this, "curr-msg-group", "");
+          return;
+        }
         try {
           int n = std::stoi(num);
           if (n - 1 >= 0 && n - 1 < available_groups.size()) {
