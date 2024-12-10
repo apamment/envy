@@ -135,7 +135,7 @@ foreach my $fp (@files) {
                     } else {
                         if (uc(substr($config->val('main', 'inbound') . "/" . $filename, -3)) == "ZIP") {
                             File::Path::make_path("/tmp/ticproc/$$");
-                            system("unzip -jCLL $file file_id.diz -d /tmp/ticproc/$$ > /dev/null 2>&1");
+                            system("unzip -jCLL \"" . $config->val('main', 'inbound') . "/" . $filename . "\" file_id.diz -d /tmp/ticproc/$$ > /dev/null 2>&1");
                             if ( -f "/tmp/ticproc/$$/file_id.diz") {
                                 local $/=undef;
                                 open FILE, "/tmp/ticproc/$$/file_id.diz" or die "Couldn't open file: $!";
