@@ -5,6 +5,7 @@ use Config::IniFiles;
 use File::Glob qw(:globally :nocase);
 use Digest::CRC;
 use File::Copy;
+use File::Basename;
 use File::FnMatch qw(:fnmatch);
 use DBI;
 
