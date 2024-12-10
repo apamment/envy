@@ -40,12 +40,15 @@ my $deleted = 0;
 
 while(my @row = $sth->fetchrow_array()) {
     $files++;
-    print($row[1] . "\n");
+    print($row[1] . " ... ");
     if ( ! -e $row[1] ) {
+        print("Missing\n");
         my $stmt2 = "DELETE FROM files WHERE id = ?";
         my $sth2 = $dbh->prepare($stmt2);
         $sth2->execute($row[0]);
         $deleted++;
+    } else {
+        print("Present\n");
     }
 }
 
