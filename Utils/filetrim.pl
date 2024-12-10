@@ -11,7 +11,6 @@ if ($#ARGV < 0) {
 my $database = $ARGV[0];
 
 my $driver   = "SQLite"; 
-my $database = $ARGV[1];
 my $dsn = "DBI:$driver:dbname=$database";
 my $userid = "";
 my $password = "";
@@ -42,7 +41,7 @@ my $deleted = 0;
 while(my @row = $sth->fetchrow_array()) {
     $files++;
     print($row[1] . "\n");
-    if ( ! -f $row[1] ) {
+    if ( ! -e $row[1] ) {
         my $stmt2 = "DELETE FROM files WHERE id = ?";
         my $sth2 = $dbh->prepare($stmt2);
         $sth2->execute($row[0]);
@@ -50,6 +49,6 @@ while(my @row = $sth->fetchrow_array()) {
     }
 }
 
-print("Deleted $deleted of $files files.\n");
+print("Deleted $deleted missing files from $files total file entries.\n");
 
 $dbh->disconnect();
