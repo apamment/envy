@@ -953,6 +953,7 @@ void Node::load_doors() {
       std::string mykey;
       std::string myname;
       std::string myscript;
+      std::string mycat;
 
       auto key = itemtable->get("key");
       if (key != nullptr) {
@@ -973,12 +974,20 @@ void Node::load_doors() {
         myscript = "";
       }
 
+      auto category = itemtable->get("category");
+      if (category != nullptr) {
+        mycat = category->as_string()->value_or("Uncategorized");
+      } else {
+        mycat = "Uncategorized";
+      }
+
       if (mykey != "" && myscript != "") {
         struct door_cfg_s doorcfg;
 
         doorcfg.key = mykey;
         doorcfg.name = myname;
         doorcfg.script = myscript;
+        doorcfg.category = mycat;
 
         doors.push_back(doorcfg);
       }

@@ -18,6 +18,7 @@ struct door_cfg_s {
   std::string name;
   std::string key;
   std::string script;
+  std::string category;
 };
 
 struct seclevel_s {

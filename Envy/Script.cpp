@@ -579,6 +579,8 @@ static duk_ret_t bgetdoors(duk_context *ctx) {
     duk_put_prop_string(ctx, obj_idx, "key");
     duk_push_string(ctx, doors.at(i).name.c_str());
     duk_put_prop_string(ctx, obj_idx, "name");
+    duk_push_string(ctx, doors.at(i).category.c_str());
+    duk_put_prop_string(ctx, obj_idx, "category");
     duk_put_prop_index(ctx, arr_idx, i);
   }
   return 1;
