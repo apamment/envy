@@ -321,7 +321,7 @@ void Node::putfile(std::string filename, bool slow) {
 }
 
 bool Node::putgfile(std::string gfile) {
-  putgfile(gfile, false);
+  return putgfile(gfile, false);
 }
 
 bool Node::putgfile(std::string gfile, bool slow) {
