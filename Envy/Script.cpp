@@ -223,6 +223,14 @@ static duk_ret_t bcls(duk_context *ctx) {
   return 0;
 }
 
+static duk_ret_t bputgfileslow(duk_context *ctx) {
+  Node *n = get_node(ctx);
+  std::string gfile = std::string(duk_to_string(ctx, 0));
+  bool success = n->putgfile(gfile, true);
+  duk_push_boolean(ctx, success);
+  return 1;
+}
+
 static duk_ret_t bputgfile(duk_context *ctx) {
   Node *n = get_node(ctx);
   std::string gfile = std::string(duk_to_string(ctx, 0));
@@ -934,8 +942,11 @@ int Script::run(Node *n, std::string script) {
   duk_push_c_function(ctx, bselectgroup, 0);
   duk_put_global_string(ctx, "selectgroup");
 
-    duk_push_c_function(ctx, bselectfilegroup, 0);
+  duk_push_c_function(ctx, bselectfilegroup, 0);
   duk_put_global_string(ctx, "selectfilegroup");
+
+  duk_push_c_function(ctx, bputgfileslow, 1);
+  duk_put_global_string(ctx, "slowgfile");
 
   if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
     n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));

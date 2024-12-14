@@ -292,7 +292,7 @@ void Node::bprintf(bool parse_pipes, const char *fmt, va_list args) {
   send(socket, ss.str().c_str(), ss.str().length(), 0);
 }
 
-void Node::putfile(std::string filename) {
+void Node::putfile(std::string filename, bool slow) {
   std::ifstream t(filename);
   char ch;
 
@@ -302,6 +302,9 @@ void Node::putfile(std::string filename) {
       if (ch == 0x1a)
         break;
       if (ch != '\n') {
+        if (slow) {
+          usleep(298);
+        }
         send(socket, &ch, 1, 0);
       }
       if (ch == '\r') {
@@ -318,14 +321,18 @@ void Node::putfile(std::string filename) {
 }
 
 bool Node::putgfile(std::string gfile) {
+  putgfile(gfile, false);
+}
+
+bool Node::putgfile(std::string gfile, bool slow) {
   std::filesystem::path ascii(gfile_path + "/" + gfile + ".asc");
   std::filesystem::path ansi(gfile_path + "/" + gfile + ".ans");
 
   if (std::filesystem::exists(ansi) && ansi_supported) {
-    putfile(ansi.u8string());
+    putfile(ansi.u8string(), slow);
     return true;
   } else if (std::filesystem::exists(ascii)) {
-    putfile(ascii.u8string());
+    putfile(ascii.u8string(), slow);
     return true;
   }
 

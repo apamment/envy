@@ -8,7 +8,7 @@ function goodbye() {
 
     if (c != 'n' && c != 'N') {
         cls()
-        gfile("goodbye")
+        slowgfile("goodbye")
         disconnect()
     }
 }

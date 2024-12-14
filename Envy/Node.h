@@ -51,7 +51,8 @@ public:
   char getch();
   char getch_real(bool shouldtimeout);
   void cls();
-  void putfile(std::string filename);
+  void putfile(std::string filename, bool slow);
+  bool putgfile(std::string gfile, bool slow);
   bool putgfile(std::string gfile);
   void launch_door(std::string key);
   std::string get_str(int length);
