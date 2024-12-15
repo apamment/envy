@@ -143,10 +143,6 @@ if (msgbase == "UNDEFINED" || bbsname == "UNDEFINED") {
     if (ch == 'y' || ch == 'Y') {
         post_oneliner()        
     }
-
-    
-
-    
  
     pause()
 }
