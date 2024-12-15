@@ -181,6 +181,9 @@ while (true) {
             print("|12No news!\r\n");
         }
         pause()
+    } else if (c == '3') {
+        setaction("Viewing interbbs oneliners")
+        exec("ibol")
     } else if (c == '$') {
         exec("usereditor")
     } else {
