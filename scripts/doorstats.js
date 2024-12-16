@@ -45,7 +45,7 @@ if (doors.length > 0) {
         print("D O O R   S T A T S\r\n\r\n")
     }
 
-    print("|18|12 # |15DOORNAME                           |11PLAYS |13RANK                           |14%   |16|07\r\n")
+    print("|18|12 # |15DOORNAME                           |11PLAYS |13RANK                           |14   %|16|07\r\n")
 
     for (var i = 0; i < 15 && i < doorarr.length; i++) {
         var percentage = (doorarr[i]['runs'] / total_plays * 100).toFixed(0)
@@ -57,7 +57,7 @@ if (doors.length > 0) {
             pbars += '#'
         }
 
-        print("|12" + pad("  ", i + 1, true) + " |15" + pad("                                  ", doorarr[i]['name'], false) + " |11" + pad("     ", doorarr[i]['runs'], true) + " |13" + pad("                              ", pbars, false) + " |14" + pad("   ", percentage, true) + "%\r\n")
+        print("|12" + pad("  ", i + 1, true) + " |07" + pad("                                  ", doorarr[i]['name'], false) + " |03" + pad("     ", doorarr[i]['runs'], true) + " |05" + pad("                              ", pbars, false) + " |6" + pad("   ", percentage, true) + "%\r\n")
     }
     pause()
 }
