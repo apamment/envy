@@ -684,23 +684,23 @@ std::vector<std::string> FullScreenEditor::edit() {
       fsb.delete_line();
     } else if (c == 'z' - 'a' + 1) {
       // ctrl-z
-      n->bprintf_nc("\x1b[%d;23H\x1b[0;30;47m+--------[MENU]--------+", n->get_term_height() / 2 - 4);
-      n->bprintf_nc("\x1b[%d;23H|                      |", (n->get_term_height() / 2 - 4) + 1);
-      n->bprintf_nc("\x1b[%d;23H| (Q) Quote Message    |", (n->get_term_height() / 2 - 4) + 2);
-      n->bprintf_nc("\x1b[%d;23H| (S) Save Message     |", (n->get_term_height() / 2 - 4) + 3);
-      n->bprintf_nc("\x1b[%d;23H| (A) Abort Message    |", (n->get_term_height() / 2 - 4) + 4);
-      n->bprintf_nc("\x1b[%d;23H| (C) Continue Message |", (n->get_term_height() / 2 - 4) + 5);
-      n->bprintf_nc("\x1b[%d;23H|                      |", (n->get_term_height() / 2 - 4) + 6);
-      n->bprintf_nc("\x1b[%d;23H+----------------------+\x1b[0m", (n->get_term_height() / 2 - 4) + 7);
+      n->bprintf_nc("\x1b[%d;23H\x1b[0;30;47m\xda\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4[MENU]\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xbf", n->get_term_height() / 2 - 4);
+      n->bprintf_nc("\x1b[%d;23H\xb3                      \xb3", (n->get_term_height() / 2 - 4) + 1);
+      n->bprintf_nc("\x1b[%d;23H\xb3 (Q) Quote Message    \xb3", (n->get_term_height() / 2 - 4) + 2);
+      n->bprintf_nc("\x1b[%d;23H\xb3 (S) Save Message     \xb3", (n->get_term_height() / 2 - 4) + 3);
+      n->bprintf_nc("\x1b[%d;23H\xb3 (A) Abort Message    \xb3", (n->get_term_height() / 2 - 4) + 4);
+      n->bprintf_nc("\x1b[%d;23H\xb3 (C) Continue Message \xb3", (n->get_term_height() / 2 - 4) + 5);
+      n->bprintf_nc("\x1b[%d;23H\xb3                      \xb3", (n->get_term_height() / 2 - 4) + 6);
+      n->bprintf_nc("\x1b[%d;23H\xc0\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xd9\x1b[0m", (n->get_term_height() / 2 - 4) + 7);
       do {
         c = n->getch();
         if (tolower(c) == 's') {
           return fsb.return_body();
         } else if (tolower(c) == 'a') {
           fsb.refresh_screen();
-          n->bprintf_nc("\x1b[%d;23H\x1b[1;37;41m+----[Really Abort?]---+", n->get_term_height() / 2 - 2);
-          n->bprintf_nc("\x1b[%d;23H|  (Y) Yes / (N) No    |", (n->get_term_height() / 2 - 2) + 1);
-          n->bprintf_nc("\x1b[%d;23H+----------------------+\x1b[0m", (n->get_term_height() / 2 - 2) + 2);
+          n->bprintf_nc("\x1b[%d;23H\x1b[1;37;41m\xda\xc4\xc4\xc4\xc4[Really Abort?]\xc4\xc4\xc4\xbf", n->get_term_height() / 2 - 2);
+          n->bprintf_nc("\x1b[%d;23H\xb3  (Y) Yes / (N) No    \xb3", (n->get_term_height() / 2 - 2) + 1);
+          n->bprintf_nc("\x1b[%d;23H\xc0\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xc4\xd9\x1b[0m", (n->get_term_height() / 2 - 2) + 2);
 
           c = n->getch();
           if (c == 'y') {
