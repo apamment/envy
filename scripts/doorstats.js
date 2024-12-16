@@ -45,9 +45,9 @@ if (doors.length > 0) {
 
     print("|18|12 # |15DOORNAME                           |11PLAYS |13RANK                           |14%   |16|07\r\n")
 
-    for (var i = 0; i < 10 && i < doorarr.length; i++) {
-        var percentage = doordef['runs'] / total_plays * 100
-        var bars = doordef['runs'] / total_plays * 30
+    for (var i = 0; i < 15 && i < doorarr.length; i++) {
+        var percentage = (doorarr[i]['runs'] / total_plays * 100).toFixed(0)
+        var bars = (doorarr[i]['runs'] / total_plays * 30).toFixed(0)
 
         var pbars = ""
 
