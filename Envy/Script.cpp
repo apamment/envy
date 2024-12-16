@@ -273,6 +273,14 @@ static duk_ret_t bloadglobal(duk_context *ctx) {
   return 1;
 }
 
+static duk_ret_t bloadother(duk_context *ctx) {
+  Node *n = get_node(ctx);
+  std::string script = std::string(duk_to_string(ctx, 0));
+  duk_push_string(ctx, Script::get_attrib(n, script, std::string(duk_to_string(ctx, -2)), std::string(duk_to_string(ctx, -1))).c_str());
+
+  return 1;
+}
+
 static duk_ret_t bloadval(duk_context *ctx) {
   Node *n = get_node(ctx);
   std::string script = get_script(ctx);
@@ -947,6 +955,9 @@ int Script::run(Node *n, std::string script) {
 
   duk_push_c_function(ctx, bputgfileslow, 1);
   duk_put_global_string(ctx, "slowgfile");
+
+  duk_push_c_function(ctx, bloadother, 3);
+  duk_put_global_string(ctx, "loado");
 
   if (duk_pcompile_string(ctx, 0, buffer.str().c_str()) != 0) {
     n->log->log(LOG_ERROR, "compile failed: %s", duk_safe_to_string(ctx, -1));

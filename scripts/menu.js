@@ -184,6 +184,9 @@ while (true) {
     } else if (c == '3') {
         setaction("Viewing interbbs oneliners")
         exec("ibol")
+    } else if (c == '4') {
+        setaction("Viewing door stats")
+        exec('doorstats')
     } else if (c == '$') {
         exec("usereditor")
     } else {
