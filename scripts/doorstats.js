@@ -1,7 +1,7 @@
 function compare(a, b) {
-    if (a['runs'] < b['runs']) {
+    if (a['runs'] > b['runs']) {
         return -1
-    } else if (a['runs'] > b['runs']) {
+    } else if (a['runs'] < b['runs']) {
         return 1
     }
     return 0
