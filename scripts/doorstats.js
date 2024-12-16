@@ -57,7 +57,7 @@ if (doors.length > 0) {
             pbars += '#'
         }
 
-        print("|12" + pad("  ", i + 1, true) + " |07" + pad("                                  ", doorarr[i]['name'], false) + " |03" + pad("     ", doorarr[i]['runs'], true) + " |05" + pad("                              ", pbars, false) + " |6" + pad("   ", percentage, true) + "%\r\n")
+        print("|12" + pad("  ", i + 1, true) + " |07" + pad("                                  ", doorarr[i]['name'], false) + " |03" + pad("     ", doorarr[i]['runs'], true) + " |05" + pad("                              ", pbars, false) + " |06" + pad("   ", percentage, true) + "%\r\n")
     }
     pause()
 }
