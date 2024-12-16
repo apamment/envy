@@ -38,6 +38,8 @@ if (doors.length > 0) {
 
     doorarr.sort(compare)
 
+    var top_door_plays = doorarr[0]['runs']
+
     cls()
     if (!gfile("doorstats")) {
         print("D O O R   S T A T S\r\n\r\n")
@@ -47,7 +49,7 @@ if (doors.length > 0) {
 
     for (var i = 0; i < 15 && i < doorarr.length; i++) {
         var percentage = (doorarr[i]['runs'] / total_plays * 100).toFixed(0)
-        var bars = (doorarr[i]['runs'] / total_plays * 30).toFixed(0)
+        var bars = (doorarr[i]['runs'] / top_door_plays * 30).toFixed(0)
 
         var pbars = ""
 
