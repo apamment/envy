@@ -59,7 +59,7 @@ var doors = getdoors()
 
 if (doors.length == 0) {
     cls()
-    print("|12Sorry, no doors are installed on this system...|07\r\n")
+    print("|14Sorry, no doors are installed on this system...|07\r\n")
     pause()
 } else {
     var categories = []

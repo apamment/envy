@@ -61,6 +61,6 @@ if (doors.length > 0) {
     }
     pause()
 } else {
-    print("|12Sorry, no doors are installed on this system!|07\r\n")
+    print("|14Sorry, no doors are installed on this system!|07\r\n")
     pause()
 }
