@@ -60,4 +60,7 @@ if (doors.length > 0) {
         print("|12" + pad("  ", i + 1, true) + " |07" + pad("                                  ", doorarr[i]['name'], false) + " |03" + pad("     ", doorarr[i]['runs'], true) + " |05" + pad("                              ", pbars, false) + " |06" + pad("   ", percentage, true) + "%\r\n")
     }
     pause()
+} else {
+    print("|12Sorry, no doors are installed on this system!|07\r\n")
+    pause()
 }

@@ -42,7 +42,7 @@ int Email::unread_email(Node *n) {
   }
 
   if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
-    n->log->log(LOG_ERROR, "Unable to prepare save_message (email) sql");
+    n->log->log(LOG_ERROR, "Unable to prepare unread_email (email) sql");
     sqlite3_close(db);
     return 0;
   }
@@ -72,7 +72,7 @@ int Email::count_email(Node *n) {
   }
 
   if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
-    n->log->log(LOG_ERROR, "Unable to prepare save_message (email) sql");
+    n->log->log(LOG_ERROR, "Unable to prepare count_email (email) sql");
     sqlite3_close(db);
     return 0;
   }
