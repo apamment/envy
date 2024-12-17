@@ -63,6 +63,7 @@ if (gfile("sysnews")) {
 }
 check_email()
 exec("last10")
+exec("oneliner")
 exec("automsg")
 cls()
 print("|10Scanning message bases...|07\r\n")
