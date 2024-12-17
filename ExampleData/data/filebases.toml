@@ -1,0 +1,6 @@
+[[filebase]]
+name = "LOCAL: Uploads"
+database = "fb_local_uploads"
+upload-path = "/home/users/dloads/local/uploads"
+upload-sec = 25
+group = "local"

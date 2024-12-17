@@ -1,0 +1,15 @@
+[[msgbase]]
+name = "LOCAL: General Messages"
+file = "general"
+group = "local"
+
+[[msgbase]]
+name = "LOCAL: Test Messages"
+file = "test"
+group = "local"
+
+[[msgbase]]
+name = "LOCAL: Suggestions"
+file = "suggest"
+group = "local"
+

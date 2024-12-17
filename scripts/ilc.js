@@ -23,6 +23,7 @@ function rot47(s) {
 
 if (msgbase == "UNDEFINED") {
     print("|14Sorry, this BBS is not configured for InterBBS Last Callers at this stage.\r\n")
+    pause()
 } else {
 
     var entries = []

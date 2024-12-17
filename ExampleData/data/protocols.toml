@@ -1,0 +1,17 @@
+[[protocol]]
+name = "ZModem (LRZSZ)"
+download = "lsz -Y *f"
+upload = "lrz -R"
+prompt = false
+
+[[protocol]]
+name = "XModem (LRZSZ)"
+download = "lsx -Y *f"
+upload = "lrx -R *f"
+prompt = true
+
+[[protocol]]
+name = "YModem (LRZSZ)"
+download = "lsb -Y *f"
+upload = "lrb -R"
+prompt = false

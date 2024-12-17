@@ -1,0 +1,18 @@
+[[seclevel]]
+level = 10
+name = "New User"
+timeout = 15
+time = 120
+
+[[seclevel]]
+level = 25
+name = "User"
+timeout = 15
+time = 180
+
+[[seclevel]]
+level = 99
+name = "Sysop"
+timeout = 15
+time = 240
+visible = false

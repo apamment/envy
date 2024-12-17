@@ -33,6 +33,7 @@ function post_oneliner() {
 
 if (msgbase == "UNDEFINED" || bbsname == "UNDEFINED") {
     print("|14Sorry, this BBS is not configured for InterBBS Last Callers at this stage.\r\n")
+    pause()
 } else {
     cls()
     if (!gfile("ibol")) {
