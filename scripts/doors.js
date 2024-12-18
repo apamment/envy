@@ -38,7 +38,7 @@ function list_category(category, doors) {
             }
         }
         print("\r\n|15  Q. |10Go back\r\n");
-        print("\r\n|08 (|11" + category + "|08) :> |07")
+        print("\r\n|08 (|11" + category + "|08) (|11Time: |15" + timeleft() + "m|08) :> |07")
         var ch = gets(3)
 
         if (ch == "q" || ch == "Q") {
@@ -108,7 +108,7 @@ if (doors.length == 0) {
             }
         }
         print("\r\n|15  Q. |10Quit to Main\r\n");
-        print("\r\n|08 :> |07")
+        print("\r\n|08 (|11Time: |15" + timeleft() + "m|08)" + ":> |07")
         var ch = gets(3)
 
         if (ch == "q" || ch == "Q") {
