@@ -696,6 +696,7 @@ int Node::run(std::string *user, std::string *pass) {
       pause();
       if (new_user(&tries)) {
         disconnect();
+        return 0;
       }
     } else {
       username = *user;
