@@ -1,3 +1,11 @@
+function pad(pad, str, padLeft) {
+    if (padLeft) {
+        return (pad + str).slice(-pad.length);
+    } else {
+        return (str + pad).substr(0, pad.length);
+    }
+}
+
 var lines = []
 for (var i = 0; i < 10; i++) {
     lines.push(load("line-" + i, ""))

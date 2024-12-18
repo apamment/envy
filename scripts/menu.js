@@ -51,6 +51,7 @@ function write_email() {
 
     enteremail(user, subject)
 }
+
 exec("last10")
 exec("ilc-send")
 cls()
