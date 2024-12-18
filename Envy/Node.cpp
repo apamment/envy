@@ -833,6 +833,17 @@ int Node::run(std::string *user, std::string *pass) {
       bprintf("You last called on |15%s %d |07at |15%d:%02dam|07\r\n", months[timetm.tm_mon], timetm.tm_mday, (timetm.tm_hour == 0 ? 12 : timetm.tm_hour),
               timetm.tm_min);
     }
+
+    int last_seclevel = std::stoi(User::get_attrib(this, "last-sec-level", std::to_string(newuserseclevel)));
+
+    if (last_seclevel > seclevel) {
+      bprintf("You have been |12demoted |07to %s!\r\n", get_seclevel_name(seclevel).c_str());
+    } else if (last_seclevel < seclevel) {
+      bprintf("You have been |10Promoted |07 to %s!\r\n", get_seclevel_name(seclevel).c_str());
+    } else {
+      bprintf("You are a |15%s|07\r\n", get_seclevel_name(seclevel).c_str());
+    }
+    User::set_attrib(this, "last-sec-level", std::to_string(seclevel));
   }
 
   pause();
@@ -1430,7 +1441,16 @@ void Node::scan_msg_bases() {
   pause();
 }
 
-int Node::get_seclevel() { return std::stoi(User::get_attrib(this, "seclevel", "10")); }
+int Node::get_seclevel() { return std::stoi(User::get_attrib(this, "seclevel", std::to_string(newuserseclevel))); }
+
+std::string Node::get_seclevel_name(int sl) {
+  for (size_t i = 0; i < seclevels.size(); i++) {
+    if (seclevels.at(i).level == sl) {
+      return seclevels.at(i).name;
+    }
+  }
+  return "Unknown";
+}
 
 bool Node::get_visible() {
   int seclevel = get_seclevel();
