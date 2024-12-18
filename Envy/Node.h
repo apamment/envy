@@ -132,6 +132,7 @@ public:
 
   SshClient *sshc;
   std::thread *ssht;
+  std::string get_seclevel_name(int level);
 
 private:
   bool time_check();
