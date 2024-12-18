@@ -67,16 +67,15 @@ if (msgbase == "UNDEFINED" || bbsname == "UNDEFINED") {
                     source = lines[i].substr(8).replace(/\|\d{2}/g, "")
                 } else if (lines[i].substr(0, 9).toUpperCase() == "ONELINER:") {
                     if (oneliner == "") {
-                        oneliner = lines[i].substr(10).replace(/\|\d{2}/g, "").replace(
-                            /(?![^\n]{1,57}$)([^\n]{1,57})\s/g, '$1\r\n')
+                        oneliner = lines[i].substr(10).replace(/\|\d{2}/g, "")
                     } else {
-                        oneliner = oneliner + "\r\n" + lines[i].substr(10).replace(/\|\d{2}/g, "").replace(
-                            /(?![^\n]{1,57}$)([^\n]{1,57})\s/g, '$1\r\n')
+                        oneliner = oneliner + " " + lines[i].substr(10).replace(/\|\d{2}/g, "")
                     }
                     
                 }
             }
             if (oneliner != "") {
+                oneliner = oneliner.replace(/(?![^\n]{1,57}$)([^\n]{1,57})\s/g, '$1\r\n')
                 var entry = {
                     "author": author,
                     "source": source,
