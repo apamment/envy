@@ -51,7 +51,7 @@ function write_email() {
 
     enteremail(user, subject)
 }
-
+exec("last10")
 exec("ilc-send")
 cls()
 if (gfile("system")) {
@@ -62,7 +62,7 @@ if (gfile("sysnews")) {
     pause()
 }
 check_email()
-exec("last10")
+exec("last10-display")
 exec("oneliner")
 exec("automsg")
 cls()
@@ -77,9 +77,9 @@ while (true) {
         print("|15J|07 - Select Msg Group    |152|07 - System News        |15$|07 - User Settings\r\n")
         print("|15S|07 - Select Msg Area     |15U|07 - User List          |15I|07 - System Info\r\n")
         print("|15W|07 - Write Message       |15A|07 - Automessage        |15N|07 - Who's online\r\n")
-        print("|15L|07 - List Messages       |15O|07 - Oneliners          |151|07 - IBBS Last Callers\r\n")
+        print("|15L|07 - List Messages       |15O|07 - Oneliners          |154|07 - IBBS Last Callers\r\n")
         print("|15R|07 - Read Messages       |15D|07 - Door Games         |15T|07 - Transfer Menu\r\n")
-        print("|153|07 - IBBS Oneliners\r\n\r\n")
+        print("|153|07 - IBBS Oneliners      |151|07 - Last 10 Callers\r\n\r\n")
         print("|15E|07 - Enter Email         |15F|07 - Leave Feedback\r\n")
         print("|15M|07 - Read Email          |15G|07 - Goodbye!\r\n\r\n")
     }
@@ -172,7 +172,7 @@ while (true) {
         exec("nodeuse")
     } else if (c == 't' || c == 'T') {
         exec("xfer")
-    } else if (c == '1') {
+    } else if (c == '4') {
         setaction("Viewing IBBS last callers")
         exec("ilc")
     } else if (c == '2') {
@@ -185,9 +185,9 @@ while (true) {
     } else if (c == '3') {
         setaction("Viewing interbbs oneliners")
         exec("ibol")
-    } else if (c == '4') {
-        setaction("Viewing door stats")
-        exec('doorstats')
+    } else if (c == '1') {
+        setaction("Viewing last 10 callers")
+        exec('last10-display')
     } else if (c == '$') {
         exec("usereditor")
     } else {

@@ -107,12 +107,15 @@ if (doors.length == 0) {
                 lines = 0
             }
         }
-        print("\r\n|15  Q. |10Quit to Main\r\n");
+        print("\r\n|15  S. |10Door Stats\r\n");
+        print("|15  Q. |10Quit to Main\r\n");
         print("\r\n|08 (|11Time: |15" + timeleft() + "m|08) " + ":> |07")
         var ch = gets(3)
 
         if (ch == "q" || ch == "Q") {
             break
+        } else if (ch == "s" || ch == "S") {
+            exec("doorstats")
         } else {
             var num = Number(ch) - 1;
             if (num >= 0 && num < categories.length) {
