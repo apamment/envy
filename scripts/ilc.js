@@ -82,5 +82,5 @@ if (msgbase == "UNDEFINED") {
     for (var i = 0; i < 15; i++) {
         print("|15" + pad("                  ", entries[i]['username'], false) + " |13" + pad("                         ", entries[i]['location'], false) + " |10" + pad("                         ", entries[i]['bbsname'], false) + " |11" + entries[i]['udate'] + "|07\r\n")
     }
+    pause()
 }
-pause()
