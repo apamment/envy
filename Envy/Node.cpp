@@ -692,7 +692,7 @@ int Node::run(std::string *user, std::string *pass) {
 
   if (user != nullptr && pass != nullptr) {
     if (strcasecmp(user->c_str(), "new") == 0) {
-      bprintf("\r\n|15Signing up as a new user...\r\n");
+      bprintf("|15Signing up as a new user...\r\n");
       pause();
       if (new_user(&tries)) {
         disconnect();
@@ -704,7 +704,7 @@ int Node::run(std::string *user, std::string *pass) {
         disconnect();
         return 0;
       }
-      bprintf("\r\n|15Welcome back, |10%s|15...\r\n", user->c_str());
+      bprintf("|15Welcome back, |10%s|15...\r\n", user->c_str());
       pause();
     }
   } else {
