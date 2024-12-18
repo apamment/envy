@@ -837,11 +837,11 @@ int Node::run(std::string *user, std::string *pass) {
     int last_seclevel = std::stoi(User::get_attrib(this, "last-sec-level", std::to_string(newuserseclevel)));
 
     if (last_seclevel > seclevel) {
-      bprintf("You have been |12demoted |07to %s!\r\n", get_seclevel_name(seclevel).c_str());
+      bprintf("You have been |12demoted |07to |14%s|07!\r\n", get_seclevel_name(seclevel).c_str());
     } else if (last_seclevel < seclevel) {
-      bprintf("You have been |10Promoted |07 to %s!\r\n", get_seclevel_name(seclevel).c_str());
+      bprintf("You have been |10Promoted |07to |14%s|07!\r\n", get_seclevel_name(seclevel).c_str());
     } else {
-      bprintf("You are a |15%s|07\r\n", get_seclevel_name(seclevel).c_str());
+      bprintf("You are currently a |14%s|07\r\n", get_seclevel_name(seclevel).c_str());
     }
     User::set_attrib(this, "last-sec-level", std::to_string(seclevel));
   }
