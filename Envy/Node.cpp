@@ -839,7 +839,7 @@ int Node::run(std::string *user, std::string *pass) {
     if (last_seclevel > seclevel) {
       bprintf("You have been |12demoted |07to |14%s|07!\r\n", get_seclevel_name(seclevel).c_str());
     } else if (last_seclevel < seclevel) {
-      bprintf("You have been |10Promoted |07to |14%s|07!\r\n", get_seclevel_name(seclevel).c_str());
+      bprintf("You have been |10promoted |07to |14%s|07!\r\n", get_seclevel_name(seclevel).c_str());
     } else {
       bprintf("You are currently a |14%s|07\r\n", get_seclevel_name(seclevel).c_str());
     }

@@ -48,13 +48,13 @@ int main(int argc, char **argv) {
     }
 
     std::string datapath = inir.Get("Paths", "Data Path", "data");
-  //  std::filesystem::path ssh_dsa_key(datapath + "/ssh_host_dsa_key");
+    std::filesystem::path ssh_dsa_key(datapath + "/ssh_host_dsa_key");
     std::filesystem::path ssh_rsa_key(datapath + "/ssh_host_rsa_key");
     std::filesystem::path ssh_ecdsa_key(datapath + "/ssh_host_ecdsa_key");
     std::filesystem::path ssh_ed25519_key(datapath + "/ssh_host_ed25519_key");
 
     ssh_bind p_ssh_bind = NULL;
-/*
+
     if (!std::filesystem::exists(ssh_dsa_key)) {
       ssh_key new_key;
       int status = ssh_pki_generate(SSH_KEYTYPE_DSS, DSA_KEYLEN, &new_key);
@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
         ssh_pki_export_privkey_file(new_key, NULL, NULL, NULL, ssh_dsa_key.u8string().c_str());
       }
     }
-*/
+
     if (!std::filesystem::exists(ssh_rsa_key)) {
       ssh_key new_key;
       int status = ssh_pki_generate(SSH_KEYTYPE_RSA, RSA_KEYLEN, &new_key);
@@ -85,12 +85,17 @@ int main(int argc, char **argv) {
       }
     }
 
-    if (/*std::filesystem::exists(ssh_dsa_key) && */std::filesystem::exists(ssh_rsa_key)) {
+    if (std::filesystem::exists(ssh_dsa_key) || std::filesystem::exists(ssh_rsa_key) || std::filesystem::exists(ssh_ecdsa_key) || std::filesystem::exists(ssh_ed25519_key)) {
       p_ssh_bind = ssh_bind_new();
       if (p_ssh_bind != NULL) {
 
-/*        ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_dsa_key.u8string().c_str()); */
-        ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_rsa_key.u8string().c_str());
+        if (std::filesystem::exists(ssh_dsa_key)) {
+          ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_dsa_key.u8string().c_str());
+        }
+
+        if (std::filesystem::exists(ssh_rsa_key)) {
+          ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_rsa_key.u8string().c_str());
+        }
 
         if (std::filesystem::exists(ssh_ecdsa_key)) {
           ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_ecdsa_key.u8string().c_str());
