@@ -494,6 +494,150 @@ std::string Node::get_str(int length, char mask, std::string placeholder) {
 }
 
 int Node::run() {
+  return run(nullptr, nullptr);
+}
+
+bool Node::new_user(int *tries) {
+  bool should_loop = false;
+  std::string password;
+  std::string firstname;
+  std::string lastname;
+  std::string location;
+  std::string email;
+
+  log->log(LOG_INFO, "New user signing up!");
+  action("New user signing up");
+  cls();
+  putgfile("newuser");
+  while (true) {
+    bprintf("Enter your desired username: ");
+    username = get_str(16);
+    if (username.length() == 0) {
+      (*tries)++;
+      return true;
+    }
+    User::InvalidUserReason reason = User::valid_username(this, username);
+    if (reason != User::InvalidUserReason::OK) {
+      switch (reason) {
+      case User::InvalidUserReason::ERROR:
+        bprintf("\r\nSorry, an error occured.\r\n");
+        break;
+      case User::InvalidUserReason::TOOSHORT:
+        bprintf("\r\nSorry, that username is too short.\r\n");
+        break;
+      case User::InvalidUserReason::INUSE:
+        bprintf("\r\nSorry, that username is in use.\r\n");
+        break;
+      case User::InvalidUserReason::BADCHARS:
+        bprintf("\r\nSorry, that username contains unsupported characters.\r\n");
+        break;
+      case User::InvalidUserReason::TRASHCAN:
+        bprintf("\r\nSorry, that username is not allowed.\r\n");
+        break;
+      default:
+        break;
+      }
+      continue;
+    }
+    break;
+  }
+  while (true) {
+    bprintf("\r\nEnter your desired password: ");
+    password = get_str(16, '*');
+    if (password.length() == 0) {
+      (*tries)++;
+      return true;
+    }
+    if (password.length() < 8) {
+      bprintf("\r\nPassword should be at least 8 characters!\r\n");
+      continue;
+    }
+
+    bprintf("\r\nRepeat your desired password: ");
+    std::string password_rep = get_str(16, '*');
+
+    if (password != password_rep) {
+      bprintf("\r\nPasswords do not match!\r\n");
+      continue;
+    }
+
+    break;
+  }
+
+  while (true) {
+    bprintf("\r\nEnter your real first name: ");
+    firstname = get_str(32);
+
+    if (firstname.length() == 0) {
+      (*tries)++;
+      return true;
+    }
+
+    if (firstname.find(' ') != std::string::npos) {
+      bprintf("\r\nFirst name may not contain a space!\r\n");
+      continue;
+    }
+
+    bprintf("\r\nEnter your real last name: ");
+    lastname = get_str(32);
+
+    if (lastname.length() == 0) {
+      (*tries)++;
+      return true;
+    }
+
+    if (!User::valid_fullname(this, firstname + " " + lastname)) {
+      bprintf("\r\nSorry, that real name is in use!\r\n");
+      continue;
+    }
+
+    break;
+  }
+
+  bprintf("\r\nEnter approximate location: ");
+  location = get_str(32);
+
+  if (location.length() == 0) {
+    (*tries)++;
+    return true;
+  }
+
+  while (true) {
+    bprintf("\r\nEnter a contact email: ");
+    email = get_str(32);
+
+    if (email.length() == 0) {
+      (*tries)++;
+      return true;
+    }
+
+    if (email.find('@') == std::string::npos) {
+      bprintf("\r\nInvalid email!\r\n");
+      continue;
+    }
+
+    if (email.find('.') == std::string::npos) {
+      bprintf("\r\nInvalid email!\r\n");
+      continue;
+    }
+
+    break;
+  }
+
+  uid = User::inst_user(this, username, password);
+  if (uid == -1) {
+    disconnect();
+    return true;
+  } else {
+    User::set_attrib(this, "fullname", firstname + " " + lastname);
+    User::set_attrib(this, "location", location);
+    User::set_attrib(this, "email", email);
+    User::set_attrib(this, "seclevel", std::to_string(newuserseclevel));
+    return false;
+  }
+}
+
+int Node::run(std::string *user, std::string *pass) {
 
   const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
@@ -502,7 +646,7 @@ int Node::run() {
   unsigned char iac_sga[] = {IAC, IAC_WILL, IAC_SUPPRESS_GO_AHEAD, '\0'};
 
   INIReader inir("envy.ini");
-  int newuserseclevel = 10;
+  newuserseclevel = 10;
   if (inir.ParseError() != 0) {
     return -1;
   }
@@ -546,184 +690,51 @@ int Node::run() {
 
   int tries = 0;
 
-  while (true) {
-    bool should_loop = false;
-
-    if (tries == 5) {
-      disconnect();
-    }
-
-    bprintf("USER: ");
-    username = get_str(16);
-    std::string password;
-    std::string firstname;
-    std::string lastname;
-    std::string location;
-    std::string email;
-    if (strcasecmp(username.c_str(), "NEW") == 0) {
-      log->log(LOG_INFO, "New user signing up!");
-      action("New user signing up");
-      cls();
-      putgfile("newuser");
-      while (true) {
-        bprintf("Enter your desired username: ");
-        username = get_str(16);
-        if (username.length() == 0) {
-          tries++;
-          should_loop = true;
-          break;
-        }
-        User::InvalidUserReason reason = User::valid_username(this, username);
-        if (reason != User::InvalidUserReason::OK) {
-          switch (reason) {
-          case User::InvalidUserReason::ERROR:
-            bprintf("\r\nSorry, an error occured.\r\n");
-            break;
-          case User::InvalidUserReason::TOOSHORT:
-            bprintf("\r\nSorry, that username is too short.\r\n");
-            break;
-          case User::InvalidUserReason::INUSE:
-            bprintf("\r\nSorry, that username is in use.\r\n");
-            break;
-          case User::InvalidUserReason::BADCHARS:
-            bprintf("\r\nSorry, that username contains unsupported characters.\r\n");
-            break;
-          case User::InvalidUserReason::TRASHCAN:
-            bprintf("\r\nSorry, that username is not allowed.\r\n");
-            break;
-          default:
-            break;
-          }
-          continue;
-        }
-        break;
-      }
-      if (should_loop) {
-        continue;
-      }
-      while (true) {
-        bprintf("\r\nEnter your desired password: ");
-        password = get_str(16, '*');
-        if (password.length() == 0) {
-          tries++;
-          should_loop = true;
-          break;
-        }
-
-        if (password.length() < 8) {
-          bprintf("\r\nPassword should be at least 8 characters!\r\n");
-          continue;
-        }
-
-        bprintf("\r\nRepeat your desired password: ");
-        std::string password_rep = get_str(16, '*');
-
-        if (password != password_rep) {
-          bprintf("\r\nPasswords do not match!\r\n");
-          continue;
-        }
-
-        break;
-      }
-
-      if (should_loop) {
-        continue;
-      }
-
-      while (true) {
-        bprintf("\r\nEnter your real first name: ");
-        firstname = get_str(32);
-
-        if (firstname.length() == 0) {
-          tries++;
-          should_loop = true;
-          break;
-        }
-
-        if (firstname.find(' ') != std::string::npos) {
-          bprintf("\r\nFirst name may not contain a space!\r\n");
-          continue;
-        }
-
-        bprintf("\r\nEnter your real last name: ");
-        lastname = get_str(32);
-
-        if (lastname.length() == 0) {
-          tries++;
-          should_loop = true;
-          break;
-        }
-
-        if (!User::valid_fullname(this, firstname + " " + lastname)) {
-          bprintf("\r\nSorry, that real name is in use!\r\n");
-          continue;
-        }
-
-        break;
-      }
-
-      if (should_loop) {
-        continue;
-      }
-
-      bprintf("\r\nEnter approximate location: ");
-      location = get_str(32);
-
-      if (location.length() == 0) {
-        tries++;
-        continue;
-      }
-
-      while (true) {
-        bprintf("\r\nEnter a contact email: ");
-        email = get_str(32);
-
-        if (email.length() == 0) {
-          tries++;
-          should_loop = true;
-          break;
-        }
-
-        if (email.find('@') == std::string::npos) {
-          bprintf("\r\nInvalid email!\r\n");
-          continue;
-        }
-
-        if (email.find('.') == std::string::npos) {
-          bprintf("\r\nInvalid email!\r\n");
-          continue;
-        }
-
-        break;
-      }
-
-      if (should_loop) {
-        continue;
-      }
-
-      uid = User::inst_user(this, username, password);
-
-      if (uid == -1) {
+  if (user != nullptr && pass != nullptr) {
+    if (strcasecmp(user->c_str(), "new") == 0) {
+      bprintf("\r\n|15Signing up as a new user...\r\n");
+      pause();
+      if (new_user(&tries)) {
         disconnect();
-      } else {
-        User::set_attrib(this, "fullname", firstname + " " + lastname);
-        User::set_attrib(this, "location", location);
-        User::set_attrib(this, "email", email);
-        User::set_attrib(this, "seclevel", std::to_string(newuserseclevel));
-        break;
       }
     } else {
-      bprintf("PASS: ");
-      password = get_str(16, '*');
-
-      uid = User::check_password(this, username, password);
-
+      username = *user;
+      uid = User::check_password(this, username, *pass);
       if (uid == -1) {
-        tries++;
-        bprintf("\r\nInvalid Login!\r\n");
-        continue;
+        disconnect();
+        return 0;
+      }
+      bprintf("\r\n|15Welcome back, |10%s|15...\r\n", user->c_str());
+      pause();
+    }
+  } else {
+    while (true) {
+      bool should_loop = false;
+
+      if (tries == 5) {
+        disconnect();
+      }
+
+      bprintf("USER: ");
+      username = get_str(16);
+      std::string password;
+      if (strcasecmp(username.c_str(), "NEW") == 0) {
+        if (new_user(&tries)) {
+          continue;
+        }
       } else {
-        break;
+        bprintf("PASS: ");
+        password = get_str(16, '*');
+
+        uid = User::check_password(this, username, password);
+
+        if (uid == -1) {
+          tries++;
+          bprintf("\r\nInvalid Login!\r\n");
+          continue;
+        } else {
+          break;
+        }
       }
     }
   }

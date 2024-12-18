@@ -355,7 +355,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
                 }
               }
 
-              if (c == 255) {
+              if (c == 255 && n->is_telnet()) {
                 if (gotiac == 1) {
                   outbuf[g++] = c;
                   gotiac = 0;
@@ -418,7 +418,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
             g = 0;
             for (h = 0; h < len; h++) {
               c = inbuf[h];
-              if (c == 255) {
+              if (c == 255 && n->is_telnet()) {
                 outbuf[g++] = c;
               }
               outbuf[g++] = c;

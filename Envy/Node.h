@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <thread>
 #include "Logger.h"
 #include "FileBase.h"
 
@@ -43,6 +44,7 @@ struct protocol_s {
 
 class MessageBase;
 class FileBase;
+class SshClient;
 
 class Node {
 public:
@@ -62,6 +64,7 @@ public:
   void bprintf(bool parse_pipes, const char *fmt, va_list args);
   void bprintf(const char *fmt, ...);
   int run();
+  int run(std::string *user, std::string *pass);
   void disconnect();
   void pause();
   void select_msg_group();
@@ -100,13 +103,14 @@ public:
   int get_uid() { return uid; }
 
   int get_term_height() { return term_height; }
+  void set_term_height(int h) { term_height = h; }
 
   int get_term_width() { return term_width; }
-
+  void set_term_width(int w) { term_width = w; }
   int get_node() { return node; }
 
   bool has_ansi() { return ansi_supported; }
-
+  bool is_telnet() { return telnet; }
   std::vector<struct door_cfg_s> get_doors() { return doors; }
   std::string get_username() { return username; }
   std::string get_echosem() { return echo_sem; }
@@ -125,7 +129,10 @@ public:
   void upload();
   void select_file_base();
   void list_tagged_files();
-  
+
+  SshClient *sshc;
+  std::thread *ssht;
+
 private:
   bool time_check();
 
@@ -139,6 +146,8 @@ private:
 
   int get_timeperday();
   int get_timeout();
+  bool new_user(int *tries);
+
 
   std::vector<MessageBase *> msgbases;
   std::vector<MessageBase *> accessablemb;
@@ -183,7 +192,7 @@ private:
   int timeleft;
   time_t last_time_check;
   int max_nodes;
-
+  int newuserseclevel;
   std::vector<std::string> msg_groups;
   std::vector<std::string> file_groups;
 

@@ -122,9 +122,9 @@ bool in_multiallowed(std::vector<std::string> *list, std::string item) {
 
 int main() {
   bool ipv6 = false;
-  int port;
-  struct sockaddr_in  serv_addr, client_addr;
-  struct sockaddr_in6 serv_addr6, client_addr6;
+  int port, ssh_port;
+  struct sockaddr_in  serv_addr, serv_ssh_addr, client_addr;
+  struct sockaddr_in6 serv_addr6, serv_ssh_addr6, client_addr6;
   int csockfd;
   int on = 1;
   size_t max_nodes = 4;
@@ -158,6 +158,7 @@ int main() {
   }
 
   port = inir.GetInteger("main", "telnet port", 2323);
+  ssh_port = inir.GetInteger("main", "ssh port", -1);
   max_nodes = inir.GetInteger("main", "max nodes", 4);
   datapath = inir.Get("paths", "data path", "data");
   ipv6 = inir.GetBoolean("main", "enable ipv6", false);
@@ -259,7 +260,65 @@ int main() {
   int sshfd = -1;
   int sshfd6 = -1;
 
-    int nfds;
+  // listen on ssh
+
+  if (ssh_port != -1) {
+    sshfd = socket(AF_INET, SOCK_STREAM, 0);
+    sshfd6 = -1;
+
+    memset(&serv_ssh_addr, 0, sizeof(struct sockaddr_in));
+
+    serv_ssh_addr.sin_family = AF_INET;
+    serv_ssh_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_ssh_addr.sin_port = htons(ssh_port);
+    if (setsockopt(sshfd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0) {
+      std::cerr << err() << ts() << "NodeManager : Error setting SO_REUSEADDR (SSH)" << rst() << std::endl;
+      return -1;
+    }
+    if (setsockopt(sshfd, IPPROTO_TCP, TCP_NODELAY, (char *)&on, sizeof(on)) < 0) {
+      std::cerr << err() << ts() << "NodeManager : Error setting TCP_NODELAY (SSH)" << rst() << std::endl;
+      return -1;
+    }
+    if (bind(sshfd, (struct sockaddr *)&serv_ssh_addr, sizeof(struct sockaddr_in)) < 0) {
+      std::cerr << err() << ts() << "NodeManager : Error binding. (SSH)" << rst() << std::endl;
+      return -1;
+    }
+
+    // listen on ssh6
+
+    if (ipv6) {
+      sshfd6 = socket(AF_INET6, SOCK_STREAM, 0);
+      memset(&serv_ssh_addr6, 0, sizeof(struct sockaddr_in6));
+
+      serv_ssh_addr6.sin6_family = AF_INET6;
+      serv_ssh_addr6.sin6_addr = in6addr_any;
+      serv_ssh_addr6.sin6_port = htons(ssh_port);
+      if (setsockopt(sshfd6, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&on, sizeof(on)) < 0) {
+        std::cerr << err() << ts() << "NodeManager : Error setting IPV6_V6ONLY (SSH - ipv6)" << rst() << std::endl;
+        return -1;
+      }
+      if (setsockopt(sshfd6, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0) {
+        std::cerr << err() << ts() << "NodeManager : Error setting SO_REUSEADDR (SSH - ipv6)" << rst() << std::endl;
+        return -1;
+      }
+      if (setsockopt(sshfd6, IPPROTO_TCP, TCP_NODELAY, (char *)&on, sizeof(on)) < 0) {
+        std::cerr << err() << ts() << "NodeManager : Error setting TCP_NODELAY (SSH - ipv6)" << rst() << std::endl;
+        return -1;
+      }
+      if (bind(sshfd6, (struct sockaddr *)&serv_ssh_addr6, sizeof(struct sockaddr_in6)) < 0) {
+        std::cerr << err() << ts() << "NodeManager : Error binding. (SSH - ipv6)" << rst() << std::endl;
+        return -1;
+      }
+
+      listen(sshfd6, 5);
+      std::cout << norm() << ts() << "NodeManager : Listening on port " << ssh_port << "(SSH - ipv6)" << rst() << std::endl;
+    }
+
+    listen(sshfd, 5);
+    std::cout << norm() << ts() << "NodeManager : Listening on port " << ssh_port << "(SSH)" << rst() << std::endl;
+  }
+
+  int nfds;
   int maxfd = telnetfd;
   fd_set server_fds;
   FD_ZERO(&server_fds);
@@ -269,6 +328,20 @@ int main() {
     FD_SET(telnetfd6, &server_fds);
     if (telnetfd6 > maxfd)
       maxfd = telnetfd6;
+  }
+
+  if (ssh_port != -1) {
+    FD_SET(sshfd, &server_fds);
+    if (sshfd > maxfd) {
+      maxfd = sshfd;
+    }
+
+    if (ipv6) {
+      FD_SET(sshfd6, &server_fds);
+      if (sshfd6 > maxfd) {
+        maxfd = sshfd6;
+      }
+    }
   }
 
   nfds = maxfd;
@@ -304,7 +377,21 @@ int main() {
         ipv6con = true;
       }
     }
-   if (csockfd != -1) {
+
+    if (ssh_port != -1) {
+      if (FD_ISSET(sshfd, &copy_fds)) {
+        csockfd = accept(sshfd, (struct sockaddr *)&client_addr, (socklen_t *)&clen);
+        telnet = false;
+      }
+      if (ipv6) {
+        if (FD_ISSET(sshfd6, &copy_fds)) {
+          csockfd = accept(sshfd6, (struct sockaddr *)&client_addr6, (socklen_t *)&clen6);
+          telnet = false;
+          ipv6con = true;
+        }
+      }
+    }
+    if (csockfd != -1) {
       std::string ipaddr;
       if (!ipv6con) {
         ipaddr = std::string(inet_ntop(AF_INET, &((struct sockaddr_in *)&client_addr)->sin_addr, str, sizeof(str)));
@@ -467,10 +554,18 @@ int main() {
             snprintf(sockstr, 10, "%d", csockfd);
             snprintf(nodestr, 10, "%lu", i + 1);
 
-            std::cout << norm() << ts() << "NodeManager : Launching envy (Telnet - " << ipaddr << ")" << rst() << std::endl;
-            if (execlp("./envy", "./envy", "-S", sockstr, "-N", nodestr, "-T", NULL) == -1) {
-              perror("Execlp: ");
-              exit(-1);
+            if (telnet) {
+              std::cout << norm() << ts() << "NodeManager : Launching envy (Telnet - " << ipaddr << ")" << rst() << std::endl;
+              if (execlp("./envy", "./envy", "-S", sockstr, "-N", nodestr, "-T", NULL) == -1) {
+                perror("Execlp: ");
+                exit(-1);
+              }
+            } else {
+              std::cout << norm() << ts() << "NodeManager : Launching envy (SSH - " << ipaddr << ")" << rst() << std::endl;
+              if (execlp("./envy", "./envy", "-S", sockstr, "-N", nodestr, "-SSH", NULL) == -1) {
+                perror("Execlp: ");
+                exit(-1);
+              }
             }
           } else {
             std::cerr << err() << ts() << "NodeManager : Failed to create process!" << rst() << std::endl;
