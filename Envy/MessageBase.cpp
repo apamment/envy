@@ -566,6 +566,7 @@ void MessageBase::read_messages(Node *n, int startingat) {
           }
 
           enter_message(n, hdrs.at(reading).from, hdrs.at(reading).subject, &qb, &hdrs.at(reading));
+          next = true;
         } break;
         case 'q':
           return;
