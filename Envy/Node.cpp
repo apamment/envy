@@ -679,8 +679,10 @@ int Node::run(std::string *user, std::string *pass) {
   log->log(LOG_INFO, "Connected!");
 
   // send initial telnet negotiation
-  send(socket, (char *)iac_echo, 3, 0);
-  send(socket, (char *)iac_sga, 3, 0);
+  if (telnet) {
+    send(socket, (char *)iac_echo, 3, 0);
+    send(socket, (char *)iac_sga, 3, 0);
+  }
 
   bprintf("Envy/%s-%s - Copyright (C) 2024; Andrew Pamment\r\n", VERSION, GITV);
 
