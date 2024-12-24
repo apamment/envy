@@ -103,7 +103,7 @@ void Node::cls() {
 }
 
 bool Node::detectANSI() {
-  bprintf("\x1b[s\x1b[999;999H\x1b[6n\x1b[u");
+  bprintf("\x1b[s\x1b[255;255H\x1b[6n\x1b[u");
   char buffer[1024];
   timeval t;
   time_t then = time(NULL);
@@ -684,7 +684,21 @@ int Node::run(std::string *user, std::string *pass) {
 
   bprintf("Envy/%s-%s - Copyright (C) 2024; Andrew Pamment\r\n", VERSION, GITV);
 
+  bprintf("Detecting ANSI... ");
   ansi_supported = detectANSI();
+  if (ansi_supported) {
+    bprintf("|10SUCCESS!|07\r\n");
+  } else {
+    bprintf("FAIL - Force? (Y/N)");
+
+    char ch = getch();
+    if (tolower(ch) == 'y') {
+      ansi_supported = true;
+    }
+    bprintf("\r\n");
+  }
+
+  cls();
 
   putgfile("welcome");
 
