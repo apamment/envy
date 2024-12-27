@@ -116,7 +116,7 @@ foreach my $fp (@files) {
                 $ctx->addfile(*$fh);
                 close $fh;
 
-                if (uc($crc) eq uc($ctx->hexdigest)) {
+                if (hex($crc) == hex($ctx->hexdigest)) {
                     # CRC32 matches.
 
                     if (length($replaces) > 0) {
