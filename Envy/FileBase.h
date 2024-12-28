@@ -31,6 +31,7 @@ public:
     int count(Node *n);
 private:
     bool open_database(std::string path, sqlite3 **db);
+    std::string strip_ansi(std::string msg);
 };
 
 struct file_s {

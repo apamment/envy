@@ -68,6 +68,7 @@ public:
   struct msg_s *get_message(Node *n, int index);
 
 private:
-  std::vector<std::string> demangle_ansi(Node *n, const char *msg, size_t len);
-  std::string strip_ansi(std::string str);
+  static std::vector<std::string> demangle_ansi(Node *n, const char *msg, size_t len);
+  static std::vector<std::string> demangle_ansi(Node *n, const char *msg, size_t len, int max_width);
+  static std::string strip_ansi(std::string str);  
 };

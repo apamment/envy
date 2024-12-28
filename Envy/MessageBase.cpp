@@ -925,6 +925,10 @@ struct character_t {
 };
 
 std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, size_t len) {
+  return demangle_ansi(n, msg, len, n->get_term_width());
+}
+
+std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, size_t len, int max_width) {
   std::vector<std::string> new_msg;
   int lines = 0;
   int line_at = 0;
@@ -995,8 +999,8 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
           } else {
             col_at++;
           }
-          if (col_at > (int)n->get_term_width()) {
-            col_at = n->get_term_width();
+          if (col_at > (int)max_width) {
+            col_at = max_width;
           }
           break;
         case 'D':
@@ -1020,8 +1024,8 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
           if (line_at > lines) {
             lines = line_at;
           }
-          if (col_at > (int)n->get_term_width()) {
-            col_at = n->get_term_width();
+          if (col_at > max_width) {
+            col_at = max_width;
           }
           if (line_at < 0)
             line_at = 0;
@@ -1046,7 +1050,7 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
     } else if (msg[i] != '\n') {
       col_at++;
 
-      if (col_at >= (int)n->get_term_width()) {
+      if (col_at >= max_width) {
         col_at = 0;
         line_at++;
         if (line_at > lines) {
@@ -1063,7 +1067,7 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
   }
 
   for (int i = 0; i <= lines; i++) {
-    fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * (n->get_term_width() + 1));
+    fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * (max_width + 1));
     if (!fakescreen[i]) {
       for (int j = i - 1; j >= 0; j--) {
         free(fakescreen[j]);
@@ -1071,7 +1075,7 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
       free(fakescreen);
       return new_msg;
     }
-    for (size_t x = 0; x <= n->get_term_width(); x++) {
+    for (size_t x = 0; x <= max_width; x++) {
       fakescreen[i][x].c = ' ';
       fakescreen[i][x].fg_color = 7;
       fakescreen[i][x].bg_color = 0;
@@ -1129,8 +1133,8 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
           } else {
             col_at++;
           }
-          if (col_at > (int)n->get_term_width()) {
-            col_at = n->get_term_width();
+          if (col_at > max_width) {
+            col_at = max_width;
           }
           break;
         case 'D':
@@ -1154,8 +1158,8 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
             line_at = 0;
           if (col_at < 0)
             col_at = 0;
-          if (col_at > (int)n->get_term_width())
-            col_at = n->get_term_width();
+          if (col_at > max_width)
+            col_at = max_width;
           break;
         case 'm':
           for (int z = 0; z < param_count; z++) {
@@ -1192,7 +1196,7 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
       fakescreen[line_at][col_at].fg_color = fg_color;
       fakescreen[line_at][col_at].bg_color = bg_color;
       col_at++;
-      if (col_at >= (int)n->get_term_width()) {
+      if (col_at >= max_width) {
         line_at++;
         col_at = 0;
       }
@@ -1200,7 +1204,7 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
   }
 
   for (int i = 0; i < lines; i++) {
-    for (int j = n->get_term_width() - 1; j >= 0; j--) {
+    for (int j = max_width; j >= 0; j--) {
       if (fakescreen[i][j].c == ' ') {
         fakescreen[i][j].c = '\0';
       } else {
@@ -1236,7 +1240,7 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
         ss << "\x1b[" << std::to_string(bg_color + 40) << "m";
       }
     }
-    for (j = 0; j < n->get_term_width(); j++) {
+    for (j = 0; j < max_width; j++) {
       if (fakescreen[i][j].c == '\0') {
         break;
       }
@@ -1263,7 +1267,7 @@ std::vector<std::string> MessageBase::demangle_ansi(Node *n, const char *msg, si
       }
       ss << fakescreen[i][j].c;
     }
-    if (j < n->get_term_width()) {
+    if (j < max_width) {
       ss << "\r\n";
     }
     new_msg.push_back(ss.str());

@@ -2,8 +2,47 @@
 #include <vector>
 #include <sstream>
 #include <filesystem>
+#include "MessageBase.h"
 #include "FileBase.h"
 #include "Node.h"
+
+std::string FileBase::strip_ansi(std::string msg) {
+  std::stringstream ss;
+  std::vector<int> param;
+  bool got_esc = false;
+  bool got_brac = false;
+  for (size_t i = 0;i < msg.length(); i++) {
+    if (msg.at(i) == 0x1b) {
+      param.clear();
+      param.push_back(0);
+      got_esc = true;
+    } else {
+      if (got_esc) {
+        if (msg.at(i) == '[') {
+          got_esc = false;
+          got_brac = true;
+        }
+      } else if (got_brac) {
+        if (msg.at(i) >= '0' && msg.at(i) <= '9') {
+          param.at(param.size() - 1) += msg.at(i) - '0';
+        } else if (msg.at(i) == ';') {
+          param.push_back(0);
+        } else if (msg.at(i) == 'C') {
+          for (int j = 0; j < param.at(0); j++) {
+            ss << ' '; 
+          }
+          got_brac = false;
+        } else {
+          got_brac = false;
+        }
+      } else {
+        ss << msg.at(i);
+      }
+    }
+  }
+
+  return ss.str();
+}
 
 void FileBase::list_files(Node *n) {
   sqlite3 *db;
@@ -32,27 +71,28 @@ void FileBase::list_files(Node *n) {
     f.uploaddate = sqlite3_column_int64(stmt, 2);
     f.downloadcount = sqlite3_column_int(stmt, 4);
     f.size = std::filesystem::exists(f.filename) ? std::filesystem::file_size(f.filename) : -1;
-    std::string tmp = std::string((const char*)sqlite3_column_text(stmt, 1));
+    std::string tmp = strip_ansi(std::string((const char*)sqlite3_column_text(stmt, 1)));
 
 
     std::stringstream ss;
-  
+
     if (tmp.size() == 0) {
         f.desc.push_back("No Description.");
     } else {
-
-        for (size_t i = 0; i < tmp.size(); i++) {
+      for (size_t i = 0; i < tmp.size(); i++) {
         if (tmp.at(i) == '\n') {
-            f.desc.push_back(ss.str());
-            ss.str("");
+          f.desc.push_back(ss.str());
+          ss.str("");
+        } else if (tmp.at(i) == 0x1a) {
+          break;
         } else if (tmp.at(i) != '\r') {
-            ss << tmp.at(i);
+          ss << tmp.at(i);
         }
-        }
+      }
 
-        if (ss.str() != "") {
-            f.desc.push_back(ss.str());
-        }
+      if (ss.str() != "") {
+          f.desc.push_back(ss.str());
+      }
     }
     f.desc.push_back("  |15-> |10Uploaded By: |14" + f.uploadedby);
     files.push_back(f);
@@ -86,9 +126,9 @@ void FileBase::list_files(Node *n) {
         sz = files.at(i).size / 1024 / 1024 / 1024;
         unit = 'G';
       }
-      n->bprintf("|15%3d|07. |14%-20.20s |10%4d%c |07%-47.47s\r\n", i + 1, files.at(i).filename.filename().u8string().c_str(), sz, unit, files.at(i).desc.at(0).c_str()); 
+      n->bprintf("|15%3d|07. |14%-20.20s |10%4d%c |07%-46.46s\r\n", i + 1, files.at(i).filename.filename().u8string().c_str(), sz, unit, files.at(i).desc.at(0).c_str()); 
     } else {
-      n->bprintf("|15%3d|07. |14%-20.20s  |12MSNG |07%-47.47s\r\n", i + 1, files.at(i).filename.filename().u8string().c_str(), files.at(i).desc.at(0).c_str()); 
+      n->bprintf("|15%3d|07. |14%-20.20s  |12MSNG |07%-46.46s\r\n", i + 1, files.at(i).filename.filename().u8string().c_str(), files.at(i).desc.at(0).c_str()); 
     }
     lines++;
     if (lines == n->get_term_height() - 1) {
@@ -113,7 +153,7 @@ void FileBase::list_files(Node *n) {
       lines = 0;
     }
     for (size_t j = 1; j < files.at(i).desc.size(); j++) {
-      n->bprintf("                                |07%-47.47s\r\n",files.at(i).desc.at(j).c_str());
+      n->bprintf("                                |07%-46.46s\r\n",files.at(i).desc.at(j).c_str());
       lines++;
       if (lines == n->get_term_height() - 1) {
         n->bprintf("|13MORE |15- |10(Q) Quit or Tag File: ");
