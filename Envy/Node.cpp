@@ -750,6 +750,7 @@ int Node::run(std::string *user, std::string *pass) {
         if (new_user(&tries)) {
           continue;
         }
+        break;
       } else {
         bprintf("PASS: ");
         password = get_str(16, '*');

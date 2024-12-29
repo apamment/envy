@@ -18,7 +18,7 @@ add_subdirectory(jamlib-1.4.7)
 add_executable(envy main.cpp Node.cpp duktape.c Script.cpp User.cpp Logger.cpp MessageBase.cpp FullScreenEditor.cpp Door.cpp Email.cpp FileBase.cpp SshClient.cpp)
 include_directories(${SQLite3_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ${LIBSSH_INCLUDE_DIR} jamlib-1.4.7/include)
 
-if (CMAKE_SYSTEM_NAME MATCHES "FreeBSD") 
+if (CMAKE_SYSTEM_NAME MATCHES "FreeBSD" OR CMAKE_SYSTEM_NAME MATCHES "NetBSD") 
   target_link_libraries (envy ${SQLite3_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY} ${LIBSSH_LIBRARIES} jamlib pthread util)
 else()
   target_link_libraries (envy ${SQLite3_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY} ${LIBSSH_LIBRARIES} jamlib)
